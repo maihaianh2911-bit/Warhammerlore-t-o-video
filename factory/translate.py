@@ -53,11 +53,11 @@ def translate_blocks(blocks):
         allow_patterns=["config.json", "model.bin", "shared_vocabulary.json", "spiece.model"],
     ))
     tokenizer = SentencePieceProcessor(model_file=str(directory / "spiece.model"))
-    inputs = [tokenizer.encode(f"<2de> {block}", out_type=str) for block in blocks]
+    inputs = [tokenizer.encode(f"<2de> {block}", out_type=str, add_eos=True) for block in blocks]
     translator = Translator(str(directory), device="cpu", compute_type="int8", intra_threads=4)
     results = translator.translate_batch(
         inputs, batch_type="tokens", max_batch_size=768,
-        beam_size=3, max_decoding_length=600, no_repeat_ngram_size=4,
+        beam_size=1, max_decoding_length=600,
     )
     return [tokenizer.decode(result.hypotheses[0]).strip() for result in results]
 

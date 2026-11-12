@@ -91,6 +91,7 @@ jobs:
           "$RUNNER_TEMP/factory/bin/python" -m factory.translate --title 'Ai xuất hiện trong đoạn mở đầu?' \
             --script examples/translation-smoke.txt --out "$RUNNER_TEMP/translated"
           "$RUNNER_TEMP/factory/bin/python" -c 'import sys; from pathlib import Path; from factory.translate import language_of; sys.exit(language_of(Path(sys.argv[1]).read_text()) != "de")' "$RUNNER_TEMP/translated/script.txt"
+          "$RUNNER_TEMP/factory/bin/python" -c 'import re, sys; from pathlib import Path; count = lambda path: len(re.findall(r"[.!?](?:\s|$)", Path(path).read_text())); sys.exit(count(sys.argv[1]) != count(sys.argv[2]))' examples/translation-smoke.txt "$RUNNER_TEMP/translated/script.txt"
           for name in Slaanesh Tzeentch Nurgle Khorne; do
             grep -qiF "$name" "$RUNNER_TEMP/translated/script.txt"
           done
