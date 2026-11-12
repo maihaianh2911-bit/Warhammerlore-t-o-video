@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch
 
-from factory.translate import MAX_BLOCK_CHARS, paragraph_blocks, prepare
+from factory.translate import MAX_BLOCK_CHARS, paragraph_blocks, prepare, protect_names, restore_names
 
 
 class TranslationTest(unittest.TestCase):
@@ -43,6 +43,14 @@ class TranslationTest(unittest.TestCase):
         parts = paragraph_blocks(paragraph)
         self.assertTrue(all(len(part) <= MAX_BLOCK_CHARS for part in parts))
         self.assertEqual(" ".join(parts), paragraph)
+
+    def test_proper_names_are_restored_only_when_all_markers_are_present(self):
+        text, names = protect_names("Roboute Guilliman trở về Terra.")
+        self.assertEqual(text, "[NAME0] trở về [NAME1].")
+        self.assertEqual(restore_names("[NAME0] kehrt nach [NAME1] zurück.", names),
+                         "Roboute Guilliman kehrt nach Terra zurück.")
+        with self.assertRaisesRegex(ValueError, "Terra"):
+            restore_names("[NAME0] kehrt zurück.", names)
 
     def test_stops_before_narration_if_translation_omits_a_block(self):
         with (
