@@ -1,0 +1,489 @@
+{
+ "images": {
+  "jaws": {
+   "src": "1/2-13.jpg",
+   "credit": "Carcharodons — Zhang Bozi, 40K Gallery https://40k.gallery/carcharodons-2/",
+   "crop": [
+    0,
+    0,
+    1,
+    0.9
+   ]
+  },
+  "face": {
+   "src": "1/6-3.jpg",
+   "credit": "Tyberos \"The Red Wake\" — galgannet, ArtStation",
+   "crop": [
+    0,
+    0,
+    1,
+    0.95
+   ]
+  },
+  "mystery": {
+   "src": "1/2-10.jpg",
+   "credit": "carcharodon 4, 40K Gallery https://40k.gallery/carcharodon-4/"
+  },
+  "ravenguard": {
+   "src": "1/14-6.jpg",
+   "credit": "raven guard — zhanghan, ArtStation",
+   "crop": [
+    0,
+    0.06,
+    1,
+    1
+   ]
+  },
+  "nightlords": {
+   "src": "1/15-8.jpg",
+   "credit": "Sevatar, VIIIth Legion Night Lords — diegogisbert, ArtStation"
+  },
+  "bridge": {
+   "src": "1/8-3.jpg",
+   "credit": "war for badab, 40K Gallery https://40k.gallery/war-for-badab/",
+   "crop": [
+    0,
+    0.03,
+    1,
+    0.97
+   ]
+  },
+  "outerdark": {
+   "src": "1/1-3.jpg",
+   "credit": "Carcharodons-Outer Dark — diegogisbert, ArtStation"
+  },
+  "ambush": {
+   "src": "1/2-2.jpg",
+   "credit": "Ambush — Makura Tomoana, 40K Gallery https://40k.gallery/ambush-10/"
+  },
+  "redwake": {
+   "src": "1/5-4.jpg",
+   "credit": "The Red Wake — Mykyta Vasilchuk, 40K Gallery https://40k.gallery/the-red-wake-3/"
+  },
+  "purge": {
+   "src": "1/5-2.jpg",
+   "credit": "Purge — Zhang Bozi, 40K Gallery https://40k.gallery/purge-3/",
+   "crop": [
+    0,
+    0,
+    1,
+    0.9
+   ]
+  },
+  "badab": {
+   "src": "1/2-3.jpg",
+   "credit": "Badab War — Zhang Bozi, 40K Gallery https://40k.gallery/badab-war/"
+  },
+  "lamenters": {
+   "src": "1/12-8.jpg",
+   "credit": "lamenters 9, 40K Gallery https://40k.gallery/lamenters-9/"
+  },
+  "claws": {
+   "src": "1/6-8.jpg",
+   "credit": "Tyberos The Red Wake - Warhammer 40k — facundomileo, ArtStation"
+  },
+  "surprise": {
+   "src": "1/2-1.jpg",
+   "credit": "A Surprise Attack — Zhi Chen, 40K Gallery https://40k.gallery/a-surprise-attack/"
+  },
+  "tyberos": {
+   "src": "1/6-5.jpg",
+   "credit": "Tyberos the Red Wake. — onearmedwolf, ArtStation"
+  },
+  "gensaat": {
+   "src": "1/5-7.jpg",
+   "credit": "Tyberos — Christopher Regalario, 40K Gallery https://40k.gallery/tyberos-4/"
+  },
+  "tithe": {
+   "src": "1/2-6.jpg",
+   "credit": "Carcharadons Red Tithe — Diego Gisbert Llorens, 40K Gallery https://40k.gallery/black-library-carcharadons-red-tithe/"
+  },
+  "mantis": {
+   "src": "1/10-2.jpg",
+   "credit": "mantis warriors 2, 40K Gallery https://40k.gallery/mantis-warriors-2/",
+   "crop": [
+    0,
+    0,
+    1,
+    0.93
+   ]
+  },
+  "fire": {
+   "src": "1/5-3.jpg",
+   "credit": "Space Marines — Zhang Bozi, 40K Gallery https://40k.gallery/space-marines-15/",
+   "crop": [
+    0,
+    0,
+    1,
+    0.92
+   ]
+  },
+  "crusade": {
+   "src": "1/10-4.jpg",
+   "credit": "mantis warriors chapter, 40K Gallery https://40k.gallery/mantis-warriors-chapter/",
+   "crop": [
+    0,
+    0,
+    0.97,
+    1
+   ]
+  },
+  "leave": {
+   "src": "1/1-11.jpg",
+   "credit": "The Red Wake — niellustrate06, ArtStation",
+   "crop": [
+    0,
+    0,
+    1,
+    0.9
+   ]
+  },
+  "void": {
+   "src": "1/6-2.jpg",
+   "credit": "Void Stares — niellustrate06, ArtStation",
+   "crop": [
+    0,
+    0.08,
+    1,
+    0.95
+   ]
+  }
+ },
+ "shots": [
+  {
+   "img": "jaws",
+   "focus": [
+    0.5,
+    0.3
+   ],
+   "from": [
+    1.15,
+    0.38,
+    0.62
+   ],
+   "zoom": 1.3,
+   "pace": "settle",
+   "kick": 0
+  },
+  {
+   "at": 2,
+   "img": "face",
+   "focus": [
+    0.5,
+    0.48
+   ],
+   "zoom": 1.4,
+   "pace": "surge",
+   "kick": 0.06,
+   "from": [
+    1.0,
+    0.5,
+    0.5
+   ]
+  },
+  {
+   "at": 4,
+   "img": "mystery",
+   "focus": [
+    0.5,
+    0.52
+   ],
+   "zoom": 1.1,
+   "pace": "even",
+   "kick": 0,
+   "from": [
+    1.45,
+    0.52,
+    0.52
+   ]
+  },
+  {
+   "at": 5,
+   "img": "ravenguard",
+   "focus": [
+    0.6,
+    0.3
+   ],
+   "from": [
+    1.05,
+    0.5,
+    0.7
+   ],
+   "zoom": 1.25,
+   "pace": "settle",
+   "kick": 0.03
+  },
+  {
+   "at": 5.6,
+   "img": "nightlords",
+   "focus": [
+    0.52,
+    0.38
+   ],
+   "zoom": 1.3,
+   "pace": "settle",
+   "kick": 0.03,
+   "from": [
+    1.0,
+    0.45,
+    0.6
+   ]
+  },
+  {
+   "at": 6,
+   "img": "bridge",
+   "focus": [
+    0.65,
+    0.4
+   ],
+   "from": [
+    1.0,
+    0.25,
+    0.5
+   ],
+   "zoom": 1.1,
+   "pace": "even",
+   "kick": 0
+  },
+  {
+   "at": 6.44,
+   "img": "outerdark",
+   "focus": [
+    0.72,
+    0.17
+   ],
+   "from": [
+    1.0,
+    0.35,
+    0.6
+   ],
+   "zoom": 1.25,
+   "pace": "settle",
+   "kick": 0.03
+  },
+  {
+   "at": 7,
+   "img": "ambush",
+   "focus": [
+    0.5,
+    0.4
+   ],
+   "move": "rise",
+   "zoom": 1.15,
+   "pace": "surge",
+   "kick": 0.03
+  },
+  {
+   "at": 8,
+   "img": "redwake",
+   "focus": [
+    0.5,
+    0.33
+   ],
+   "zoom": 1.35,
+   "pace": "surge",
+   "kick": 0.08,
+   "from": [
+    1.0,
+    0.5,
+    0.55
+   ]
+  },
+  {
+   "at": 9,
+   "img": "purge",
+   "focus": [
+    0.36,
+    0.2
+   ],
+   "from": [
+    1.0,
+    0.7,
+    0.5
+   ],
+   "zoom": 1.2,
+   "pace": "even",
+   "kick": 0
+  },
+  {
+   "at": 9.73,
+   "img": "badab",
+   "focus": [
+    0.82,
+    0.14
+   ],
+   "from": [
+    1.1,
+    0.55,
+    0.4
+   ],
+   "zoom": 1.3,
+   "pace": "settle",
+   "kick": 0.03
+  },
+  {
+   "at": 9.9,
+   "img": "lamenters",
+   "focus": [
+    0.5,
+    0.4
+   ],
+   "move": "push",
+   "zoom": 1.2,
+   "pace": "settle",
+   "kick": 0.03
+  },
+  {
+   "at": 10,
+   "img": "claws",
+   "focus": [
+    0.5,
+    0.22
+   ],
+   "from": [
+    1.2,
+    0.3,
+    0.6
+   ],
+   "zoom": 1.3,
+   "pace": "surge",
+   "kick": 0.08
+  },
+  {
+   "at": 11,
+   "img": "surprise",
+   "focus": [
+    0.5,
+    0.35
+   ],
+   "from": [
+    1.0,
+    0.8,
+    0.5
+   ],
+   "zoom": 1.2,
+   "pace": "settle",
+   "kick": 0.03
+  },
+  {
+   "at": 12,
+   "img": "tyberos",
+   "focus": [
+    0.45,
+    0.32
+   ],
+   "from": [
+    1.2,
+    0.3,
+    0.78
+   ],
+   "zoom": 1.3,
+   "pace": "surge",
+   "kick": 0.06
+  },
+  {
+   "at": 12.55,
+   "img": "gensaat",
+   "focus": [
+    0.45,
+    0.22
+   ],
+   "from": [
+    1.3,
+    0.45,
+    0.55
+   ],
+   "zoom": 1.35,
+   "pace": "settle",
+   "kick": 0.03
+  },
+  {
+   "at": 13,
+   "img": "tithe",
+   "focus": [
+    0.78,
+    0.28
+   ],
+   "from": [
+    1.0,
+    0.3,
+    0.5
+   ],
+   "zoom": 1.2,
+   "pace": "settle",
+   "kick": 0.03
+  },
+  {
+   "at": 13.75,
+   "img": "mantis",
+   "focus": [
+    0.5,
+    0.3
+   ],
+   "move": "push",
+   "zoom": 1.2,
+   "pace": "even",
+   "kick": 0
+  },
+  {
+   "at": 14,
+   "img": "fire",
+   "focus": [
+    0.48,
+    0.25
+   ],
+   "from": [
+    1.2,
+    0.5,
+    0.7
+   ],
+   "zoom": 1.25,
+   "pace": "surge",
+   "kick": 0.08
+  },
+  {
+   "at": 14.5,
+   "img": "crusade",
+   "focus": [
+    0.72,
+    0.35
+   ],
+   "from": [
+    1.0,
+    0.3,
+    0.5
+   ],
+   "zoom": 1.15,
+   "pace": "even",
+   "kick": 0
+  },
+  {
+   "at": 15,
+   "img": "leave",
+   "focus": [
+    0.42,
+    0.3
+   ],
+   "move": "pull",
+   "zoom": 1.25,
+   "pace": "even",
+   "kick": 0
+  },
+  {
+   "at": 16,
+   "img": "void",
+   "focus": [
+    0.5,
+    0.54
+   ],
+   "zoom": 1.0,
+   "pace": "even",
+   "kick": 0,
+   "from": [
+    1.45,
+    0.5,
+    0.56
+   ]
+  }
+ ]
+}
