@@ -11,7 +11,7 @@ from urllib.request import HTTPRedirectHandler, Request, build_opener, urlopen
 
 API_BASE = "https://11labs.id.vn/api/external/v1"
 LANGUAGES = {"de": "German", "vi": "Vietnamese", "en": "English"}
-DEFAULT_VOICE_NAME = "ww40k"
+DEFAULT_VOICE_ID = "clone_611"
 VOICE_ID = re.compile(r"[A-Za-z0-9_-]{3,80}")
 POLL_SECONDS = 4
 TRANSIENT = {429, 500, 502, 503, 504}
@@ -35,10 +35,10 @@ def request_json(path, key, body=None, content_type=None):
         return error.code, {}
 
 
-def list_voices(key, name, provider):
+def saved_clones(key):
     page = 1
     while True:
-        query = urlencode({"q": name, "provider": provider, "page": page, "page_size": 100})
+        query = urlencode({"provider": "clone", "page": page, "page_size": 100})
         try:
             status, data = request_json(f"voices.php?{query}", key)
         except (URLError, TimeoutError, ValueError):
@@ -57,39 +57,9 @@ def list_voices(key, name, provider):
         page = next_page
 
 
-def named_voices(voices, name):
-    exact = set()
-    prefixed = set()
-    for entry in voices:
-        if not isinstance(entry, dict):
-            continue
-        voice_id = entry.get("voice_id")
-        label = entry.get("name")
-        if not isinstance(voice_id, str) or not VOICE_ID.fullmatch(voice_id) or not isinstance(label, str):
-            continue
-        label = label.strip().casefold()
-        if label == name:
-            exact.add(voice_id)
-        elif label.startswith(name):
-            prefixed.add(voice_id)
-    return exact, prefixed
-
-
-def resolve_voice(key, name):
-    lookup = name.strip().casefold()
-    if not lookup:
-        raise ValueError("Thiếu tên giọng VN11.")
-    exact, prefixed = named_voices(list_voices(key, name, "clone"), lookup)
-    if not exact:
-        other_exact, other_prefixed = named_voices(list_voices(key, name, "all"), lookup)
-        exact |= other_exact
-        prefixed |= other_prefixed
-    matches = exact or prefixed
-    if len(matches) == 1:
-        return matches.pop()
-    if matches:
-        raise ValueError(f"Có nhiều giọng VN11 khớp với {name!r}. Đặt VN11_VOICE_NAME theo tên đầy đủ.")
-    raise ValueError(f"Không tìm thấy giọng {name!r} trong tài khoản VN11 của khóa đã đặt.")
+def verify_saved_clone(key, voice):
+    if not any(isinstance(entry, dict) and entry.get("voice_id") == voice for entry in saved_clones(key)):
+        raise ValueError(f"Tài khoản VN11 của khóa đã đặt không có giọng {voice}.")
 
 
 def create_job(text, language, key, voice):
@@ -163,12 +133,9 @@ def save_audio(url, path):
 
 def configuration():
     key = os.environ.get("VN11_API_KEY", "")
-    name = os.environ.get("VN11_VOICE_NAME", "")
-    voice = os.environ.get("VN11_VOICE_ID", "")
+    voice = os.environ.get("VN11_VOICE_ID") or DEFAULT_VOICE_ID
     if not key:
         raise ValueError("Cần secret VN11_API_KEY trong repo 40K.")
-    if name or not voice:
-        return key, resolve_voice(key, name or DEFAULT_VOICE_NAME)
     if not VOICE_ID.fullmatch(voice):
         raise ValueError("VN11_VOICE_ID không hợp lệ.")
     return key, voice
@@ -183,7 +150,8 @@ def synthesize(text, language, scratch, key, voice):
 
 if __name__ == "__main__":
     try:
-        configuration()
+        api_key, selected_voice = configuration()
+        verify_saved_clone(api_key, selected_voice)
     except (RuntimeError, ValueError) as error:
         sys.exit(str(error))
-    print("Đã xác nhận giọng đã chọn trong tài khoản VN11.")
+    print(f"Đã xác nhận giọng {selected_voice} trong tài khoản VN11.")

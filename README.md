@@ -12,7 +12,7 @@ Issue trong repo Public có thể được người khác đọc. Đường dẫ
 
 ## Giọng và cách dựng
 
-Repo 40K mặc định dùng tiếng Đức và giọng đã lưu tên `ww40k` trên VN11. Thêm secret `VN11_API_KEY` trong **Settings → Secrets and variables → Actions** của repo 40K, dùng khóa của tài khoản có giọng đó. Máy tự tìm mã giọng theo tên. Nếu có nhiều tên bắt đầu bằng `ww40k`, đặt biến `VN11_VOICE_NAME` theo tên đầy đủ. Đặt biến `NARRATION_LANGUAGE` thành `en` hoặc `vi` nếu kịch bản cần tiếng Anh hoặc tiếng Việt.
+Repo 40K mặc định dùng tiếng Đức và giọng `ww40k` đã lưu trên VN11 với mã `clone_611`. Thêm secret `VN11_API_KEY` trong **Settings → Secrets and variables → Actions** của repo 40K, dùng khóa của tài khoản có giọng đó. Đặt biến `NARRATION_LANGUAGE` thành `en` hoặc `vi` nếu kịch bản cần tiếng Anh hoặc tiếng Việt.
 
 VN11 đọc cả kịch bản trong một lượt để giữ nhịp. Whisper nghe lại để căn phụ đề theo lời đọc. Gói xuất có thêm `narration.mp3` và `voice-check.json` ghi những đoạn cần nghe lại, kể cả tên riêng mà Whisper có thể nghe nhầm. Nếu Whisper nghe được quá ít lời trùng với kịch bản, lượt dựng dừng để kiểm tra cấu hình giọng.
 
@@ -41,4 +41,4 @@ python3 -m factory.render --title 'Which portrait belongs in the opening?' \
 
 Tệp mẫu chỉ dùng để kiểm tra việc đổi cảnh, giọng và phụ đề. Khi chạy thử trên máy có FFmpeg hỗ trợ libflite, có thể dùng `--voice flite` cho mẫu tiếng Anh.
 
-Để chạy VN11 cục bộ, cài thêm `requirements-voice.txt`, đặt `VN11_API_KEY` và chạy lệnh dựng với `--voice vn11`. Có thể đặt `VN11_VOICE_NAME` để đổi giọng hoặc `VN11_VOICE_ID` để chọn trực tiếp bằng mã.
+Để chạy VN11 cục bộ, cài thêm `requirements-voice.txt`, đặt `VN11_API_KEY` và chạy lệnh dựng với `--voice vn11`. Có thể đặt `VN11_VOICE_ID` cục bộ để dùng mã giọng khác.
