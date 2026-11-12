@@ -2,7 +2,7 @@ name: Dựng video 40K
 
 on:
   issues:
-    types: [opened]
+    types: [opened, reopened]
   workflow_dispatch:
     inputs:
       issue_number:
@@ -95,6 +95,10 @@ jobs:
           server="$(find "$RUNNER_TEMP/llama" -name llama-server -print -quit)"
           test -x "$server"
           dirname "$server" >> "$GITHUB_PATH"
+      - name: Kiểm tra thư viện Whisper
+        run: |
+          "$RUNNER_TEMP/factory/bin/pip" install --disable-pip-version-check -r requirements-voice.txt
+          "$RUNNER_TEMP/factory/bin/python" -c 'from faster_whisper import WhisperModel'
       - name: Dịch và kiểm tra bản dựng mẫu
         if: steps.intake.outputs.issue == ''
         run: |
@@ -132,7 +136,6 @@ jobs:
             echo "::error::Cần secret VN11_API_KEY hoặc VOICE để dùng giọng ww40k."
             exit 1
           fi
-          "$RUNNER_TEMP/factory/bin/pip" install --disable-pip-version-check -r requirements-voice.txt
           language="${NARRATION_LANGUAGE:-de}"
           "$RUNNER_TEMP/factory/bin/python" -m factory.render --title="$(cat "$RUNNER_TEMP/translated/title.txt")" \
             --script "$RUNNER_TEMP/translated/script.txt" --out out --language "$language" --voice vn11

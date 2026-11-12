@@ -10,8 +10,8 @@ def token(text):
 def load_model():
     try:
         from faster_whisper import WhisperModel
-    except ImportError:
-        raise RuntimeError("Cần cài requirements-voice.txt để nghe lại giọng VN11.") from None
+    except ImportError as error:
+        raise RuntimeError(f"Không nạp được Whisper: {error}") from error
     return WhisperModel("small", device="cpu", compute_type="int8")
 
 
