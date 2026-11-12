@@ -95,6 +95,10 @@ def load_picks(path: Path, line_count):
         if "img" in shot and (focus is None or not ("move" in shot or "from" in shot)):
             raise ValueError(f"Cảnh {number}: mỗi ảnh cần focus (trọng tâm nhân vật) và cách đi máy do bạn chọn "
                              "cho cảnh đó (move hoặc from).")
+        start = shot.get("from")
+        if start is not None and not (isinstance(start, list) and len(start) == 3
+                                      and 1 <= start[0] <= 2.3 and 0 <= start[1] <= 1 and 0 <= start[2] <= 1):
+            raise ValueError(f"Cảnh {number}: from là [zoom 1–2.3, x 0–1, y 0–1].")
         if shot.get("pace") not in (None, "settle", "even", "surge"):
             raise ValueError(f"Cảnh {number}: pace là settle, even hoặc surge.")
         kick = shot.get("kick")
@@ -105,15 +109,19 @@ def load_picks(path: Path, line_count):
         if (not isinstance(via, list) or len(times) != len(via) or times != sorted(set(times))
                 or any(not (0 < t < 1 and 1 <= zoom <= 2.3 and 0 <= x <= 1 and 0 <= y <= 1) for t, zoom, x, y in via)):
             raise ValueError(f"Cảnh {number}: via là danh sách [thời điểm 0–1, zoom, x, y] theo thứ tự thời gian.")
+        if focus is not None:
+            # the camera may curve, but never doubles back: going right and then left again is unpleasant to watch
+            path = ([start[1:]] if start is not None else []) + [key[2:] for key in via] + [focus]
+            for axis in (0, 1):
+                steps = [b[axis] - a[axis] for a, b in zip(path, path[1:]) if abs(b[axis] - a[axis]) > 0.03]
+                if any(first * second < 0 for first, second in zip(steps, steps[1:])):
+                    raise ValueError(f"Cảnh {number}: máy đổi hướng giữa chừng (đi qua rồi quay lại). "
+                                     "Mỗi cảnh chỉ đi một hướng tới focus.")
         zoom = shot.get("zoom")
         if zoom is not None and not (isinstance(zoom, (int, float)) and 1 <= zoom <= 2.3):
             raise ValueError(f"Cảnh {number}: zoom từ 1 đến 2.3.")
         if shot.get("move") not in (None, *MOVES):
             raise ValueError(f"Cảnh {number}: move là một trong {', '.join(MOVES)}.")
-        start = shot.get("from")
-        if start is not None and not (isinstance(start, list) and len(start) == 3
-                                      and 1 <= start[0] <= 2.3 and 0 <= start[1] <= 1 and 0 <= start[2] <= 1):
-            raise ValueError(f"Cảnh {number}: from là [zoom 1–2.3, x 0–1, y 0–1].")
         if "to" in shot:
             raise ValueError(f"Cảnh {number}: không đặt to; cảnh luôn kết thúc ở focus (trọng tâm nhân vật).")
     return images, shots

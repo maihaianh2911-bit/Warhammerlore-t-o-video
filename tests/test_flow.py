@@ -36,7 +36,7 @@ class PicksTest(unittest.TestCase):
     def test_accepts_pictures_and_backgrounds(self):
         picks = {"images": {**self.images, "b": {"src": "art/b.jpg", "credit": "B"}},
                  "shots": [{"img": "b", "focus": [0.6, 0.3], "move": "pull", "pace": "even"},
-                           {"at": 2.5, "img": "a", "focus": [0.5, 0.2], "from": [1.2, 0.5, 0.9], "via": [[0.4, 1.1, 0.3, 0.5]], "zoom": 1.3},
+                           {"at": 2.5, "img": "a", "focus": [0.5, 0.2], "from": [1.2, 0.5, 0.9], "via": [[0.4, 1.1, 0.5, 0.5]], "zoom": 1.3},
                            {"at": 3, "theme": "rift"}]}
         self.assertEqual(len(load_picks(write(picks), 3)[1]), 3)
 
@@ -45,6 +45,7 @@ class PicksTest(unittest.TestCase):
             "credit": {"images": {"a": {"src": "issue/1.jpg"}}, "shots": [{"img": "a"}]},
             "chưa khai báo": {"images": self.images, "shots": [{"img": "missing"}]},
             "cách đi máy": {"images": self.images, "shots": [{"img": "a", "focus": [0.5, 0.3]}]},
+            "đổi hướng": {"images": self.images, "shots": [{"img": "a", "focus": [0.5, 0.3], "from": [1.0, 0.2, 0.5], "via": [[0.5, 1.0, 0.8, 0.5]]}]},
             "via": {"images": self.images, "shots": [{"img": "a", "focus": [0.5, 0.3], "move": "push", "via": [[0.6, 1.2, 0.5, 0.5], [0.3, 1.2, 0.5, 0.5]]}]},
             "tăng dần": {"images": self.images, "shots": [{"theme": "rift"}, {"at": 3, "theme": "rift"}, {"at": 2, "theme": "rift"}]},
             "từ 1 đến 3": {"images": self.images, "shots": [{"theme": "rift"}, {"at": 4, "theme": "rift"}]},

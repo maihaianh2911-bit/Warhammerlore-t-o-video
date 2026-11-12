@@ -27,7 +27,7 @@ PICKS = {
     },
     "shots": [
         {"img": "orbit", "focus": [0.7, 0.3], "move": "push", "pace": "even", "kick": 0},
-        {"at": 2, "img": "rift", "focus": [0.5, 0.3], "from": [1.3, 0.5, 0.9], "via": [[0.5, 1.2, 0.2, 0.6]], "zoom": 1.15},
+        {"at": 2, "img": "rift", "focus": [0.5, 0.3], "from": [1.3, 0.5, 0.9], "via": [[0.5, 1.2, 0.5, 0.6]], "zoom": 1.15},
         {"at": 3, "img": "orbit", "focus": [0.4, 0.5], "move": "from-right", "pace": "surge", "kick": 0.08},
         {"at": 4, "theme": "inferno"},
     ],

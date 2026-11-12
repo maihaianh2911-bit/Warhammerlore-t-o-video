@@ -156,6 +156,10 @@ Commit `[lore #<N>] kịch bản`, push, remove `lore-busy`. (Voice ~5–10 min;
        steady drift (calm exposition, long establishing shots); `surge` starts quietly and gathers speed into the
        subject (a reveal, a charge, the last word of a threat). `kick` 0–0.12 is the small extra push a cut lands
        with: 0 for quiet lines, 0.03 usual, 0.06–0.1 when the line hits (a blow, a name revealed, a betrayal).
+     - One direction per shot (owner, 12/11, on a shot that swept right across both wings and then back left to
+       the face: "very unpleasant to watch"). The camera may curve through `via`, but it never doubles back on
+       itself, sideways or up and down; the renderer refuses a path that does. To show two things and then the
+       face, choose a start from which they lie on the way (wing tip → shoulder → face), or use two shots.
      - Direction follows the picture: travel along the way a figure looks, charges or points, up a towering
        figure or spire, down from a banner or a sky to the one beneath it, across a battle line.
      - Rhythm across the video: do not repeat one move shot after shot; let a run of quiet shots be followed by
