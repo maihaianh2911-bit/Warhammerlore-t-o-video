@@ -25,22 +25,9 @@ def language_of(text):
 
 
 def paragraph_blocks(paragraph):
-    if len(paragraph) <= MAX_BLOCK_CHARS:
-        return [paragraph]
     sentences = re.split(r"(?<=[.!?…])\s+", paragraph)
-    blocks = []
-    pending = ""
-    for sentence in sentences:
-        for part in textwrap.wrap(sentence, width=MAX_BLOCK_CHARS, break_on_hyphens=False):
-            candidate = f"{pending} {part}".strip()
-            if len(candidate) > MAX_BLOCK_CHARS:
-                blocks.append(pending)
-                pending = part
-            else:
-                pending = candidate
-    if pending:
-        blocks.append(pending)
-    return blocks
+    return [part for sentence in sentences
+            for part in textwrap.wrap(sentence, width=MAX_BLOCK_CHARS, break_on_hyphens=False)]
 
 
 def translate_blocks(blocks):
@@ -57,7 +44,7 @@ def translate_blocks(blocks):
     translator = Translator(str(directory), device="cpu", compute_type="int8", intra_threads=4)
     results = translator.translate_batch(
         inputs, batch_type="tokens", max_batch_size=768,
-        beam_size=1, max_decoding_length=600,
+        beam_size=1, repetition_penalty=1.15, max_decoding_length=600,
     )
     return [tokenizer.decode(result.hypotheses[0]).strip() for result in results]
 
