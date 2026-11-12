@@ -45,11 +45,11 @@ jobs:
         if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.issue_number == '')
         shell: bash
         env:
-          VN11_API_KEY: ${{ secrets.VN11_API_KEY }}
+          VN11_API_KEY: ${{ secrets.VN11_API_KEY || secrets.VOICE }}
         run: |
           if [[ -z "$VN11_API_KEY" ]]; then
-            echo "::notice::Repo 40K chưa có secret VN11_API_KEY."
-            echo "Chưa xác nhận giọng ww40k vì thiếu secret VN11_API_KEY." >> "$GITHUB_STEP_SUMMARY"
+            echo "::notice::Repo 40K chưa có secret VN11_API_KEY hoặc VOICE."
+            echo "Chưa xác nhận giọng ww40k vì thiếu secret VN11_API_KEY hoặc VOICE." >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
           python3 -m factory.vn11 | tee -a "$GITHUB_STEP_SUMMARY"
@@ -93,11 +93,11 @@ jobs:
       - name: Dựng kịch bản đã duyệt
         if: steps.intake.outputs.issue != ''
         env:
-          VN11_API_KEY: ${{ secrets.VN11_API_KEY }}
+          VN11_API_KEY: ${{ secrets.VN11_API_KEY || secrets.VOICE }}
           NARRATION_LANGUAGE: ${{ vars.NARRATION_LANGUAGE }}
         run: |
           if [[ -z "$VN11_API_KEY" ]]; then
-            echo "::error::Cần secret VN11_API_KEY để dùng giọng ww40k."
+            echo "::error::Cần secret VN11_API_KEY hoặc VOICE để dùng giọng ww40k."
             exit 1
           fi
           "$RUNNER_TEMP/factory/bin/pip" install --disable-pip-version-check -r requirements-voice.txt
