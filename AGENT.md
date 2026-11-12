@@ -69,7 +69,9 @@ Read the issue form (Kịch bản, Hình riêng, Ghi chú) and the owner's comme
   the owner's words exactly, only split into lines.
 - Names stay in their canonical form (Roboute Guilliman, Carcharodons, Tyberos the Red Wake, Cicatrix Maledictum).
   Usual German terms: cá mập không gian = Weltraumhaie, mầm gen = Gensaat, thập tự chinh đền tội = Bußkreuzzug,
-  quân đoàn = Legion, Chiến tranh Badab = Badab-Krieg, thiên niên kỷ 41 = 41. Jahrtausend.
+  Chiến tranh Badab = Badab-Krieg, thiên niên kỷ 41 = 41. Jahrtausend. "Quân đoàn" is the Vietnamese word for
+  both: a Space Marine chapter (Carcharodons, Mantis Warriors, Ultramarines today) = Orden; one of the 18/20
+  First-Founding legions of the Great Crusade and Horus Heresy (or a Traitor Legion) = Legion.
 - `title`: the issue title in German, short (it is the red hook over the first two seconds, ≤ ~60 characters).
 - `queries`: 10–18 picture searches, at least one for every character, faction, ship, world and event the
   script names. Three kinds:
