@@ -71,10 +71,11 @@ jobs:
         if: steps.intake.outputs.issue == ''
         run: |
           "$RUNNER_TEMP/factory/bin/python" -m unittest discover -s tests -v
-          "$RUNNER_TEMP/factory/bin/python" -m factory.render --title 'Warhammer 40,000' \
+          "$RUNNER_TEMP/factory/bin/python" -m factory.render --title 'Which portrait belongs in the opening?' \
             --script examples/smoke.txt --out out --language en --voice espeak --size preview
           test -s out/video.mp4
           test -s out/subtitles.srt
+          jq -e '.scenes[1].layout == "horizontal_pan"' out/scenes.json
           ffprobe -v error -show_entries stream=codec_type,width,height -of json out/video.mp4
       - name: Dựng kịch bản đã duyệt
         if: steps.intake.outputs.issue != ''

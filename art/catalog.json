@@ -1,6 +1,26 @@
 {
   "subjects": [
     {
+      "name": "Slaanesh",
+      "aliases": ["prince of pleasure"],
+      "theme": "rift"
+    },
+    {
+      "name": "Tzeentch",
+      "aliases": ["changer of ways"],
+      "theme": "orbit"
+    },
+    {
+      "name": "Nurgle",
+      "aliases": ["father of plagues", "cha đẻ dịch bệnh"],
+      "theme": "decay"
+    },
+    {
+      "name": "Khorne",
+      "aliases": ["blood god", "huyết thần"],
+      "theme": "inferno"
+    },
+    {
       "name": "Roboute Guilliman",
       "aliases": ["roboute", "guilliman"],
       "gallery": "https://40k.gallery/tag/roboute-guilliman/",

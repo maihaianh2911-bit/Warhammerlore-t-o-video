@@ -2,7 +2,7 @@ import unittest
 
 from factory.art import choose_art, load_catalog
 from factory.intake import read_issue
-from factory.script import caption_spans, make_cues, make_shots
+from factory.script import caption_lines, caption_spans, make_cues, make_shots
 
 
 class PipelineTest(unittest.TestCase):
@@ -24,7 +24,14 @@ class PipelineTest(unittest.TestCase):
         frames = round(ends[-1] * 30)
         shots = make_shots(cues, frames, 30)
         self.assertEqual((shots[0].start_frame, shots[-1].end_frame), (0, frames))
+        self.assertEqual(shots[0].end_frame, 66)
         self.assertTrue(all(a.end_frame == b.start_frame for a, b in zip(shots, shots[1:])))
+
+    def test_subtitles_keep_words_within_two_lines(self):
+        text = "Tzeentch đổi hình hài. Mọi kế hoạch vẫn tiếp tục."
+        lines = caption_lines(text)
+        self.assertLessEqual(len(lines), 2)
+        self.assertEqual(" ".join(lines), text)
 
     def test_art_respects_era_and_keeps_gallery_links(self):
         catalog = load_catalog()
@@ -36,3 +43,7 @@ class PipelineTest(unittest.TestCase):
         self.assertEqual(theme, "orbit")
         self.assertEqual(references[0]["url"], "https://40k.gallery/tag/roboute-guilliman/")
         self.assertEqual([item["source"] for item in pictures], ["https://example.com/40k"])
+        _, _, inherited = choose_art(catalog, "He returned to his fleet.", None, 1, "Guilliman after the Great Rift")
+        self.assertEqual(inherited, pictures)
+        _, _, new_subject = choose_art(catalog, "Terra came into view.", None, 2, "Guilliman after the Great Rift")
+        self.assertEqual(new_subject, [])

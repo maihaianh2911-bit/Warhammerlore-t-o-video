@@ -1,5 +1,7 @@
-Roboute Guilliman. Ultramarines. This is a test of the narration and the opening shot.
+Which portrait belongs in the opening? Slaanesh appears first, lit in purple.
 
-The Great Rift. This part checks that the picture changes as the narration continues.
+Tzeentch follows in blue. The picture slides before the next voice cue.
 
-Terra. The last line checks the subtitle and the sound at the end of the video.
+Nurgle enters in green. A slow push brings the shape closer to the viewer.
+
+Khorne closes in red. The subtitle stays on screen long enough to read.

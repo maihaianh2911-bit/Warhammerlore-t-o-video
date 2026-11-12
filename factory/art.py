@@ -7,7 +7,7 @@ from pathlib import Path
 from urllib.parse import urlencode, urlsplit
 from urllib.request import Request, urlopen
 
-from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageFont, ImageOps
+from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageOps
 
 
 ART_ROOT = Path(__file__).resolve().parent.parent / "art"
@@ -15,9 +15,11 @@ CATALOG_PATH = ART_ROOT / "catalog.json"
 MAX_IMAGE_BYTES = 16 * 1024 * 1024
 
 PALETTES = {
-    "orbit": ((6, 14, 21), (29, 72, 79), (146, 198, 186)),
-    "archive": ((14, 13, 19), (77, 46, 41), (214, 153, 119)),
-    "rift": ((14, 9, 24), (66, 33, 81), (198, 142, 205)),
+    "orbit": ((5, 11, 26), (21, 83, 137), (144, 220, 246)),
+    "archive": ((17, 9, 9), (104, 52, 30), (240, 177, 119)),
+    "rift": ((18, 6, 26), (108, 32, 114), (239, 144, 226)),
+    "decay": ((13, 16, 6), (75, 103, 22), (198, 220, 109)),
+    "inferno": ((22, 4, 6), (137, 26, 16), (255, 119, 73)),
 }
 
 
@@ -29,11 +31,17 @@ def load_catalog():
     return json.loads(CATALOG_PATH.read_text(encoding="utf-8"))
 
 
-def choose_art(catalog, text, previous, index):
-    terms = [
+def mentioned_subjects(catalog, text):
+    return [
         subject for subject in catalog["subjects"]
         if any(matches(text, term) for term in [subject["name"], *subject.get("aliases", [])])
     ]
+
+
+def choose_art(catalog, text, previous, index, context=""):
+    terms = mentioned_subjects(catalog, text)
+    inherited = mentioned_subjects(catalog, context) if not terms else []
+    terms = terms or inherited
     theme = terms[0]["theme"] if terms else ["orbit", "archive", "rift"][index % 3]
     references = []
     for subject in terms:
@@ -44,6 +52,13 @@ def choose_art(catalog, text, previous, index):
     if not references:
         references.append({"subject": "Tìm theo lời đọc", "url": gallery_search(text[:110])})
 
+    candidates = matching_assets(catalog, text, previous)
+    if not candidates and inherited:
+        candidates = matching_assets(catalog, context, previous)
+    return theme, references, candidates
+
+
+def matching_assets(catalog, text, previous):
     candidates = []
     for asset in catalog["assets"]:
         score = sum(matches(text, term) for term in asset["keywords"])
@@ -52,7 +67,7 @@ def choose_art(catalog, text, previous, index):
         if score and (not required or any(matches(text, term) for term in required)):
             candidates.append((score, asset["source"] != previous, asset["source"], asset))
     candidates.sort(key=lambda item: (-item[0], not item[1], item[2]))
-    return theme, references, [asset for _, _, _, asset in candidates]
+    return [asset for _, _, _, asset in candidates]
 
 
 def gallery_search(query):
@@ -90,16 +105,23 @@ def read_picture(asset):
 
 
 def fit_picture(image, size, focal=(0.5, 0.42)):
+    return ImageOps.fit(image, size, Image.Resampling.LANCZOS, centering=focal)
+
+
+def opening_collage(pictures, size):
     width, height = size
-    if image.width / image.height < 0.8:
-        return ImageOps.fit(image, size, Image.Resampling.LANCZOS, centering=focal)
-    backdrop = ImageOps.fit(image, size, Image.Resampling.LANCZOS, centering=focal)
-    backdrop = Image.blend(backdrop.filter(ImageFilter.GaussianBlur(width / 18)), Image.new("RGB", size), 0.68)
-    foreground = ImageOps.contain(image, (int(width * 0.96), int(height * 0.66)), Image.Resampling.LANCZOS)
-    x = (width - foreground.width) // 2
-    y = int(height * 0.43 - foreground.height / 2)
-    backdrop.paste(foreground, (x, y))
-    return backdrop
+    montage = Image.new("RGB", size)
+    for index, picture in enumerate(pictures):
+        left = round(width * index / len(pictures))
+        right = round(width * (index + 1) / len(pictures))
+        montage.paste(fit_picture(picture, (right - left, height), (0.5, 0.5)), (left, 0))
+        if index:
+            ImageDraw.Draw(montage).line((left, 0, left, height), fill=(14, 10, 14), width=max(1, width // 380))
+    return montage
+
+
+def grade_frame(image):
+    return ImageEnhance.Color(ImageEnhance.Contrast(image).enhance(1.06)).enhance(1.12)
 
 
 def atmosphere(size, theme, seed):
@@ -132,7 +154,7 @@ def atmosphere(size, theme, seed):
     radius = round(width * 0.32)
     if theme == "orbit":
         paint_orbit(image, x, y, radius, dark, glow, light, seed)
-    elif theme == "archive":
+    elif theme in ("archive", "decay"):
         paint_archive(image, x, y, radius, dark, glow, light)
     else:
         paint_rift(image, x, y, radius, light, rng)
@@ -209,36 +231,3 @@ def paint_rift(image, x, y, radius, light, rng):
         core.line([point, ((px + tail[0]) / 2 + 8, (py + tail[1]) / 2), tail], fill=light, width=1)
 
 
-def title_font(size):
-    path = "/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf"
-    return ImageFont.truetype(path, size)
-
-
-def dress_frame(image, title):
-    width, height = image.size
-    gradient = Image.new("L", (1, height))
-    gradient.putdata([round(max(0.36 * (1 - y / (height * 0.32)), 0.91 * ((y / height) ** 3.8)) * 255)
-                      for y in range(height)])
-    image.paste((4, 8, 13), (0, 0), gradient.resize(image.size))
-    if not title:
-        return
-    draw = ImageDraw.Draw(image)
-    left = round(width * 0.10)
-    y = round(height * 0.54)
-    font = title_font(round(width * 0.074))
-    lines = [""]
-    for word in title.split():
-        candidate = f"{lines[-1]} {word}".strip()
-        if lines[-1] and draw.textlength(candidate, font=font) > width * 0.80:
-            lines.append(word)
-        else:
-            lines[-1] = candidate
-    if len(lines) > 3:
-        lines = lines[:3]
-        lines[-1] = lines[-1].rstrip("…") + "…"
-    draw.line((left, y - width * 0.037, left + width * 0.12, y - width * 0.037), fill=(142, 187, 176), width=2)
-    for line in lines:
-        while line and draw.textlength(line, font=font) > width * 0.80:
-            line = line[:-2] + "…" if len(line) > 2 else ""
-        draw.text((left, y), line, fill=(239, 234, 225), font=font, stroke_width=1, stroke_fill=(6, 11, 17))
-        y += round(width * 0.09)

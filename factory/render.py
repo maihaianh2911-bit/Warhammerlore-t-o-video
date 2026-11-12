@@ -5,17 +5,26 @@ import os
 import shutil
 import subprocess
 import tempfile
+from itertools import chain, islice
 from pathlib import Path
 
 from PIL import Image
 
-from .art import atmosphere, choose_art, dress_frame, fit_picture, load_catalog, read_picture
-from .script import make_cues, make_shots, read_script, write_subtitles
+from .art import (
+    atmosphere, choose_art, fit_picture, grade_frame, load_catalog, mentioned_subjects, opening_collage, read_picture,
+)
+from .script import make_cues, make_shots, opening_frames, read_script, write_subtitles
 from .voice import audio_duration, elevenlabs, preview_voice
 
 
 FPS = 30
 SIZES = {"preview": (720, 1280), "full": (1080, 1920)}
+CAMERA_MOVES = (
+    ((1.06, 0.12, 0.36), (1.19, 0.85, 0.49)),
+    ((1.07, 0.25, 0.44), (1.22, 0.58, 0.31)),
+    ((1.21, 0.75, 0.38), (1.08, 0.38, 0.52)),
+    ((1.13, 0.85, 0.46), (1.19, 0.17, 0.51)),
+)
 
 
 def ffmpeg(scratch, *arguments):
@@ -25,22 +34,49 @@ def ffmpeg(scratch, *arguments):
     )
 
 
-def animate(still, clip, frames, size, index, scratch):
+def animate(still, clip, frames, size, move, previous_end, scratch, strip=False):
     width, height = size
-    progress = f"on/{max(1, frames - 1)}"
-    zoom = f"1.015+0.05*{progress}" if index % 2 == 0 else f"1.065-0.05*{progress}"
-    filter_graph = (
+    progress = f"(on/{max(1, frames - 1)})"
+    start, end = move
+    zoom, x, y = [f"{a}+({b - a})*{progress}" for a, b in zip(start, end)]
+    camera = (
         f"scale={width * 2}:{height * 2},"
-        f"zoompan=z='{zoom}':x='iw/2-iw/zoom/2':y='ih/2-ih/zoom/2':"
+        f"zoompan=z='{zoom}':x='(iw-iw/zoom)*({x})':y='(ih-ih/zoom)*({y})':"
         f"d={frames}:s={width}x{height}:fps={FPS},format=yuv420p"
     )
-    ffmpeg(scratch, "-filter_threads", "1", "-i", still.name, "-vf", filter_graph,
+    if strip:
+        strip_progress = f"min(n/{max(1, frames - 1)},1)"
+        camera = f"crop={width}:{height}:x='(iw-ow)*{strip_progress}':y=0,format=yuv420p"
+    transition = min(6, frames - 1)
+    if previous_end is not None and transition > 0:
+        overlay = (
+            f"[0:v]{camera}[picture];"
+            f"[1:v]format=yuva420p,fade=t=out:s=0:n={transition}:alpha=1[previous];"
+            "[picture][previous]overlay=eof_action=pass[out]"
+        )
+        filters = [
+            "-loop", "1", "-framerate", str(FPS), "-t", f"{(transition + 1) / FPS:.6f}",
+            "-i", previous_end.name, "-filter_complex", overlay, "-map", "[out]",
+        ]
+    else:
+        filters = ["-vf", camera]
+    source = ["-loop", "1", "-framerate", str(FPS)] if strip else []
+    ffmpeg(scratch, "-filter_threads", "1", "-filter_complex_threads", "1", *source, "-i", still.name, *filters,
            "-frames:v", str(frames), "-c:v", "libx264", "-threads", "3",
            "-preset", "veryfast", "-crf", "16", "-an", clip.name)
 
 
-def build_picture(catalog, shot, size, previous, index, cache):
-    theme, references, assets = choose_art(catalog, shot.text, previous, index)
+def camera_end(image, position):
+    zoom, x, y = position
+    width, height = image.size
+    crop_width, crop_height = width / zoom, height / zoom
+    left = (width - crop_width) * x
+    top = (height - crop_height) * y
+    return image.resize(image.size, Image.Resampling.LANCZOS, box=(left, top, left + crop_width, top + crop_height))
+
+
+def build_picture(catalog, shot, size, previous, index, cache, context):
+    theme, references, assets = choose_art(catalog, shot.text, previous, index, context)
     errors = []
     for asset in assets:
         source = asset["source"]
@@ -57,16 +93,54 @@ def build_picture(catalog, shot, size, previous, index, cache):
     return picture, {"theme": theme, "art": None, "references": references, "unavailable": errors}
 
 
+def shot_pictures(catalog, shots, size):
+    previous = None
+    context = ""
+    cache = {}
+    for index, shot in enumerate(shots):
+        picture, details = build_picture(catalog, shot, size, previous, index, cache, context)
+        if mentioned_subjects(catalog, shot.text):
+            context = shot.text
+        previous = details["art"]["source"] if details["art"] else None
+        yield picture, details
+
+
+def opening_sequence(candidates, size):
+    _, first = candidates[0]
+    artwork = {}
+    backgrounds = {}
+    for candidate, details in candidates:
+        if details["art"]:
+            artwork.setdefault(details["art"]["source"], (candidate, details))
+        else:
+            backgrounds.setdefault(details["theme"], (candidate, details))
+    selected = list((artwork or backgrounds).values())
+    if len(selected) == 1:
+        return [selected[0]]
+    pictures, details = zip(*selected)
+    credits = [item["art"] for item in details if item["art"]]
+    references = {reference["url"]: reference for item in details for reference in item["references"]}
+    montage_details = {
+        "theme": first["theme"], "art": credits[0] if credits else None, "additional_art": credits[1:],
+        "references": list(references.values()), "unavailable": first["unavailable"],
+    }
+    width, height = size
+    return [
+        (opening_collage(pictures, size), montage_details),
+        (opening_collage(pictures, (width * 2, height)), montage_details),
+    ]
+
+
 def write_credits(scenes, path):
     lines = ["# Nguồn hình", ""]
     for scene in scenes:
         lines.append(f"## {scene['start']:.1f}–{scene['end']:.1f}s")
         lines.append("")
-        credit = scene["art"]
-        if credit:
+        credits = ([scene["art"]] if scene["art"] else []) + scene.get("additional_art", [])
+        for credit in credits:
             lines.append(f"- Hình đã dùng: {credit['title']} — {credit['artist']}.")
             lines.append(f"- Nguồn và quyền sử dụng: {credit['source']} · {credit['rights']}")
-        else:
+        if not credits:
             lines.append("- Hình đã dùng: đồ họa nền tạo bằng mã của repo.")
         for reference in scene["references"]:
             lines.append(f"- Tham khảo {reference['subject']}: {reference['url']}")
@@ -116,34 +190,46 @@ def render(args):
         duration = audio_duration(audio)
         frames = math.ceil(duration * FPS)
         cues = make_cues(text, starts, ends, duration)
-        shots = make_shots(cues, frames, FPS)
-        write_subtitles(cues, stage / "subtitles.srt", scratch / "subtitles.ass")
+        def subjects(line):
+            return {subject["name"] for subject in mentioned_subjects(catalog, line)}
+
+        shots = make_shots(cues, frames, FPS, subjects)
+        write_subtitles(cues, stage / "subtitles.srt", scratch / "subtitles.ass",
+                        args.title, opening_frames(frames, FPS) / FPS)
 
         scenes = []
         playlist = []
-        previous = None
-        cache = {}
         size = SIZES[args.size]
-        for index, shot in enumerate(shots):
-            picture, details = build_picture(catalog, shot, size, previous, index, cache)
-            previous = details["art"]["source"] if details["art"] else None
-            dress_frame(picture, args.title if index == 0 else None)
+        pictures = shot_pictures(catalog, shots, size)
+        introduction = list(islice(pictures, 3))
+        opening = opening_sequence(introduction, size)
+        pictures = chain(opening, introduction[len(opening):], pictures)
+        previous_end = scratch / "camera-end.png"
+        for index, (shot, (picture, details)) in enumerate(zip(shots, pictures)):
+            picture = grade_frame(picture)
             still = scratch / f"shot-{index:03}.png"
             clip = scratch / f"shot-{index:03}.mp4"
             picture.save(still)
-            if index == 0:
-                picture.save(stage / "cover.jpg", quality=92)
-            animate(still, clip, shot.end_frame - shot.start_frame, size, index, scratch)
+            move = CAMERA_MOVES[index % len(CAMERA_MOVES)]
+            strip = picture.width > size[0]
+            animate(still, clip, shot.end_frame - shot.start_frame, size, move,
+                    previous_end if index else None, scratch, strip=strip)
+            if strip:
+                picture.crop((picture.width - size[0], 0, picture.width, picture.height)).save(previous_end)
+            else:
+                camera_end(picture, move[1]).save(previous_end)
             playlist.append(f"file '{clip.name}'")
             scenes.append({
                 "start": round(shot.start_frame / FPS, 3),
                 "end": round(shot.end_frame / FPS, 3),
                 "text": shot.text,
+                "layout": "horizontal_pan" if strip else "full_frame",
                 **details,
             })
 
         (scratch / "shots.txt").write_text("\n".join(playlist) + "\n", encoding="ascii")
         mux_video(audio, frames, scratch, stage / "video.mp4")
+        ffmpeg(scratch, "-i", str(stage / "video.mp4"), "-frames:v", "1", "-q:v", "2", str(stage / "cover.jpg"))
         write_credits(scenes, stage / "credits.md")
         (stage / "scenes.json").write_text(
             json.dumps({"title": args.title, "voice": args.voice, "scenes": scenes}, ensure_ascii=False, indent=2) + "\n",

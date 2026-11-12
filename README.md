@@ -14,13 +14,13 @@ Issue trong repo Public có thể được người khác đọc. Đường dẫ
 
 Bản đầu mặc định đọc tiếng Việt. Có thể đổi biến Actions `NARRATION_LANGUAGE` sang `en` cho tiếng Anh. Đặt secret `ELEVENLABS_API_KEY` và biến `ELEVENLABS_VOICE_ID` trong Settings → Secrets and variables → Actions để dùng giọng ElevenLabs Flash v2.5. API tạo một lượt đọc liên tục và trả mốc từng ký tự để đặt phụ đề. Khi chưa có cấu hình ElevenLabs, workflow dùng eSpeak NG và ước lượng mốc phụ đề. Giọng eSpeak phù hợp để kiểm tra luồng dựng.
 
-Hình chuyển theo lời đọc, có chuyển động nhẹ, nền trầm và phụ đề ở vùng an toàn của video dọc. Tiêu đề chỉ xuất hiện ở cảnh mở. Video có âm nền tổng hợp nhỏ dưới lời đọc.
+Phong cách dựng theo video tham chiếu do chủ kênh gửi. Cảnh mở khoảng hai giây, đặt câu hook chữ đỏ đậm nghiêng giữa khung. Khi có nhiều hình phù hợp, cảnh mở dùng tranh ghép rồi lia ngang qua dải tranh. Sau đó dùng tranh phủ kín khung dọc, xen kẽ đẩy máy, kéo ra và lia nhẹ. Cảnh đổi theo lời đọc, chuyển hình trong vài khung hình và giữ chủ thể qua các câu tiếp nối. Phụ đề trắng đậm viền đen chia thành từng cụm, tối đa hai dòng. Video có âm nền tổng hợp nhỏ dưới lời đọc.
 
 ## Nguồn hình
 
 `art/catalog.json` chứa tên nhân vật, phe và sự kiện để tìm hình theo từng cảnh. `credits.md` ghi lại các trang tham khảo, bao gồm trang thẻ của 40K Gallery khi có. Muốn dùng một ảnh trong video, thêm vào `assets` ảnh bạn có quyền sử dụng, kèm tên họa sĩ và nguồn. 40K Gallery có thông tin họa sĩ và [điều khoản sử dụng ảnh](https://40k.gallery/image-usage-terms/).
 
-Mỗi ảnh có `title`, `artist`, `source` (trang ghi công), `rights`, `keywords` và một trong `url` (ảnh HTTPS) hoặc `file` (đường dẫn tương đối trong `art/`). `require_any` là nhóm từ khóa bổ sung cho thời kỳ hoặc bối cảnh. Chẳng hạn, ảnh Guilliman thời Horus Heresy có thể ghép `keywords: ["guilliman"]` với `require_any: ["horus heresy", "đại phản loạn"]`.
+Mỗi ảnh có `title`, `artist`, `source` (trang ghi công), `rights`, `keywords` và một trong `url` (ảnh HTTPS) hoặc `file` (đường dẫn tương đối trong `art/`). Đặt `focal: [0.5, 0.42]` để chỉnh vị trí cắt khi ảnh phủ kín màn hình. Hai giá trị từ 0 đến 1 dịch khung cắt theo chiều ngang và chiều dọc. `require_any` là nhóm từ khóa bổ sung cho thời kỳ hoặc bối cảnh. Chẳng hạn, ảnh Guilliman thời Horus Heresy có thể ghép `keywords: ["guilliman"]` với `require_any: ["horus heresy", "đại phản loạn"]`.
 
 Kho ảnh khởi đầu đang trống. Cảnh thiếu ảnh phù hợp sẽ dùng đồ họa quỹ đạo, kiến trúc hoặc khe nứt được tạo trong lúc dựng. Có thể kiểm tra hình đã dùng và liên kết gợi ý theo từng cảnh trong `credits.md` và `scenes.json`.
 
@@ -31,7 +31,7 @@ Cần Python 3.11+, FFmpeg có libass và libx264, eSpeak NG, phông DejaVu và 
 ```sh
 python3 -m pip install -r requirements.txt
 python3 -m unittest discover -s tests -v
-python3 -m factory.render --title 'Warhammer 40,000' \
+python3 -m factory.render --title 'Which portrait belongs in the opening?' \
   --script examples/smoke.txt --language en --voice espeak --size preview --out out/demo
 ```
 
