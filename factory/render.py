@@ -15,7 +15,7 @@ from .art import (
 )
 from .script import make_cues, make_shots, opening_frames, read_script, write_subtitles
 from .voice import audio_duration, elevenlabs, preview_voice
-from .vn11 import configuration as vn11_configuration, synthesize as vn11_synthesize
+from .vn11 import LANGUAGES, configuration as vn11_configuration, synthesize as vn11_synthesize
 from .voice_check import align_words, load_model, transcribe
 
 
@@ -257,7 +257,7 @@ def main():
     parser.add_argument("--title", required=True)
     parser.add_argument("--script", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
-    parser.add_argument("--language", choices=("vi", "en"), default="vi")
+    parser.add_argument("--language", choices=tuple(LANGUAGES), default="de")
     default_voice = "espeak"
     if os.environ.get("ELEVENLABS_API_KEY"):
         default_voice = "elevenlabs"

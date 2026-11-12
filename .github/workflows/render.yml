@@ -82,26 +82,16 @@ jobs:
         if: steps.intake.outputs.issue != ''
         env:
           VN11_API_KEY: ${{ secrets.VN11_API_KEY }}
-          VN11_VOICE_ID: ${{ vars.VN11_VOICE_ID }}
-          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
-          ELEVENLABS_VOICE_ID: ${{ vars.ELEVENLABS_VOICE_ID }}
+          VN11_VOICE_NAME: ${{ vars.VN11_VOICE_NAME || 'ww40k' }}
           NARRATION_LANGUAGE: ${{ vars.NARRATION_LANGUAGE }}
         run: |
-          if [[ -n "$VN11_API_KEY" || -n "$VN11_VOICE_ID" ]]; then
-            if [[ -z "$VN11_API_KEY" || -z "$VN11_VOICE_ID" ]]; then
-              echo "::error::Cần secret VN11_API_KEY và biến VN11_VOICE_ID trong repo 40K."
-              exit 1
-            fi
-            "$RUNNER_TEMP/factory/bin/pip" install --disable-pip-version-check -r requirements-voice.txt
-            provider=vn11
-          elif [[ -n "$ELEVENLABS_API_KEY" ]]; then
-            provider=elevenlabs
-          else
-            echo "::error::Cần cấu hình VN11_API_KEY và VN11_VOICE_ID để tạo giọng cho kịch bản đã duyệt."
+          if [[ -z "$VN11_API_KEY" ]]; then
+            echo "::error::Cần secret VN11_API_KEY để dùng giọng ww40k."
             exit 1
           fi
+          "$RUNNER_TEMP/factory/bin/pip" install --disable-pip-version-check -r requirements-voice.txt
           "$RUNNER_TEMP/factory/bin/python" -m factory.render --title="$(cat "$RUNNER_TEMP/title.txt")" \
-            --script "$RUNNER_TEMP/script.txt" --out out --language "${NARRATION_LANGUAGE:-vi}" --voice "$provider"
+            --script "$RUNNER_TEMP/script.txt" --out out --language "${NARRATION_LANGUAGE:-de}" --voice vn11
       - uses: actions/upload-artifact@v4
         id: artifact
         with:
@@ -109,6 +99,17 @@ jobs:
           path: out/
           if-no-files-found: error
           retention-days: 14
+      - name: Kiểm tra kết nối với giọng ww40k
+        if: steps.intake.outputs.issue == ''
+        env:
+          VN11_API_KEY: ${{ secrets.VN11_API_KEY }}
+          VN11_VOICE_NAME: ${{ vars.VN11_VOICE_NAME || 'ww40k' }}
+        run: |
+          if [[ -z "$VN11_API_KEY" ]]; then
+            echo "::notice::Repo 40K chưa có secret VN11_API_KEY."
+            exit 0
+          fi
+          "$RUNNER_TEMP/factory/bin/python" -m factory.vn11
 
   reply:
     needs: render

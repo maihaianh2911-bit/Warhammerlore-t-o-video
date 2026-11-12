@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import sys
 import time
 import uuid
 from urllib.error import HTTPError, URLError
@@ -9,7 +10,9 @@ from urllib.request import HTTPRedirectHandler, Request, build_opener, urlopen
 
 
 API_BASE = "https://11labs.id.vn/api/external/v1"
-LANGUAGES = {"vi": "Vietnamese", "en": "English"}
+LANGUAGES = {"de": "German", "vi": "Vietnamese", "en": "English"}
+DEFAULT_VOICE_NAME = "ww40k"
+VOICE_ID = re.compile(r"[A-Za-z0-9_-]{3,80}")
 POLL_SECONDS = 4
 TRANSIENT = {429, 500, 502, 503, 504}
 MAX_AUDIO_BYTES = 25 * 1024 * 1024
@@ -30,6 +33,63 @@ def request_json(path, key, body=None, content_type=None):
             return response.status, json.load(response)
     except HTTPError as error:
         return error.code, {}
+
+
+def list_voices(key, name, provider):
+    page = 1
+    while True:
+        query = urlencode({"q": name, "provider": provider, "page": page, "page_size": 100})
+        try:
+            status, data = request_json(f"voices.php?{query}", key)
+        except (URLError, TimeoutError, ValueError):
+            raise RuntimeError("Không đọc được danh sách giọng VN11.") from None
+        if status != 200 or not isinstance(data, dict) or data.get("partial"):
+            raise RuntimeError(f"Không đọc đủ danh sách giọng VN11 (HTTP {status}).")
+        voices = data.get("voices")
+        if not isinstance(voices, list):
+            raise RuntimeError("VN11 trả danh sách giọng không đúng định dạng.")
+        yield from voices
+        if not data.get("has_more"):
+            break
+        next_page = data.get("next_page")
+        if not isinstance(next_page, int) or next_page <= page:
+            raise RuntimeError("VN11 trả số trang danh sách giọng không hợp lệ.")
+        page = next_page
+
+
+def named_voices(voices, name):
+    exact = set()
+    prefixed = set()
+    for entry in voices:
+        if not isinstance(entry, dict):
+            continue
+        voice_id = entry.get("voice_id")
+        label = entry.get("name")
+        if not isinstance(voice_id, str) or not VOICE_ID.fullmatch(voice_id) or not isinstance(label, str):
+            continue
+        label = label.strip().casefold()
+        if label == name:
+            exact.add(voice_id)
+        elif label.startswith(name):
+            prefixed.add(voice_id)
+    return exact, prefixed
+
+
+def resolve_voice(key, name):
+    lookup = name.strip().casefold()
+    if not lookup:
+        raise ValueError("Thiếu tên giọng VN11.")
+    exact, prefixed = named_voices(list_voices(key, name, "clone"), lookup)
+    if not exact:
+        other_exact, other_prefixed = named_voices(list_voices(key, name, "all"), lookup)
+        exact |= other_exact
+        prefixed |= other_prefixed
+    matches = exact or prefixed
+    if len(matches) == 1:
+        return matches.pop()
+    if matches:
+        raise ValueError(f"Có nhiều giọng VN11 khớp với {name!r}. Đặt VN11_VOICE_NAME theo tên đầy đủ.")
+    raise ValueError(f"Không tìm thấy giọng {name!r} trong tài khoản VN11 của khóa đã đặt.")
 
 
 def create_job(text, language, key, voice):
@@ -103,9 +163,14 @@ def save_audio(url, path):
 
 def configuration():
     key = os.environ.get("VN11_API_KEY", "")
+    name = os.environ.get("VN11_VOICE_NAME", "")
     voice = os.environ.get("VN11_VOICE_ID", "")
-    if not key or not re.fullmatch(r"[A-Za-z0-9_-]{3,80}", voice):
-        raise ValueError("Cần secret VN11_API_KEY và biến VN11_VOICE_ID trong repo 40K.")
+    if not key:
+        raise ValueError("Cần secret VN11_API_KEY trong repo 40K.")
+    if name or not voice:
+        return key, resolve_voice(key, name or DEFAULT_VOICE_NAME)
+    if not VOICE_ID.fullmatch(voice):
+        raise ValueError("VN11_VOICE_ID không hợp lệ.")
     return key, voice
 
 
@@ -114,3 +179,11 @@ def synthesize(text, language, scratch, key, voice):
     audio = scratch / "voice.mp3"
     save_audio(poll_job(job, key), audio)
     return audio
+
+
+if __name__ == "__main__":
+    try:
+        configuration()
+    except (RuntimeError, ValueError) as error:
+        sys.exit(str(error))
+    print("Đã xác nhận giọng đã chọn trong tài khoản VN11.")

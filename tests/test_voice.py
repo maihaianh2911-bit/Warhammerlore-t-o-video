@@ -6,11 +6,45 @@ from unittest.mock import patch
 from urllib.error import URLError
 
 from factory.script import make_cues
-from factory.vn11 import create_job, synthesize
+from factory.vn11 import configuration, create_job, resolve_voice, synthesize
 from factory.voice_check import align_words
 
 
 class VN11Test(unittest.TestCase):
+    def test_finds_saved_voice_by_exact_name_across_pages(self):
+        responses = [
+            (200, {"voices": [{"name": "ww40k old", "voice_id": "clone_31"}], "has_more": True, "next_page": 2}),
+            (200, {"voices": [{"name": "WW40K", "voice_id": "clone_32"}], "has_more": False}),
+        ]
+        with patch("factory.vn11.request_json", side_effect=responses) as request:
+            self.assertEqual(resolve_voice("key", "ww40k"), "clone_32")
+        self.assertEqual(request.call_count, 2)
+        self.assertIn("provider=clone&page=2", request.call_args.args[0])
+
+    def test_only_uses_a_unique_prefix(self):
+        with patch("factory.vn11.list_voices", side_effect=[
+            [{"name": "WW40K DE", "voice_id": "clone_32"}], [],
+        ]):
+            self.assertEqual(resolve_voice("key", "ww40k"), "clone_32")
+        with patch("factory.vn11.list_voices", side_effect=[
+            [{"name": "ww40k A", "voice_id": "clone_32"}, {"name": "ww40k B", "voice_id": "clone_33"}], [],
+        ]):
+            with self.assertRaisesRegex(ValueError, "nhiều giọng"):
+                resolve_voice("key", "ww40k")
+
+    def test_configured_name_takes_priority_over_an_old_id(self):
+        with (
+            patch.dict("os.environ", {"VN11_API_KEY": "key", "VN11_VOICE_NAME": "ww40k", "VN11_VOICE_ID": "clone_190"}),
+            patch("factory.vn11.resolve_voice", return_value="clone_32") as resolve,
+        ):
+            self.assertEqual(configuration(), ("key", "clone_32"))
+        resolve.assert_called_once_with("key", "ww40k")
+
+    def test_german_uses_provider_language_setting(self):
+        with patch("factory.vn11.request_json", return_value=(200, {"job_id": "job"})) as request:
+            create_job("Das ist ein Test.", "de", "key", "voice")
+        self.assertEqual(json.loads(request.call_args.args[2])["voice_settings"]["language"], "German")
+
     def test_non_clone_uses_language_and_sends_all_text_once(self):
         text = "Đây là câu đầu.\n\nĐây là câu tiếp."
         with patch("factory.vn11.request_json", return_value=(200, {"job_id": "job"})) as request:

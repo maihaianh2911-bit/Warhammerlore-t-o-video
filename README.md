@@ -12,11 +12,11 @@ Issue trong repo Public có thể được người khác đọc. Đường dẫ
 
 ## Giọng và cách dựng
 
-Giọng chính dùng cùng dịch vụ VN11 với repo Nhật. Trong **Settings → Secrets and variables → Actions** của repo 40K, thêm secret `VN11_API_KEY` và biến `VN11_VOICE_ID`. Khóa có sẵn trong repo Nhật cần được thiết lập riêng cho repo 40K. Chọn mã giọng phù hợp với ngôn ngữ của kênh. Bản đầu mặc định tiếng Việt. Đặt biến `NARRATION_LANGUAGE` thành `en` cho tiếng Anh.
+Repo 40K mặc định dùng tiếng Đức và giọng đã lưu tên `ww40k` trên VN11. Thêm secret `VN11_API_KEY` trong **Settings → Secrets and variables → Actions** của repo 40K, dùng khóa của tài khoản có giọng đó. Máy tự tìm mã giọng theo tên. Nếu có nhiều tên bắt đầu bằng `ww40k`, đặt biến `VN11_VOICE_NAME` theo tên đầy đủ. Đặt biến `NARRATION_LANGUAGE` thành `en` hoặc `vi` nếu kịch bản cần tiếng Anh hoặc tiếng Việt.
 
 VN11 đọc cả kịch bản trong một lượt để giữ nhịp. Whisper nghe lại để căn phụ đề theo lời đọc. Gói xuất có thêm `narration.mp3` và `voice-check.json` ghi những đoạn cần nghe lại, kể cả tên riêng mà Whisper có thể nghe nhầm. Nếu Whisper nghe được quá ít lời trùng với kịch bản, lượt dựng dừng để kiểm tra cấu hình giọng.
 
-Repo cũng hỗ trợ ElevenLabs trực tiếp qua secret `ELEVENLABS_API_KEY` và biến `ELEVENLABS_VOICE_ID`. Khi chạy bản thử trong Actions, eSpeak NG đọc mẫu mà không tiêu tốn hạn mức VN11. Với Issue đã duyệt, cần cấu hình một dịch vụ tạo giọng trước khi dựng.
+Khi chạy bản thử trong Actions, eSpeak NG đọc mẫu. Nếu đã có khóa VN11, lượt thử cũng kiểm tra xem tài khoản có giọng đã chọn. Lượt kiểm tra giọng chỉ đọc danh sách, chưa tạo audio. Khi chạy cục bộ, cũng có thể chọn ElevenLabs trực tiếp với `--voice elevenlabs` và hai biến môi trường `ELEVENLABS_API_KEY`, `ELEVENLABS_VOICE_ID`.
 
 Phong cách dựng theo video tham chiếu do chủ kênh gửi. Cảnh mở khoảng hai giây, đặt câu hook chữ đỏ đậm nghiêng giữa khung. Khi có nhiều hình phù hợp, cảnh mở dùng tranh ghép rồi lia ngang qua dải tranh. Sau đó dùng tranh phủ kín khung dọc, xen kẽ đẩy máy, kéo ra và lia nhẹ. Cảnh đổi theo lời đọc, chuyển hình trong vài khung hình và giữ chủ thể qua các câu tiếp nối. Phụ đề trắng đậm viền đen chia thành từng cụm, tối đa hai dòng. Video có âm nền tổng hợp nhỏ dưới lời đọc.
 
@@ -41,4 +41,4 @@ python3 -m factory.render --title 'Which portrait belongs in the opening?' \
 
 Tệp mẫu chỉ dùng để kiểm tra việc đổi cảnh, giọng và phụ đề. Khi chạy thử trên máy có FFmpeg hỗ trợ libflite, có thể dùng `--voice flite` cho mẫu tiếng Anh.
 
-Để chạy VN11 cục bộ, cài thêm `requirements-voice.txt`, đặt hai biến môi trường VN11 và chạy lệnh dựng với `--voice vn11`.
+Để chạy VN11 cục bộ, cài thêm `requirements-voice.txt`, đặt `VN11_API_KEY` và chạy lệnh dựng với `--voice vn11`. Có thể đặt `VN11_VOICE_NAME` để đổi giọng hoặc `VN11_VOICE_ID` để chọn trực tiếp bằng mã.
