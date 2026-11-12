@@ -70,10 +70,6 @@
     0.9
    ]
   },
-  "badab": {
-   "src": "1/2-3.jpg",
-   "credit": "Badab War — Zhang Bozi, 40K Gallery https://40k.gallery/badab-war/"
-  },
   "lamenters": {
    "src": "1/12-8.jpg",
    "credit": "lamenters 9, 40K Gallery https://40k.gallery/lamenters-9/"
@@ -146,6 +142,16 @@
     0.08,
     1,
     0.95
+   ]
+  },
+  "mantiswarrior": {
+   "src": "2/1-2.jpg",
+   "credit": "mantis warrior 2 — Konstantin Void, 40K Gallery https://40k.gallery/mantis-warrior-2/",
+   "crop": [
+    0,
+    0,
+    1,
+    0.96
    ]
   }
  },
@@ -307,17 +313,17 @@
   },
   {
    "at": 9.73,
-   "img": "badab",
+   "img": "mantiswarrior",
    "focus": [
-    0.82,
-    0.14
+    0.5,
+    0.3
    ],
    "from": [
-    1.1,
-    0.55,
-    0.4
+    1.0,
+    0.5,
+    0.6
    ],
-   "zoom": 1.3,
+   "zoom": 1.25,
    "pace": "settle",
    "kick": 0.03
   },
