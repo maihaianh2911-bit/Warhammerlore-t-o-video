@@ -4,19 +4,19 @@ Tự dựng video lore Warhammer 40K dọc từ lời thoại đã duyệt. Mỗ
 
 ## Gửi kịch bản
 
-1. Chủ repo mở Issue theo mẫu **Video lore Warhammer 40K**. Đặt tiêu đề dạng `[40K] Tên video` và dán phần lời đọc đã duyệt.
-2. GitHub Actions tạo giọng, chia mốc phụ đề, chọn hình theo lời đọc và xuất video 1080 × 1920. Khi hoàn tất, Issue nhận liên kết tải.
+1. Chủ repo mở Issue theo mẫu **Video lore Warhammer 40K**. Đặt tiêu đề dạng `[40K] Tên video` và dán phần lời đọc tiếng Việt đã duyệt.
+2. GitHub Actions dịch tiêu đề và lời thoại sang tiếng Đức, rồi tạo giọng, chia mốc phụ đề, chọn hình và xuất video 1080 × 1920. Bản tiếng Đức đi kèm video dưới dạng `title-de.txt` và `script-de.txt`. Khi hoàn tất, Issue nhận liên kết tải.
 3. Để dựng lại sau khi sửa nội dung Issue, vào **Actions → Dựng video 40K → Run workflow** rồi điền số Issue. Để trống ô này nếu muốn chạy bản kiểm tra.
 
 Issue trong repo Public có thể được người khác đọc. Đường dẫn tải trong Issue dẫn tới tệp của lượt chạy, lưu 14 ngày.
 
 ## Giọng và cách dựng
 
-Repo 40K mặc định dùng tiếng Đức và giọng `ww40k` đã lưu trên VN11 với mã `clone_611`. Thêm secret `VN11_API_KEY` trong **Settings → Secrets and variables → Actions** của repo 40K, dùng khóa của tài khoản có giọng đó. Đặt biến `NARRATION_LANGUAGE` thành `en` hoặc `vi` nếu kịch bản cần tiếng Anh hoặc tiếng Việt.
+Repo 40K mặc định dùng tiếng Đức và giọng `ww40k` đã lưu trên VN11 với mã `clone_611`. Mô hình MADLAD-400 dịch ngay trên máy chạy GitHub Actions, không cần khóa dịch riêng. Nếu lời thoại đã viết bằng tiếng Đức, bước này giữ nguyên lời thoại. Repo nhận khóa VN11 từ secret `VN11_API_KEY` hoặc `VOICE`. Đặt biến `NARRATION_LANGUAGE` thành `en` hoặc `vi` nếu đã có sẵn kịch bản ở ngôn ngữ đó.
 
 VN11 đọc cả kịch bản trong một lượt để giữ nhịp. Whisper nghe lại để căn phụ đề theo lời đọc. Gói xuất có thêm `narration.mp3` và `voice-check.json` ghi những đoạn cần nghe lại, kể cả tên riêng mà Whisper có thể nghe nhầm. Nếu Whisper nghe được quá ít lời trùng với kịch bản, lượt dựng dừng để kiểm tra cấu hình giọng.
 
-Khi chạy bản thử trong Actions, eSpeak NG đọc mẫu. Nếu đã có khóa VN11, lượt thử cũng kiểm tra xem tài khoản có giọng đã chọn. Lượt kiểm tra giọng chỉ đọc danh sách, chưa tạo audio. Khi chạy cục bộ, cũng có thể chọn ElevenLabs trực tiếp với `--voice elevenlabs` và hai biến môi trường `ELEVENLABS_API_KEY`, `ELEVENLABS_VOICE_ID`.
+Khi chạy bản thử trong Actions, eSpeak NG đọc bản dịch tiếng Đức của mẫu. Nếu đã có khóa VN11, lượt thử cũng kiểm tra xem tài khoản có giọng đã chọn. Lượt kiểm tra giọng chỉ đọc danh sách, chưa tạo audio. Khi chạy cục bộ, cũng có thể chọn ElevenLabs trực tiếp với `--voice elevenlabs` và hai biến môi trường `ELEVENLABS_API_KEY`, `ELEVENLABS_VOICE_ID`.
 
 Phong cách dựng theo video tham chiếu do chủ kênh gửi. Cảnh mở khoảng hai giây, đặt câu hook chữ đỏ đậm nghiêng giữa khung. Khi có nhiều hình phù hợp, cảnh mở dùng tranh ghép rồi lia ngang qua dải tranh. Sau đó dùng tranh phủ kín khung dọc, xen kẽ đẩy máy, kéo ra và lia nhẹ. Cảnh đổi theo lời đọc, chuyển hình trong vài khung hình và giữ chủ thể qua các câu tiếp nối. Phụ đề trắng đậm viền đen chia thành từng cụm, tối đa hai dòng. Video có âm nền tổng hợp nhỏ dưới lời đọc.
 

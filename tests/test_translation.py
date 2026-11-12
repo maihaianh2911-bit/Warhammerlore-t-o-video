@@ -1,0 +1,53 @@
+import unittest
+from unittest.mock import patch
+
+from factory.translate import MAX_BLOCK_CHARS, paragraph_blocks, prepare
+
+
+class TranslationTest(unittest.TestCase):
+    def test_translates_title_and_narration_in_order(self):
+        source = "Ai đứng trước cổng?\n\nGuilliman nhìn về Terra."
+        with (
+            patch("factory.translate.language_of", side_effect=["vi", "vi", "de"]),
+            patch("factory.translate.translate_blocks", return_value=[
+                "Vor den Toren von Terra", "Wer steht vor dem Tor?", "Guilliman blickt nach Terra.",
+            ]) as model,
+        ):
+            title, script = prepare("Trước cổng thành Terra", source, "de")
+        model.assert_called_once_with(["Trước cổng thành Terra", "Ai đứng trước cổng?", "Guilliman nhìn về Terra."])
+        self.assertEqual(title, "Vor den Toren von Terra")
+        self.assertEqual(script, "Wer steht vor dem Tor?\n\nGuilliman blickt nach Terra.")
+
+    def test_preserves_german_narration_and_localizes_vietnamese_title(self):
+        german = "Guilliman kehrte nach Terra zurück."
+        with (
+            patch("factory.translate.language_of", side_effect=["de", "vi"]),
+            patch("factory.translate.translate_blocks", return_value=["Die Rückkehr nach Terra"]) as model,
+        ):
+            self.assertEqual(prepare("Trở về Terra", german, "de"), ("Die Rückkehr nach Terra", german))
+        model.assert_called_once_with(["Trở về Terra"])
+
+    def test_leaves_existing_german_and_other_configured_languages_alone(self):
+        with (
+            patch("factory.translate.language_of", return_value="de"),
+            patch("factory.translate.translate_blocks") as model,
+        ):
+            self.assertEqual(prepare("Die Rückkehr", "Guilliman kehrte zurück.", "de"),
+                             ("Die Rückkehr", "Guilliman kehrte zurück."))
+            self.assertEqual(prepare("The return", "Guilliman returned.", "en"),
+                             ("The return", "Guilliman returned."))
+        model.assert_not_called()
+
+    def test_long_paragraphs_split_without_dropping_text(self):
+        paragraph = " ".join(["Guilliman nhìn về Terra."] * 80)
+        parts = paragraph_blocks(paragraph)
+        self.assertTrue(all(len(part) <= MAX_BLOCK_CHARS for part in parts))
+        self.assertEqual(" ".join(parts), paragraph)
+
+    def test_stops_before_narration_if_translation_omits_a_block(self):
+        with (
+            patch("factory.translate.language_of", return_value="vi"),
+            patch("factory.translate.translate_blocks", return_value=["Ein Titel"]),
+        ):
+            with self.assertRaises(ValueError):
+                prepare("Tiêu đề", "Lời thoại đã duyệt.", "de")

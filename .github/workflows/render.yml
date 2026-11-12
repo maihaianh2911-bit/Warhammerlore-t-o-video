@@ -19,6 +19,7 @@ on:
       - 'tests/**'
       - 'requirements.txt'
       - 'requirements-voice.txt'
+      - 'requirements-translation.txt'
 
 permissions:
   contents: read
@@ -80,16 +81,34 @@ jobs:
           "$RUNNER_TEMP/factory/bin/python" -m factory.intake --issue "$source" \
             --owner "$GITHUB_REPOSITORY_OWNER" --script "$RUNNER_TEMP/script.txt" > "$RUNNER_TEMP/title.txt"
           echo "issue=$issue" >> "$GITHUB_OUTPUT"
-      - name: Dựng và kiểm tra mẫu
+      - name: Cài công cụ dịch
+        if: steps.intake.outputs.issue == '' || vars.NARRATION_LANGUAGE == '' || vars.NARRATION_LANGUAGE == 'de'
+        run: "$RUNNER_TEMP/factory/bin/pip install --disable-pip-version-check -r requirements-translation.txt"
+      - name: Dịch và kiểm tra bản dựng mẫu
         if: steps.intake.outputs.issue == ''
         run: |
           "$RUNNER_TEMP/factory/bin/python" -m unittest discover -s tests -v
-          "$RUNNER_TEMP/factory/bin/python" -m factory.render --title 'Which portrait belongs in the opening?' \
-            --script examples/smoke.txt --out out --language en --voice espeak --size preview
+          "$RUNNER_TEMP/factory/bin/python" -m factory.translate --title 'Ai xuất hiện trong đoạn mở đầu?' \
+            --script examples/translation-smoke.txt --out "$RUNNER_TEMP/translated"
+          "$RUNNER_TEMP/factory/bin/python" -c 'import sys; from pathlib import Path; from factory.translate import language_of; sys.exit(language_of(Path(sys.argv[1]).read_text()) != "de")' "$RUNNER_TEMP/translated/script.txt"
+          for name in Slaanesh Tzeentch Nurgle Khorne; do
+            grep -qiF "$name" "$RUNNER_TEMP/translated/script.txt"
+          done
+          "$RUNNER_TEMP/factory/bin/python" -m factory.render --title="$(cat "$RUNNER_TEMP/translated/title.txt")" \
+            --script "$RUNNER_TEMP/translated/script.txt" --out out --language de --voice espeak --size preview
+          cp "$RUNNER_TEMP/translated/script.txt" out/script-de.txt
+          cp "$RUNNER_TEMP/translated/title.txt" out/title-de.txt
           test -s out/video.mp4
           test -s out/subtitles.srt
           jq -e '.scenes[1].layout == "horizontal_pan"' out/scenes.json
           ffprobe -v error -show_entries stream=codec_type,width,height -of json out/video.mp4
+      - name: Chuẩn bị bản lời đọc
+        if: steps.intake.outputs.issue != ''
+        env:
+          NARRATION_LANGUAGE: ${{ vars.NARRATION_LANGUAGE }}
+        run: |
+          "$RUNNER_TEMP/factory/bin/python" -m factory.translate --title="$(cat "$RUNNER_TEMP/title.txt")" \
+            --script "$RUNNER_TEMP/script.txt" --out "$RUNNER_TEMP/translated" --target "${NARRATION_LANGUAGE:-de}"
       - name: Dựng kịch bản đã duyệt
         if: steps.intake.outputs.issue != ''
         env:
@@ -101,8 +120,11 @@ jobs:
             exit 1
           fi
           "$RUNNER_TEMP/factory/bin/pip" install --disable-pip-version-check -r requirements-voice.txt
-          "$RUNNER_TEMP/factory/bin/python" -m factory.render --title="$(cat "$RUNNER_TEMP/title.txt")" \
-            --script "$RUNNER_TEMP/script.txt" --out out --language "${NARRATION_LANGUAGE:-de}" --voice vn11
+          language="${NARRATION_LANGUAGE:-de}"
+          "$RUNNER_TEMP/factory/bin/python" -m factory.render --title="$(cat "$RUNNER_TEMP/translated/title.txt")" \
+            --script "$RUNNER_TEMP/translated/script.txt" --out out --language "$language" --voice vn11
+          cp "$RUNNER_TEMP/translated/script.txt" "out/script-$language.txt"
+          cp "$RUNNER_TEMP/translated/title.txt" "out/title-$language.txt"
       - uses: actions/upload-artifact@v4
         id: artifact
         with:

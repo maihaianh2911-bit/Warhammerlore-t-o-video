@@ -175,7 +175,7 @@ def mux_video(audio, frames, scratch, destination):
 
 
 def render(args):
-    text = read_script(args.script)
+    text = read_script(args.script, max_chars=10_000)
     out = args.out.resolve()
     if out.exists():
         raise ValueError("Hãy chọn thư mục xuất mới để giữ các bản dựng trước.")

@@ -34,17 +34,17 @@
     },
     {
       "name": "Horus Heresy",
-      "aliases": ["horus heresy", "horus lupercal", "đại phản loạn"],
+      "aliases": ["horus heresy", "horus-häresie", "horus häresie", "horus lupercal", "đại phản loạn"],
       "theme": "archive"
     },
     {
       "name": "Great Rift",
-      "aliases": ["cicatrix maledictum", "great rift", "khe nứt", "the warp", "immaterium"],
+      "aliases": ["cicatrix maledictum", "great rift", "großer riss", "großen riss", "khe nứt", "the warp", "immaterium"],
       "theme": "rift"
     },
     {
       "name": "Terra",
-      "aliases": ["holy terra", "terra", "imperial palace", "golden throne", "ngai vàng"],
+      "aliases": ["holy terra", "terra", "imperial palace", "golden throne", "goldener thron", "goldenen thron", "ngai vàng"],
       "theme": "archive"
     }
   ],

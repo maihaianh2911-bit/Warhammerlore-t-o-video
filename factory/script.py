@@ -19,13 +19,13 @@ class Shot:
     end_frame: int
 
 
-def read_script(path: Path) -> str:
+def read_script(path: Path, max_chars=6000) -> str:
     text = unicodedata.normalize("NFC", path.read_text(encoding="utf-8-sig"))
     # Keep paragraph breaks for the voice, and join lines wrapped by the author.
     paragraphs = [" ".join(part.split()) for part in re.split(r"\n\s*\n", text)]
     text = "\n\n".join(part for part in paragraphs if part)
-    if not text or len(text) > 6000:
-        raise ValueError("Kịch bản cần có từ 1 đến 6.000 ký tự.")
+    if not text or len(text) > max_chars:
+        raise ValueError(f"Kịch bản cần có từ 1 đến {max_chars:,} ký tự.")
     return text
 
 

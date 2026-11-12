@@ -1,0 +1,4 @@
+ctranslate2>=4.6,<5
+huggingface-hub>=0.35,<2
+langdetect==1.0.9
+sentencepiece>=0.2,<0.3
