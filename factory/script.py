@@ -146,21 +146,47 @@ def shot_frames(shots, times, duration_frames, fps):
     return list(zip(cuts, cuts[1:] + [duration_frames]))
 
 
+CUE_CHARS = 54          # two subtitle lines of ~29 characters
+
+
 def caption_spans(text: str):
+    """Subtitle cues for the .srt: one sentence each; a long sentence is split into even parts, at a comma when
+    one is near, never between two capitalised words (Raven Guard, Mantis Warriors, Red Wake)."""
     words = list(re.finditer(r"\S+", text))
-    if not words:
-        return
     first = 0
-    for i, word in enumerate(words[:-1]):
-        next_word = words[i + 1]
-        length = word.end() - words[first].start()
+    for i, word in enumerate(words):
+        last = i == len(words) - 1
         at_sentence = bool(re.search(r"""[.!?。！？]["'”’»)]*$""", word.group()))
-        at_paragraph = "\n" in text[word.end():next_word.start()]
-        next_length = next_word.end() - words[first].start()
-        if at_paragraph or (at_sentence and length >= 18) or next_length > 54:
-            yield words[first].start(), word.end()
+        at_paragraph = not last and "\n" in text[word.end():words[i + 1].start()]
+        if last or at_sentence or at_paragraph:
+            yield from split_sentence(words[first:i + 1])
             first = i + 1
-    yield words[first].start(), words[-1].end()
+
+
+def split_sentence(words):
+    while words:
+        total = words[-1].end() - words[0].start()
+        if total <= CUE_CHARS:
+            yield words[0].start(), words[-1].end()
+            return
+        target = total / -(-total // CUE_CHARS)          # even parts
+        best, best_cost = 0, None
+        for i in range(len(words) - 1):
+            length = words[i].end() - words[0].start()
+            if length > CUE_CHARS and best_cost is not None:
+                break
+            cost = abs(length - target)
+            if re.search(r"[,;:–—]$", words[i].group()):
+                cost -= 12
+            elif words[i].group()[:1].isupper() and (words[i + 1].group()[:1].isupper()
+                                                      or words[i + 1].group() in ("the", "of")):
+                cost += 25                                # Tyberos the Red Wake
+            if len(words) - i - 1 == 1:                   # no single word left alone
+                cost += 20
+            if best_cost is None or cost < best_cost:
+                best, best_cost = i, cost
+        yield words[0].start(), words[best].end()
+        words = words[best + 1:]
 
 
 def make_cues(text, starts, ends, duration):
