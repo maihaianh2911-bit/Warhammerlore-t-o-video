@@ -41,6 +41,18 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+      - name: Kiểm tra kết nối với giọng ww40k
+        if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.issue_number == '')
+        shell: bash
+        env:
+          VN11_API_KEY: ${{ secrets.VN11_API_KEY }}
+        run: |
+          if [[ -z "$VN11_API_KEY" ]]; then
+            echo "::notice::Repo 40K chưa có secret VN11_API_KEY."
+            echo "Chưa xác nhận giọng ww40k vì thiếu secret VN11_API_KEY." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          python3 -m factory.vn11 | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Cài công cụ dựng
         run: |
           sudo apt-get update -qq
@@ -98,16 +110,6 @@ jobs:
           path: out/
           if-no-files-found: error
           retention-days: 14
-      - name: Kiểm tra kết nối với giọng ww40k
-        if: steps.intake.outputs.issue == ''
-        env:
-          VN11_API_KEY: ${{ secrets.VN11_API_KEY }}
-        run: |
-          if [[ -z "$VN11_API_KEY" ]]; then
-            echo "::notice::Repo 40K chưa có secret VN11_API_KEY."
-            exit 0
-          fi
-          "$RUNNER_TEMP/factory/bin/python" -m factory.vn11
 
   reply:
     needs: render
