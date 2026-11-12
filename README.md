@@ -4,6 +4,8 @@ Tự dựng video lore Warhammer 40K dọc từ lời thoại đã duyệt. Mỗ
 
 ## Gửi kịch bản
 
+Kịch bản chủ repo tự gửi để dựng video 40K được xem là đã duyệt và đưa nguyên văn vào Issue. Bản thảo do trợ lý soạn cần chủ repo duyệt trước.
+
 1. Chủ repo mở Issue theo mẫu **Video lore Warhammer 40K**. Đặt tiêu đề dạng `[40K] Tên video` và dán phần lời đọc tiếng Việt đã duyệt.
 2. GitHub Actions dịch tiêu đề và lời thoại sang tiếng Đức, rồi tạo giọng, chia mốc phụ đề, chọn hình và xuất video 1080 × 1920. Bản tiếng Đức đi kèm video dưới dạng `title-de.txt` và `script-de.txt`. Khi hoàn tất, Issue nhận liên kết tải.
 3. Để dựng lại sau khi sửa nội dung Issue, vào **Actions → Dựng video 40K → Run workflow** rồi điền số Issue. Để trống ô này nếu muốn chạy bản kiểm tra.
