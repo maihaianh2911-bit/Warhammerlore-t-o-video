@@ -4,6 +4,8 @@ Usage: python3 -m factory.find_images <out_dir> "<query 1>" "<query 2>" ...
 Each query is searched in one place:
   Tyberos the Red Wake        file search of the Warhammer 40k Wiki (Fandom): artwork of characters, chapters, ships
   page:Carcharodons           every picture used on that wiki article (up to 16)
+  artstation:Sanguinius       ArtStation, most liked first: modern, high-resolution artwork by named artists
+                              (the best-looking source; use it for every character and scene)
   commons:gothic cathedral    Wikimedia Commons, only licences that allow use in a monetised video (public
                               domain, CC0, CC BY, CC BY-SA); incategory:"…" works there
 Wiki artwork is copyrighted by Games Workshop and the artists (the owner accepted that); its index entry has the
@@ -17,6 +19,7 @@ from .art import contact_sheet
 
 COMMONS = 'https://commons.wikimedia.org/w/api.php'
 WIKI = 'https://warhammer40k.fandom.com/api.php'
+ARTSTATION = 'https://www.artstation.com/api/v2/search/projects.json'
 UA = 'LoreVideoFactory/1.0 (picture search)'
 OK = re.compile(r'^(public domain|pd|cc0|cc[- ]by(-sa)?[- ]?\d|cc[- ]by(-sa)?$)', re.I)
 
@@ -41,9 +44,27 @@ def api(base, params):
     return sorted((d.get('query') or {}).get('pages', {}).values(), key=lambda x: x.get('index', 0))
 
 
+def artstation(q, n):
+    """Most liked ArtStation projects for a search, each with the large version of its first picture."""
+    d = json.loads(get(ARTSTATION + '?' + urllib.parse.urlencode({'query': q, 'page': 1, 'per_page': n, 'sorting': 'likes'})))
+    out = []
+    for pr in d.get('data') or []:
+        cover = pr.get('smaller_square_cover_url') or ''
+        # .../assets/images/images/029/063/820/<timestamp>/smaller_square/<name>.jpg → .../820/large/<name>.jpg
+        m = re.match(r'(https://cdn[ab]\.artstation\.com/p/assets/images/images/\d+/\d+/\d+/)(?:\d+/)?smaller_square/(.+)$', cover)
+        if not m or pr.get('is_adult_content') or pr.get('hide_as_adult'):
+            continue
+        artist = (pr.get('user') or {}).get('username', '')
+        out.append({'title': (pr.get('title') or '').strip(), 'page': pr.get('url'), 'thumb': m.group(1) + 'large/' + m.group(2),
+                    'width': None, 'height': None, 'source': 'ArtStation', 'artist': artist, 'license': '© ' + artist})
+    return out
+
+
 def search(q, n=12):
-    """Results of one query, in search order (see the module text for the three kinds of query)."""
+    """Results of one query, in search order (see the module text for the kinds of query)."""
     q = q.strip()
+    if q.lower().startswith('artstation:'):
+        return artstation(q[11:].strip(), 24)
     commons = q.lower().startswith('commons:')
     if commons:
         pages = api(COMMONS, {'generator': 'search', 'gsrsearch': q[8:].strip(), 'gsrnamespace': 6, 'gsrlimit': n,
@@ -111,9 +132,11 @@ def main():
     index, kept_hashes, dropped = [], seen_hashes(), {'small': 0, 'duplicate': 0}
     for k, q in enumerate(queries, 1):
         lim = MIN_SIDE_CAT if 'incategory:' in q.lower() else MIN_SIDE
-        keep = 16 if q.strip().lower().startswith('page:') else KEEP
+        art = q.strip().lower().startswith('artstation:')
+        keep = 16 if art or q.strip().lower().startswith('page:') else KEEP
+        lim = 900 if art else lim      # ArtStation has enough large pictures to be strict
         hits = search(q)
-        found = [r for r in hits if min(r.get('width') or 0, r.get('height') or 0) >= lim]
+        found = [r for r in hits if r.get('width') is None or min(r.get('width') or 0, r.get('height') or 0) >= lim]
         dropped['small'] += len(hits) - len(found)
         kept = []   # [(result, image, hash)] in search order; a duplicate inside this query keeps the bigger file
         for r in found:
@@ -125,6 +148,10 @@ def main():
                 r['error'] = str(e)[:120]; continue
             finally:
                 time.sleep(1)
+            if r.get('width') is None:
+                r['width'], r['height'] = im.size
+                if min(im.size) < lim:
+                    dropped['small'] += 1; continue
             h = dhash(im)
             if any(same(h, x) for x in kept_hashes):
                 dropped['duplicate'] += 1; continue
@@ -141,7 +168,7 @@ def main():
             p = f'{out}/{k}-{n}.jpg'; im.save(p, quality=90)
             r['file'] = p[len(out) + 1:]; files.append(p); results.append(r)
             lic = re.sub(r'(?i)public domain', 'PD', r['license'])
-            labels[p] = f"#{n}  {r.get('width')}x{r.get('height')}  {lic}"[:40]
+            labels[p] = f"#{n}  {r.get('width')}x{r.get('height')}  {lic}"[:44]
         kept_hashes += [h for _, _, h in kept]
         tiles = []
         for f in files:

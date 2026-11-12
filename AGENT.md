@@ -42,9 +42,12 @@ gh api "repos/$R/issues?state=open&labels=lore&per_page=50" --jq '[.[] | select(
 - 40K defaults to German and the `ww40k` voice (`clone_611`). The translated title is the on-screen hook; it is
   not read aloud.
 - Pictures are found by Claude and the machine, **not by the owner** (owner, 12/11): never ask the owner to
-  supply pictures. The machine searches the Warhammer 40k Wiki (Fandom) and Wikimedia Commons; you may add
+  supply pictures. The machine searches ArtStation, the Warhammer 40k Wiki (Fandom) and Wikimedia Commons; you may add
   pictures you find on the web yourself (§2.2). 40K Gallery blocks automated requests: do not try to get around
   that. 40K artwork is copyrighted; the owner accepted that. Always credit the artist when known, else the source.
+- Pictures must be beautiful (owner, 12/11, on the first test: "why did you pick such ugly pictures?"). That test
+  used small, dated wiki scans. Choose modern, sharp, well-painted artwork, at least ~1400 px on the short side,
+  in one consistent look across the video; an older or smaller picture only when nothing else shows the subject.
 - Motion follows the reference video in `00-video-mau/` (owner, 12/11): only its way of moving pictures. The
   lettering is ours and may be made better than the reference.
 - Quality is not traded for usage: look at the pictures yourself and preview before rendering.
@@ -68,7 +71,12 @@ Read the issue form (Kịch bản, Hình riêng, Ghi chú) and the owner's comme
 - `title`: the issue title in German, short (it is the red hook over the first two seconds, ≤ ~60 characters).
 - `queries`: 10–18 picture searches, at least one for every character, faction, ship, world and event the
   script names. Three kinds:
+  - `artstation:Sanguinius` — ArtStation, most liked first (up to 16, ≥ 900 px): modern, high-resolution
+    artwork by named artists. **The main source**: one query for every character, faction and scene, with the
+    English lore name (`artstation:Leman Russ`, `artstation:Space Wolves`, `artstation:Horus Heresy`). Two-name
+    searches usually return nothing. Results also hold 3D models, tanks of the same name and sketches: skip them.
   - `Tyberos the Red Wake` — file search of the Warhammer 40k Wiki: the English lore name, 1–3 words (8 files).
+    The wiki is the fallback for subjects ArtStation lacks; much of it is small or dated.
   - `page:Carcharodons` — every picture of that wiki article (up to 16): the best source for a chapter, a
     primarch, a war. The exact English article title (`page:Badab War`, `page:Roboute Guilliman`).
   - `commons:deep space nebula` — Wikimedia Commons, free licences only: mood pictures (space, gothic
@@ -84,7 +92,8 @@ Commit `[lore #<N>] kịch bản`, push, remove `lore-busy`. (Voice ~5–10 min;
    - `img/issue/sheet.jpg` + `index.json`: pictures the owner attached to the issue (`#n` = `issue/<n>.jpg`).
    - `art/` in the repo: the owner's library, described in `art/README.md` and `art/index.json`.
    - `img/<r>/sheet_<k>.jpg` + `index.json`: search results of round r (`<r>/<k>-<n>.jpg`; tiles: number, size,
-     `©GW` = wiki artwork or the Commons licence; the index has the file page for the credit).
+     `©<artist>` = ArtStation, `©GW` = wiki artwork, or the Commons licence; the index has the title, artist and
+     page for the credit).
    - No fitting picture for a beat → more queries in `lore/<N>/search-<r>.json` `{"queries": […]}` (r = 2, 3…),
      push, poll the renders branch for `lore/<N>/img/<r>/index.json` (every 30 s, ≤ 10 min).
    - Still nothing → search the web yourself (web search for the subject's artwork), download the picture, look
@@ -116,8 +125,8 @@ Commit `[lore #<N>] kịch bản`, push, remove `lore-busy`. (Voice ~5–10 min;
    Tyberos": starts on his claws, passes the shark emblem, surges up to the helmet.)
 
    - `images`: `src` = `issue/<n>.jpg`, `art/<file>`, `<round>/<file>` or `own/<file>` (a file you saved in
-     `lore/<N>/own/`). `credit` (always): subject — artist when known, source (wiki artwork: `… — Games Workshop,
-     Warhammer 40k Wiki`; Commons: author and licence from `index.json`). `crop` [x0, y0, x1, y1] in 0..1 cuts away borders,
+     `lore/<N>/own/`). `credit` (always): subject — artist when known, source (ArtStation: `<title> — <artist>, ArtStation`; wiki
+     artwork: `… — Games Workshop, Warhammer 40k Wiki`; Commons: author and licence from `index.json`). `crop` [x0, y0, x1, y1] in 0..1 cuts away borders,
      captions or a second subject before anything else.
    - `shots` in order. The first starts with line 1; `at` = line number where the next cuts in (13.5 = the middle
      of line 13). Each shot has `img` or `theme` (generated background: `orbit`, `archive`, `rift`, `decay`,
