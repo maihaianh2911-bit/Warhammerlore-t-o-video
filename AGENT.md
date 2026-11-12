@@ -124,18 +124,20 @@ Commit `[lore #<N>] kịch bản`, push, remove `lore-busy`. (Voice ~5–10 min;
      set `focus` on that character's face (or chest for a full figure; for a picture without a character, its
      main subject). There is no `to`. A shot is two keyframes, as in a video editor: where it starts and the end
      on the subject. How the camera gets there is `move`; vary it from shot to shot (left out → chosen in turn):
-     - `push`: the widest view of the picture, then a deep push-in — openings, portraits.
-     - `pull`: starts tight on the face and draws back to show the character in its setting — reveals, a line
+     - `push`: the widest view of the picture, then a push-in — openings, portraits.
+     - `pull`: starts closer on the face and draws back to show the character in its setting — reveals, a line
        that widens the view ("…and behind him stood a legion").
      - `rise` / `fall`: starts well below / above and travels to the face — full figures (boots to helmet), tall
        architecture, banners.
      - `from-left` / `from-right`: starts far to that side and sweeps across — wide scenes, a second character,
        the direction a figure looks or charges. `glide` takes the side with more picture.
-     Do not use the same move twice in a row. The owner wants strong, visible motion (12/11: the first version
-     "looked static"): moves close in at about 6–7% per second, cross up to half the picture, leave briskly and
-     settle on the subject, and every cut lands with a short extra push. A sweep needs room: for `from-left` /
+     Do not use the same move twice in a row. The owner wants motion that is clearly visible but keeps the scene
+     (12/11: 3% per second "looked static", zooming to 1.5–2× "was too big, the scene was lost"): moves close in
+     at about 4–5% per second and stay between 1.0× and about 1.45×, so at least two thirds of the picture's
+     width or height is always in view; they leave briskly, settle on the subject, and every cut lands with a
+     small extra push. Most of the movement comes from travelling across the picture, not from zooming. A sweep needs room: for `from-left` /
      `from-right` choose pictures wider than they are tall, or a subject away from that edge; for `rise` a
-     subject in the upper part. `zoom` (1.05–2.3) sets the end zoom yourself; `from` [zoom, x, y] sets your own
+     subject in the upper part. `zoom` sets the end zoom yourself (stay at or under 1.5); `from` [zoom, x, y] sets your own
      starting view (x, y = the point of the picture it looks at).
    - The title sits at 13–22% of the height for the first two seconds; captions sit at 61–67%. The shot ends with `focus` in the
      middle of the frame, between the two; a face right at the top edge of a picture ends as high as the picture

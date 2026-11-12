@@ -17,9 +17,9 @@ from .voice import audio_duration
 
 FPS = 30
 SIZES = {"preview": (720, 1280), "full": (1080, 1920)}
-ZOOM_PER_SECOND = 0.065     # how fast a shot closes in; the reference video does about half of this
+ZOOM_PER_SECOND = 0.045     # how fast a shot closes in; the reference video does about 0.03
 DETAIL = 1.7                # stills are kept larger than the frame so a deep push-in stays sharp
-KICK = 0.07                 # every cut lands with a short extra push that settles in a third of a second
+KICK = 0.04                 # every cut lands with a short extra push that settles in a third of a second
 KICK_SECONDS = 0.33
 FONTS = Path(__file__).resolve().parent.parent / "fonts"
 
@@ -53,8 +53,8 @@ def centred(zoom, point, shape):
 def default_move(focus, seconds, kind, shape):
     """Two keyframes of a shot, start and end. Every move ends centred on the focus point (the subject).
 
-    push        the widest view of the picture, then a deep push-in on the subject
-    pull        starts tight on the subject and draws back to show it in its setting, still centred on it
+    push        the widest view of the picture, then a push-in on the subject
+    pull        starts closer on the subject and draws back to show it in its setting, still centred on it
     rise, fall  starts well below / above the subject and travels to it while closing in
     from-left, from-right   starts far to that side of the subject and sweeps across to it while closing in
     glide       from-left or from-right, whichever side has more picture
@@ -63,11 +63,11 @@ def default_move(focus, seconds, kind, shape):
     drift = ZOOM_PER_SECOND * seconds
     # an off-centre subject can only be brought to the middle of the frame from a certain zoom on
     wide, tall = view_share(shape, 1.0)
-    needed = min(1.7, max(1.25, wide / 2 / max(0.05, min(x, 1 - x)), tall / 2 / max(0.05, min(y, 1 - y))))
+    needed = min(1.3, max(1.1, wide / 2 / max(0.05, min(x, 1 - x)), tall / 2 / max(0.05, min(y, 1 - y))))
     if kind == "push":
-        return centred(1.0, (0.5, 0.5), shape), centred(min(max(1.0 + drift, needed, 1.32), 2.0), focus, shape)
+        return centred(1.0, (0.5, 0.5), shape), centred(min(max(1.0 + drift, needed, 1.2), 1.42), focus, shape)
     if kind == "pull":
-        return centred(min(needed + max(drift * 1.2, 0.5), 2.3), focus, shape), centred(needed, focus, shape)
+        return centred(min(needed + max(drift, 0.28), 1.6), focus, shape), centred(needed, focus, shape)
     travel = min(0.6, 0.1 * seconds + 0.2)          # share of the picture crossed on the way to the subject
     if kind == "glide":
         kind = "from-right" if x < 0.5 else "from-left"
@@ -75,8 +75,8 @@ def default_move(focus, seconds, kind, shape):
         "rise": (x, y + travel), "fall": (x, y - travel),
         "from-left": (x - travel, y), "from-right": (x + travel, y),
     }[kind]
-    start_zoom = max(1.5, needed)
-    return centred(start_zoom, origin, shape), centred(min(start_zoom + drift * 0.6, 2.1), focus, shape)
+    start_zoom = max(1.2, needed)     # close enough to travel, wide enough to keep the scene
+    return centred(start_zoom, origin, shape), centred(min(start_zoom + drift * 0.6, 1.45), focus, shape)
 
 
 def eased(progress):

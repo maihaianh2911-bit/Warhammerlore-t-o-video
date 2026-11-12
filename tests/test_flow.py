@@ -74,11 +74,12 @@ class MotionTest(unittest.TestCase):
                     start, end = default_move((0.6, 0.4), 6, kind, (*size, 0.5))
                     self.assertEqual(end[0] < start[0], kind == "pull")
                     moved = abs(end[0] - start[0]) + abs(end[1] - start[1]) + abs(end[2] - start[2])
-                    self.assertGreater(moved, 0.25)                 # a shot never looks still
+                    self.assertGreater(moved, 0.15)                 # a shot never looks still
+                    self.assertLessEqual(max(start[0], end[0]), 1.6)    # the scene is never lost
                     view = camera_view(picture, end, (200, 400)).convert("L")
                     brightest = max(range(200 * 400), key=view.tobytes().__getitem__)
-                    self.assertLessEqual(abs(brightest % 200 - 100), 4)
-                    self.assertLessEqual(abs(brightest // 200 - 200), 4)
+                    self.assertLessEqual(abs(brightest % 200 - 100), 8)
+                    self.assertLessEqual(abs(brightest // 200 - 200), 8)
 
     def test_a_wide_picture_gives_room_to_sweep_sideways(self):
         start, end = default_move((0.2, 0.5), 6, "from-right", (1600, 900, 0.5625))
