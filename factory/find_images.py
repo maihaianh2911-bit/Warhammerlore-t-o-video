@@ -23,7 +23,7 @@ COMMONS = 'https://commons.wikimedia.org/w/api.php'
 WIKI = 'https://warhammer40k.fandom.com/api.php'
 ARTSTATION = 'https://www.artstation.com/api/v2/search/projects.json'
 CATALOG = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '00-video-mau', 'kho-anh-40k')
-UA = 'LoreVideoFactory/1.0 (picture search)'
+UA = 'LoreVideoFactory/1.0 (https://github.com/maihaianh2911-bit/Warhammerlore-t-o-video; picture search)'
 OK = re.compile(r'^(public domain|pd|cc0|cc[- ]by(-sa)?[- ]?\d|cc[- ]by(-sa)?$)', re.I)
 
 
@@ -171,7 +171,11 @@ def main():
         art = q.strip().lower().startswith(('artstation:', 'gallery:'))
         keep = 16 if art or q.strip().lower().startswith('page:') else KEEP
         lim = 900 if art else lim      # ArtStation has enough large pictures to be strict
-        hits = search(q)
+        try:
+            hits = search(q)
+        except Exception as e:   # one bad query (timeout, reset, a site error) must not lose the others or the voice
+            print(f'[{k}] {q}: lỗi tìm ảnh, bỏ qua — {type(e).__name__}: {e}', flush=True)
+            hits = []
         found = [r for r in hits if r.get('width') is None or min(r.get('width') or 0, r.get('height') or 0) >= lim]
         dropped['small'] += len(hits) - len(found)
         kept = []   # [(result, image, hash)] in search order; a duplicate inside this query keeps the bigger file

@@ -91,6 +91,9 @@ Read the issue form (Kịch bản, Hình riêng, Ghi chú) and the owner's comme
   - `commons:deep space nebula` — Wikimedia Commons, free licences only: mood pictures (space, gothic
     architecture, old battle paintings, skulls, ruins, storms). No 40K artwork there.
 - `voice` (optional): another VN11 voice id; leave it out for `clone_611`.
+- Once round 1 exists, do not change `queries` (the machine would search again and every `1/k-n.jpg` would
+  mean another picture): add searches with `search-<r>.json` (§2.2). If it happens anyway, the machine does
+  not render; it sets `lore-pick` and you choose the pictures again.
 Commit `[lore #<N>] kịch bản`, push, remove `lore-busy`. (Voice ~5–10 min; you are woken at `lore-pick`.)
 
 ## 2. `lore-pick` → `lore/<N>/picks.json`
@@ -127,7 +130,7 @@ Commit `[lore #<N>] kịch bản`, push, remove `lore-busy`. (Voice ~5–10 min;
  "shots": [{"img": "fleet", "focus": [0.7, 0.4], "from": [1.0, 0.3, 0.5], "zoom": 1.15, "pace": "even", "kick": 0},
            {"at": 2, "img": "nebula", "focus": [0.5, 0.5], "move": "pull", "pace": "even"},
            {"at": 3.5, "img": "tyberos", "focus": [0.5, 0.22], "from": [1.3, 0.35, 0.75],
-            "via": [[0.55, 1.25, 0.6, 0.55]], "zoom": 1.4, "pace": "surge", "kick": 0.08},
+            "via": [[0.55, 1.25, 0.45, 0.55]], "zoom": 1.4, "pace": "surge", "kick": 0.08},
            {"at": 5, "theme": "rift"}]}
 ```
    (Shot 1, "a fleet came out of the dark": wide and steady, drifting to the flagship. Shot 3, "their leader was

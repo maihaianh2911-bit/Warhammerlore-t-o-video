@@ -105,7 +105,7 @@ jobs:
             echo "$IN_ISSUE$S" > /tmp/todo.txt
           else
             # files changed by this push (only the last commit's when the old head cannot be fetched)
-            git fetch -q --depth 1 origin "$BEFORE" 2>/dev/null && FILES=$(git diff --name-only "$BEFORE" HEAD -- lore/) || FILES=$(git show --name-only --format= HEAD -- lore/)
+            git fetch -q --depth 1 origin "$BEFORE" 2>/dev/null && FILES=$(git -c core.quotePath=false diff --name-only "$BEFORE" HEAD -- lore/) || FILES=$(git -c core.quotePath=false show --name-only --format= HEAD -- lore/)
             printf '%s\n' "$FILES" | python3 -m factory.run todo > /tmp/todo.txt
           fi
           cat /tmp/todo.txt
@@ -124,12 +124,26 @@ jobs:
           FAIL=0
           while read -r N STEPS; do
             echo "::group::phiếu #$N: $STEPS"
-            if ! python3 -m factory.run "$N" $STEPS; then
+            # stdin is the todo list: keep ffmpeg and friends from reading the next issue's line
+            if ! python3 -m factory.run "$N" $STEPS < /dev/null; then
               FAIL=1
-              gh issue edit "$N" --add-label lore-failed --remove-label lore-voice --remove-label lore-render || true
-              gh issue comment "$N" --body "🤖 Máy gặp lỗi ở bước \`$STEPS\` — xem nhật ký: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID . Claude sẽ xem và sửa." || true
-              bash scripts/wake_claude.sh "Phiếu 40K số $N bị lỗi ở bước $STEPS." || true
+              gh issue edit "$N" --add-label lore-failed < /dev/null || true
+              gh issue edit "$N" --remove-label lore-voice --remove-label lore-render < /dev/null || true
+              gh issue comment "$N" < /dev/null --body "🤖 Máy gặp lỗi ở bước \`$STEPS\` — xem nhật ký: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID . Claude sẽ xem và sửa." || true
+              bash scripts/wake_claude.sh "Phiếu 40K số $N bị lỗi ở bước $STEPS." < /dev/null || true
             fi
+            echo "$N" >> /tmp/handled.txt
             echo "::endgroup::"
           done < /tmp/todo.txt
           exit $FAIL
+      - name: Báo lỗi
+        # the job broke outside factory.run (tools, timeout, cancel): no issue may stay in lore-voice/lore-render
+        if: (failure() || cancelled()) && env.TODO == '1'
+        run: |
+          while read -r N STEPS; do
+            grep -qx "$N" /tmp/handled.txt 2>/dev/null && continue
+            gh issue edit "$N" --add-label lore-failed < /dev/null || true
+            gh issue edit "$N" --remove-label lore-voice --remove-label lore-render < /dev/null || true
+            gh issue comment "$N" --body "🤖 Máy dừng giữa chừng ở bước \`$STEPS\` — xem nhật ký: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID . Claude sẽ xem và chạy lại." < /dev/null || true
+            bash scripts/wake_claude.sh "Phiếu 40K số $N: máy dừng giữa chừng ở bước $STEPS." < /dev/null || true
+          done < /tmp/todo.txt

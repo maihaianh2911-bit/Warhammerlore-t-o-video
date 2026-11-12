@@ -15,6 +15,7 @@ import re
 import shutil
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -55,10 +56,20 @@ class Run:
         return subprocess.run(["gh", *arguments], check=False, capture_output=True, text=True)
 
     def labels(self, add=(), remove=()):
-        for label in remove:
-            self.gh("issue", "edit", self.n, "--remove-label", label)
+        """New labels first, then the old ones go: an API error never leaves the issue without a step label."""
         if add:
-            self.gh("issue", "edit", self.n, "--add-label", ",".join(add))
+            self.gh_retry("issue", "edit", self.n, "--add-label", ",".join(add))
+        for label in remove:
+            if label not in add:
+                self.gh_retry("issue", "edit", self.n, "--remove-label", label)
+
+    def gh_retry(self, *arguments):
+        for attempt in range(2):
+            result = self.gh(*arguments)
+            if result.returncode == 0:
+                return result
+            print(f"gh {' '.join(arguments)}: {result.stderr.strip()[:300]}", flush=True)
+        return result
 
     def comment(self, body):
         self.gh("issue", "comment", self.n, "--body", body)
@@ -87,33 +98,41 @@ class Run:
             shutil.copytree(scratch / "lore" / self.n, self.work, dirs_exist_ok=True)
 
     def publish(self, paths, message):
-        """Copy work-relative files or folders to renders/lore/<N>/ in one commit."""
+        """Copy work-relative files or folders to renders/lore/<N>/ in one commit.
+
+        Every attempt starts from the freshly fetched tip of renders and copies the files in again, so a run that
+        lost the race to another one never rebases (a shallow rebase can stop on a conflict and then push nothing).
+        """
         tree = ROOT / "out" / "renders-wt"
-        shutil.rmtree(tree, ignore_errors=True)
-        subprocess.run(["git", "worktree", "prune"], cwd=ROOT)
         fetch = ["git", "fetch", "-q", "--depth", "1", self.url, "+refs/heads/renders:refs/remotes/origin/renders"]
-        if subprocess.run(fetch, cwd=ROOT).returncode == 0:
-            self.sh("git", "worktree", "add", "-q", "--detach", str(tree), "origin/renders")
-        else:   # new repo: the renders branch does not exist yet → start it empty
-            self.sh("git", "worktree", "add", "-q", "--detach", str(tree))
-            self.sh("git", "checkout", "-q", "--orphan", "renders", cwd=tree)
-            subprocess.run(["git", "rm", "-rf", "-q", "."], cwd=tree)
-        for path in paths:
-            source, target = self.work / path, tree / "lore" / self.n / path
-            if source.is_dir():
-                shutil.rmtree(target, ignore_errors=True)
-                shutil.copytree(source, target)
-            else:
-                target.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy(source, target)
-        self.sh("git", *BOT, "add", "-A", cwd=tree)
-        subprocess.run(["git", *BOT, "commit", "-q", "-m", f"lore/{self.n}: {message}"], cwd=tree)
-        for _ in range(4):
+        for attempt in range(5):
+            if tree.exists():
+                subprocess.run(["git", "worktree", "remove", "--force", str(tree)], cwd=ROOT)
+                shutil.rmtree(tree, ignore_errors=True)
+            subprocess.run(["git", "worktree", "prune"], cwd=ROOT)
+            if subprocess.run(fetch, cwd=ROOT).returncode == 0:
+                self.sh("git", "worktree", "add", "-q", "--detach", str(tree), "origin/renders")
+            else:   # new repo: the renders branch does not exist yet → start it empty
+                self.sh("git", "worktree", "add", "-q", "--detach", str(tree))
+                self.sh("git", "checkout", "-q", "--orphan", "renders", cwd=tree)
+                subprocess.run(["git", "rm", "-rf", "-q", "."], cwd=tree)
+            for path in paths:
+                source, target = self.work / path, tree / "lore" / self.n / path
+                if source.is_dir():
+                    shutil.rmtree(target, ignore_errors=True)
+                    shutil.copytree(source, target)
+                else:
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy(source, target)
+            self.sh("git", *BOT, "add", "-A", cwd=tree)
+            if subprocess.run(["git", "diff", "--cached", "--quiet"], cwd=tree).returncode == 0:
+                print(f"lore/{self.n}: {message} — không có gì mới để đăng")
+                return
+            self.sh("git", *BOT, "commit", "-q", "-m", f"lore/{self.n}: {message}", cwd=tree)
             if subprocess.run(["git", "push", "-q", self.url, "HEAD:renders"], cwd=tree).returncode == 0:
                 print(f"published lore/{self.n}: {message}")
                 return
-            subprocess.run(["git", "fetch", "-q", "--depth", "1", self.url, "renders"], cwd=tree)
-            subprocess.run(["git", *BOT, "rebase", "-q", "FETCH_HEAD"], cwd=tree)
+            time.sleep(5 * (attempt + 1))
         raise SystemExit("không đẩy được lên nhánh renders")
 
     def find_images(self, folder, queries, earlier=()):
@@ -152,14 +171,17 @@ class Run:
         self.labels(add=["lore-voice"], remove=["lore-plan", "lore-failed"])
         voice = self.work / "voice"
         self.module("narrate", "--job", self.job, "--out", voice, "--previous", voice)
-        paths = ["voice"]
+        self.publish(["voice"], "giọng đọc")   # saved first: a failed picture search must not cost a second reading
+        paths = []
         attached, changed = self.attachments()
         if changed:
             paths.append("img/issue")
-        if job.queries and self.find_images(self.work / "img" / "1", list(job.queries)):
+        searched = bool(job.queries) and self.find_images(self.work / "img" / "1", list(job.queries))
+        if searched:
             paths.append("img/1")
-        self.publish(paths, "giọng đọc + ảnh")
-        return json.loads((voice / "timing.json").read_text(encoding="utf-8")), attached
+        if paths:
+            self.publish(paths, "ảnh")
+        return json.loads((voice / "timing.json").read_text(encoding="utf-8")), attached, searched
 
     def search(self):
         done = []
@@ -194,7 +216,7 @@ class Run:
 
 def main():
     if sys.argv[1:] == ["todo"]:
-        print("\n".join(todo(sys.stdin.read().split())))
+        print("\n".join(todo(line.strip() for line in sys.stdin.read().splitlines() if line.strip())))
         return
     number, steps = sys.argv[1], sys.argv[2:]
     if not number.isdigit() or not steps or any(step not in ORDER for step in steps):
@@ -203,8 +225,14 @@ def main():
     run.fetch_renders()
     has_picks = (run.job / "picks.json").is_file()
     if "prepare" in steps:
-        timing, attached = run.prepare()
-        if not has_picks:
+        timing, attached, searched = run.prepare()
+        if has_picks and searched:
+            # round 1 was searched again: its numbers (1/k-n.jpg) now mean other pictures, so picks.json is stale
+            run.labels(add=["lore-pick"], remove=["lore-voice"])
+            run.comment("🤖 Từ khóa tìm hình đã đổi nên bộ hình cũng đổi. Claude sẽ chọn lại hình trước khi dựng.")
+            run.wake(f"Phiếu 40K số {number}: tìm lại hình, cần chọn lại hình.")
+            steps = [step for step in steps if step != "render"]
+        elif not has_picks:
             review = len(timing["review"])
             run.labels(add=["lore-pick"], remove=["lore-voice"])
             run.comment(
@@ -220,6 +248,10 @@ def main():
         run.search()
         if "render" not in steps:
             run.labels(add=["lore-pick"], remove=["lore-voice"])
+    if "render" in steps and not has_picks and "prepare" not in steps and os.environ.get("GITHUB_EVENT_NAME") == "push":
+        # own/ pictures pushed before picks.json: nothing to render yet, and nothing failed
+        print("chưa có picks.json — chưa dựng; ảnh riêng sẽ được dùng khi có picks.json")
+        steps.remove("render")
     if "render" in steps:
         if not (run.work / "voice" / "timing.json").is_file():
             raise SystemExit("chưa có giọng đọc cho phiếu này (cần script.json)")

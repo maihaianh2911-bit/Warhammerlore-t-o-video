@@ -5,8 +5,12 @@ answer in short, simple Vietnamese, no jargon.
 
 This repo makes one thing: vertical Warhammer 40K lore shorts in German — the saved `ww40k` voice, pictures
 chosen for each idea, subtitles timed to the voice. One issue `[40K] …` = one video; the machine steps run on
-GitHub Actions (`lore.yml` → `factory/run.py`), Claude's steps are in `AGENT.md`. A Claude routine does those
-steps unattended when GitHub calls it, so a video also gets made when nobody is in a chat.
+GitHub Actions (`lore.yml` → `factory/run.py`), Claude's steps are in `AGENT.md`. Unattended, those steps are done
+by the owner's hourly Claude task "japan-video-factory" (minute :31), which since 12/11/2026 also checks `lore-*`
+issues of this repo (see `maihaianh2911-bit/japan-video-factory` → `AGENT_NIGHTLY.md`). GitHub wakes it right
+away only when this repo has the secrets `CLAUDE_TASK_URL` and `CLAUDE_TASK_TOKEN` (the same values as in
+japan-video-factory); without them a waiting step is picked up within the hour.
+An issue opened before the workflow existed (or reopened) gets no labels by itself: add `lore` and `lore-plan`.
 
 ## When the owner pastes a script in a chat
 1. Create one issue in this repo: title `[40K] <tên video>`, body = the script exactly as pasted under
