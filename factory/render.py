@@ -8,7 +8,7 @@ from pathlib import Path
 
 from PIL import Image
 
-from .art import ART_ROOT, atmosphere, contact_sheet, fit_picture, grade_frame, open_picture
+from .art import ART_ROOT, atmosphere, contact_sheet, grade_frame, open_picture
 from .script import (
     MOVES, caption_chunks, line_times, load_job, load_picks, make_cues, opening_frames, shot_frames, write_subtitles,
 )
@@ -17,9 +17,10 @@ from .voice import audio_duration
 
 FPS = 30
 SIZES = {"preview": (720, 1280), "full": (1080, 1920)}
-ZOOM_PER_SECOND = 0.032     # the reference video pushes in at an even ~3% of the frame per second
-MAX_AUTO_ZOOM = 1.42
-DETAIL = 1.5                # stills are kept larger than the frame so a push-in stays sharp
+ZOOM_PER_SECOND = 0.065     # how fast a shot closes in; the reference video does about half of this
+DETAIL = 1.7                # stills are kept larger than the frame so a deep push-in stays sharp
+KICK = 0.07                 # every cut lands with a short extra push that settles in a third of a second
+KICK_SECONDS = 0.33
 FONTS = Path(__file__).resolve().parent.parent / "fonts"
 
 
@@ -33,71 +34,81 @@ def ffmpeg(scratch, *arguments, **options):
 BLEND_FRAMES = 4            # a cut is softened over a few frames
 
 
-def centred(zoom, focus):
-    """Camera position [zoom, x, y] whose view has the focus point in its middle, as far as the picture allows."""
-    slack = 1 - 1 / zoom
-    if slack <= 0:
-        return (zoom, 0.5, 0.5)
-    return (zoom, *(min(1.0, max(0.0, (point - 0.5 / zoom) / slack)) for point in focus))
+def view_share(shape, zoom):
+    """Width and height of the camera's view as fractions of the picture. shape = (width, height, frame aspect).
+
+    At zoom 1 the view is the largest frame-shaped window the picture holds, so a wide picture has room to
+    travel sideways and a tall one up and down even before zooming.
+    """
+    width, height, aspect = shape
+    base_width = min(width, height * aspect)
+    return base_width / width / zoom, base_width / aspect / height / zoom
 
 
-def default_move(focus, seconds, kind="push"):
+def centred(zoom, point, shape):
+    """Camera position (zoom, x, y) looking at a point of the picture, kept inside the picture's edges."""
+    return (zoom, *(min(1 - share / 2, max(share / 2, value)) for value, share in zip(point, view_share(shape, zoom))))
+
+
+def default_move(focus, seconds, kind, shape):
     """Two keyframes of a shot, start and end. Every move ends centred on the focus point (the subject).
 
-    push        the whole frame, then a push-in on the subject (the move of the reference video)
-    pull        starts close on the subject and draws back to show it in its setting, still centred on it
-    rise, fall  starts lower / higher on the picture and travels to the subject while closing in
-    from-left, from-right   starts to that side of the subject and slides across to it while closing in
+    push        the widest view of the picture, then a deep push-in on the subject
+    pull        starts tight on the subject and draws back to show it in its setting, still centred on it
+    rise, fall  starts well below / above the subject and travels to it while closing in
+    from-left, from-right   starts far to that side of the subject and sweeps across to it while closing in
     glide       from-left or from-right, whichever side has more picture
     """
     x, y = focus
     drift = ZOOM_PER_SECOND * seconds
     # an off-centre subject can only be brought to the middle of the frame from a certain zoom on
-    needed = min(1.3, max(1.16, 0.5 / max(0.05, min(x, 1 - x)), 0.5 / max(0.05, min(y, 1 - y))))
+    wide, tall = view_share(shape, 1.0)
+    needed = min(1.7, max(1.25, wide / 2 / max(0.05, min(x, 1 - x)), tall / 2 / max(0.05, min(y, 1 - y))))
     if kind == "push":
-        return (1.0, 0.5, 0.5), centred(min(max(1.0 + drift, needed), MAX_AUTO_ZOOM), focus)
+        return centred(1.0, (0.5, 0.5), shape), centred(min(max(1.0 + drift, needed, 1.32), 2.0), focus, shape)
     if kind == "pull":
-        return centred(min(needed + max(drift * 1.3, 0.22), 1.8), focus), centred(needed, focus)
-    travel = min(0.34, 0.05 * seconds + 0.08)       # longer shots travel further, at the same calm speed
+        return centred(min(needed + max(drift * 1.2, 0.5), 2.3), focus, shape), centred(needed, focus, shape)
+    travel = min(0.6, 0.1 * seconds + 0.2)          # share of the picture crossed on the way to the subject
     if kind == "glide":
         kind = "from-right" if x < 0.5 else "from-left"
     origin = {
-        "rise": (x, min(1.0, y + travel)), "fall": (x, max(0.0, y - travel)),
-        "from-left": (max(0.0, x - travel), y), "from-right": (min(1.0, x + travel), y),
+        "rise": (x, y + travel), "fall": (x, y - travel),
+        "from-left": (x - travel, y), "from-right": (x + travel, y),
     }[kind]
-    start_zoom = 1.16
-    return centred(start_zoom, origin), centred(min(max(start_zoom + drift, needed), MAX_AUTO_ZOOM + 0.1), focus)
+    start_zoom = max(1.5, needed)
+    return centred(start_zoom, origin, shape), centred(min(start_zoom + drift * 0.6, 2.1), focus, shape)
 
 
 def eased(progress):
     """Leaves briskly and settles on the subject without ever standing still."""
-    return 0.45 * progress + 0.55 * (1 - (1 - progress) ** 2)
+    return 0.3 * progress + 0.7 * (1 - (1 - progress) ** 2)
 
 
 def camera_view(image, position, size):
-    """The frame at one camera position [zoom, x, y]; fractional crops keep slow moves free of jitter."""
-    zoom, x, y = position
+    """The frame at one camera position (zoom, x, y); fractional crops keep slow moves free of jitter."""
+    shape = (*image.size, size[0] / size[1])
+    zoom, x, y = centred(position[0], position[1:], shape)
+    wide, tall = view_share(shape, zoom)
     width, height = image.size
-    crop_width, crop_height = width / zoom, height / zoom
-    left = (width - crop_width) * x
-    top = (height - crop_height) * y
-    return image.resize(size, Image.Resampling.BICUBIC, box=(left, top, left + crop_width, top + crop_height))
+    left, top = (x - wide / 2) * width, (y - tall / 2) * height
+    return image.resize(size, Image.Resampling.BICUBIC, box=(left, top, left + wide * width, top + tall * height))
 
 
 def shot_frames_rgb(image, move, count, size, previous=None):
-    """Frames of one shot; yields (frame bytes, last frame image) so the next shot can blend out of it."""
+    """Frames of one shot, blended out of the last frame of the shot before."""
     start, end = move
-    frame = None
     for index in range(count):
         progress = eased(index / max(1, count - 1))
-        position = [a + (b - a) * progress for a, b in zip(start, end)]
-        frame = camera_view(image, position, size)
+        zoom, x, y = (a + (b - a) * progress for a, b in zip(start, end))
+        landing = max(0.0, 1 - index / (KICK_SECONDS * FPS))
+        frame = camera_view(image, (zoom * (1 + KICK * landing ** 3), x, y), size)
         if previous is not None and index < BLEND_FRAMES:
             frame = Image.blend(previous, frame, (index + 1) / (BLEND_FRAMES + 1))
         yield frame
 
 
 def all_frames(stills, size):
+    """stills yields (picture, move, frame count) one shot at a time, so only one large picture is in memory."""
     previous = None
     for picture, move, count in stills:
         for frame in shot_frames_rgb(picture, move, count, size, previous):
@@ -130,18 +141,24 @@ def load_images(images, job_dir, images_dir):
 
 
 def shot_picture(shot, index, images, pictures, size, seconds):
-    """The still of one shot (larger than the frame) and its camera move (start, end)."""
-    large = (round(size[0] * DETAIL), round(size[1] * DETAIL))
+    """The still of one shot (the whole picture, enlarged for sharp push-ins) and its camera move (start, end)."""
+    aspect = size[0] / size[1]
     if "img" in shot:
-        entry = images[shot["img"]]
-        picture = fit_picture(pictures[shot["img"]], large, tuple(entry.get("focal", (0.5, 0.42))))
+        picture = pictures[shot["img"]]
+        width, height = picture.size
+        scale = size[0] * DETAIL / min(width, height * aspect)
+        picture = picture.resize((round(width * scale), round(height * scale)), Image.Resampling.LANCZOS)
     else:
-        picture = atmosphere(size, shot["theme"], seed=2099 + 37 * index).resize(large, Image.Resampling.BICUBIC)
+        picture = atmosphere(size, shot["theme"], seed=2099 + 37 * index)
+        picture = picture.resize((round(size[0] * DETAIL), round(size[1] * DETAIL)), Image.Resampling.BICUBIC)
+    shape = (*picture.size, aspect)
     focus = tuple(shot.get("focus", (0.5, 0.4)))
-    start, end = default_move(focus, seconds, shot.get("move") or MOVES[index % len(MOVES)])
+    start, end = default_move(focus, seconds, shot.get("move") or MOVES[index % len(MOVES)], shape)
     if "zoom" in shot:
-        end = centred(max(shot["zoom"], 1.05), focus)      # whatever the zoom, the shot ends on the subject
-    return picture, (tuple(shot.get("from") or start), end)
+        end = centred(max(shot["zoom"], 1.05), focus, shape)      # whatever the zoom, the shot ends on the subject
+    if "from" in shot:
+        start = centred(shot["from"][0], shot["from"][1:], shape)
+    return picture, (start, end)
 
 
 def shot_views(picture, move, size):
@@ -240,10 +257,12 @@ def render(job_dir, voice_dir, images_dir, out, size_name="full"):
         pictures = load_images(images, job_dir, images_dir)
 
         scenes = []
-        stills = []
-        for index, (shot, (first, last)) in enumerate(zip(shots, ranges)):
-            picture, move = shot_picture(shot, index, images, pictures, size, (last - first) / FPS)
-            stills.append((grade_frame(picture), move, last - first))
+        def stills():
+            for index, (shot, (first, last)) in enumerate(zip(shots, ranges)):
+                picture, move = shot_picture(shot, index, images, pictures, size, (last - first) / FPS)
+                yield grade_frame(picture), move, last - first
+
+        for shot, (first, last) in zip(shots, ranges):
             scenes.append({
                 "start": round(first / FPS, 3),
                 "end": round(last / FPS, 3),
@@ -253,7 +272,7 @@ def render(job_dir, voice_dir, images_dir, out, size_name="full"):
                 "credits": shot_credits(shot, images),
             })
 
-        encode_video(all_frames(stills, size), scratch / audio.name, frames, size, scratch, stage / "video.mp4")
+        encode_video(all_frames(stills(), size), scratch / audio.name, frames, size, scratch, stage / "video.mp4")
         ffmpeg(scratch, "-i", str(stage / "video.mp4"), "-frames:v", "1", "-q:v", "2", str(stage / "cover.jpg"))
         write_sheet(stage / "video.mp4", scenes, scratch, stage / "sheet.jpg")
         write_credits(scenes, stage / "credits.md")

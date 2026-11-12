@@ -99,11 +99,11 @@ Commit `[lore #<N>] kịch bản`, push, remove `lore-busy`. (Voice ~5–10 min;
    Pacing as in the reference: a picture stays while the narration is about its subject and changes when the
    subject or the speaker changes — 3–12 s each, about 8–10 pictures a minute. A strong picture may return with
    another `focus` (the reference shows its key scene twice). Open on the most striking portrait or scene and
-   close on a picture that carries the last line. Prefer tall or square artwork with one clear subject: a wide
-   picture is cut to 9:16 around its `focal`.
+   close on a picture that carries the last line. Any shape of artwork works: the camera travels over the whole
+   picture, so a wide battle scene is swept across and a tall figure is climbed. One clear subject per picture.
 5. Format:
 ```json
-{"images": {"tyberos": {"src": "1/1-1.jpg", "credit": "Tyberos the Red Wake — Games Workshop, Warhammer 40k Wiki", "focal": [0.5, 0.3]},
+{"images": {"tyberos": {"src": "1/1-1.jpg", "credit": "Tyberos the Red Wake — Games Workshop, Warhammer 40k Wiki"},
             "fleet": {"src": "art/carcharodons-fleet.jpg", "credit": "…", "crop": [0.1, 0.0, 0.9, 1.0]},
             "nebula": {"src": "1/9-3.jpg", "credit": "Carina Nebula — NASA/ESA, public domain (Wikimedia Commons)"}},
  "shots": [{"img": "tyberos", "focus": [0.5, 0.25], "move": "rise"},
@@ -114,28 +114,32 @@ Commit `[lore #<N>] kịch bản`, push, remove `lore-busy`. (Voice ~5–10 min;
 ```
    - `images`: `src` = `issue/<n>.jpg`, `art/<file>`, `<round>/<file>` or `own/<file>` (a file you saved in
      `lore/<N>/own/`). `credit` (always): subject — artist when known, source (wiki artwork: `… — Games Workshop,
-     Warhammer 40k Wiki`; Commons: author and licence from `index.json`). `crop` [x0, y0, x1, y1] in 0..1. `focal` [x, y]: the point kept in view when the picture is cut
-     to the 9:16 frame (default [0.5, 0.42]).
+     Warhammer 40k Wiki`; Commons: author and licence from `index.json`). `crop` [x0, y0, x1, y1] in 0..1 cuts away borders,
+     captions or a second subject before anything else.
    - `shots` in order. The first starts with line 1; `at` = line number where the next cuts in (13.5 = the middle
      of line 13). Each shot has `img` or `theme` (generated background: `orbit`, `archive`, `rift`, `decay`,
      `inferno`).
-   - Camera: **every shot ends pushed in on `focus`** [x, y] (0–1 inside the 9:16 frame, default [0.5, 0.4]) —
+   - Camera: **every shot ends pushed in on `focus`** [x, y] (0–1 across the picture after `crop`, default [0.5, 0.4]) —
      the owner's rule (12/11): the last frame of a picture is always centred on its main character. So always
      set `focus` on that character's face (or chest for a full figure; for a picture without a character, its
      main subject). There is no `to`. A shot is two keyframes, as in a video editor: where it starts and the end
      on the subject. How the camera gets there is `move`; vary it from shot to shot (left out → chosen in turn):
-     - `push`: the whole frame, then a push-in (the reference's move) — openings, portraits.
-     - `pull`: starts close on the face and draws back to show the character in its setting — reveals, a line
+     - `push`: the widest view of the picture, then a deep push-in — openings, portraits.
+     - `pull`: starts tight on the face and draws back to show the character in its setting — reveals, a line
        that widens the view ("…and behind him stood a legion").
-     - `rise` / `fall`: starts lower / higher on the picture and travels to the face — full figures (boots to
-       helmet), tall architecture, banners.
-     - `from-left` / `from-right`: starts to that side and slides across — wide scenes, a second character, the
-       direction a figure looks or charges. `glide` takes the side with more picture.
-     Do not use the same move twice in a row. All of them move at a calm speed (about 3% zoom per second), leave
-     briskly and settle gently. `zoom` (1.05–1.8) sets the end zoom yourself, e.g. a stronger push on the last
-     shot; `from` [zoom, x, y] sets your own starting view.
-   - The title sits at 13–22% of the height for the first two seconds; captions sit at 61–67%. Keep faces
-     between them (choose `focal`/`crop` so the face is in the upper half).
+     - `rise` / `fall`: starts well below / above and travels to the face — full figures (boots to helmet), tall
+       architecture, banners.
+     - `from-left` / `from-right`: starts far to that side and sweeps across — wide scenes, a second character,
+       the direction a figure looks or charges. `glide` takes the side with more picture.
+     Do not use the same move twice in a row. The owner wants strong, visible motion (12/11: the first version
+     "looked static"): moves close in at about 6–7% per second, cross up to half the picture, leave briskly and
+     settle on the subject, and every cut lands with a short extra push. A sweep needs room: for `from-left` /
+     `from-right` choose pictures wider than they are tall, or a subject away from that edge; for `rise` a
+     subject in the upper part. `zoom` (1.05–2.3) sets the end zoom yourself; `from` [zoom, x, y] sets your own
+     starting view (x, y = the point of the picture it looks at).
+   - The title sits at 13–22% of the height for the first two seconds; captions sit at 61–67%. The shot ends with `focus` in the
+     middle of the frame, between the two; a face right at the top edge of a picture ends as high as the picture
+     allows.
 6. **Preview before pushing** (a wrong crop found after the render costs another render):
    `pip install -q pillow` if missing, then
    `python3 -m factory.preview --job lore/<N> --images /tmp/r/lore/<N>/img --out /tmp/preview.jpg` and open the

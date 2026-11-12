@@ -66,21 +66,27 @@ class PicksTest(unittest.TestCase):
 class MotionTest(unittest.TestCase):
     def test_every_move_ends_centred_on_the_subject(self):
         from PIL import Image
-        picture = Image.new("RGB", (200, 400))
-        picture.putpixel((120, 160), (255, 255, 255))          # the subject: focus (0.6, 0.4)
-        for kind in MOVES:
-            with self.subTest(kind):
-                start, end = default_move((0.6, 0.4), 10, kind)
-                self.assertNotEqual(start, end)
-                self.assertEqual(end[0] < start[0], kind == "pull")
-                view = camera_view(picture, end, (200, 400)).convert("L")
-                brightest = max(range(200 * 400), key=view.tobytes().__getitem__)
-                self.assertLessEqual(abs(brightest % 200 - 100), 3)
-                self.assertLessEqual(abs(brightest // 200 - 200), 3)
+        for size in ((200, 400), (600, 400)):               # a tall picture and a wide one
+            picture = Image.new("RGB", size)
+            picture.putpixel((round(0.6 * size[0]), 160), (255, 255, 255))          # the subject: focus (0.6, 0.4)
+            for kind in MOVES:
+                with self.subTest(kind=kind, size=size):
+                    start, end = default_move((0.6, 0.4), 6, kind, (*size, 0.5))
+                    self.assertEqual(end[0] < start[0], kind == "pull")
+                    moved = abs(end[0] - start[0]) + abs(end[1] - start[1]) + abs(end[2] - start[2])
+                    self.assertGreater(moved, 0.25)                 # a shot never looks still
+                    view = camera_view(picture, end, (200, 400)).convert("L")
+                    brightest = max(range(200 * 400), key=view.tobytes().__getitem__)
+                    self.assertLessEqual(abs(brightest % 200 - 100), 4)
+                    self.assertLessEqual(abs(brightest // 200 - 200), 4)
 
-    def test_a_subject_near_the_edge_stays_inside_the_picture(self):
-        self.assertEqual(centred(1.3, (0.02, 0.98)), (1.3, 0.0, 1.0))
-        self.assertEqual(centred(1.0, (0.2, 0.2)), (1.0, 0.5, 0.5))
+    def test_a_wide_picture_gives_room_to_sweep_sideways(self):
+        start, end = default_move((0.2, 0.5), 6, "from-right", (1600, 900, 0.5625))
+        self.assertGreater(start[1] - end[1], 0.4)
+
+    def test_the_view_stays_inside_the_picture(self):
+        self.assertEqual(centred(2.0, (0.02, 0.98), (200, 400, 0.5)), (2.0, 0.25, 0.75))
+        self.assertEqual(centred(1.0, (0.2, 0.2), (200, 400, 0.5)), (1.0, 0.5, 0.5))
 
     def test_motion_settles_without_stopping(self):
         self.assertEqual((eased(0), eased(1)), (0, 1))

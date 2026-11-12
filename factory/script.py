@@ -65,7 +65,7 @@ def load_job(path: Path) -> Job:
 
 
 def load_picks(path: Path, line_count):
-    """picks.json: {"images": {name: {"src", "credit", "crop", "focal"}}, "shots": [{"at", "img" | "theme", "focus", "move", "zoom"}]}."""
+    """picks.json: {"images": {name: {"src", "credit", "crop"}}, "shots": [{"at", "img" | "theme", "focus", "move", "zoom"}]}."""
     data = json.loads(path.read_text(encoding="utf-8-sig"))
     images = data.get("images") or {}
     shots = data.get("shots")
@@ -93,14 +93,14 @@ def load_picks(path: Path, line_count):
         if focus is not None and not (isinstance(focus, list) and len(focus) == 2 and all(0 <= v <= 1 for v in focus)):
             raise ValueError(f"Cảnh {number}: focus là [x, y] trong khoảng 0–1.")
         zoom = shot.get("zoom")
-        if zoom is not None and not (isinstance(zoom, (int, float)) and 1 <= zoom <= 1.8):
-            raise ValueError(f"Cảnh {number}: zoom từ 1 đến 1.8.")
+        if zoom is not None and not (isinstance(zoom, (int, float)) and 1 <= zoom <= 2.3):
+            raise ValueError(f"Cảnh {number}: zoom từ 1 đến 2.3.")
         if shot.get("move") not in (None, *MOVES):
             raise ValueError(f"Cảnh {number}: move là một trong {', '.join(MOVES)}.")
         start = shot.get("from")
         if start is not None and not (isinstance(start, list) and len(start) == 3
-                                      and 1 <= start[0] <= 1.8 and 0 <= start[1] <= 1 and 0 <= start[2] <= 1):
-            raise ValueError(f"Cảnh {number}: from là [zoom 1–1.8, x 0–1, y 0–1].")
+                                      and 1 <= start[0] <= 2.3 and 0 <= start[1] <= 1 and 0 <= start[2] <= 1):
+            raise ValueError(f"Cảnh {number}: from là [zoom 1–2.3, x 0–1, y 0–1].")
         if "to" in shot:
             raise ValueError(f"Cảnh {number}: không đặt to; cảnh luôn kết thúc ở focus (trọng tâm nhân vật).")
     return images, shots

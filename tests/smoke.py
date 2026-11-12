@@ -22,12 +22,12 @@ SCRIPT = {
 }
 PICKS = {
     "images": {
-        "rift": {"src": "own/rift.jpg", "credit": "Testbild A", "focal": [0.5, 0.4]},
+        "rift": {"src": "own/rift.jpg", "credit": "Testbild A"},
         "orbit": {"src": "issue/1.jpg", "credit": "Testbild B", "crop": [0.1, 0.0, 0.9, 1.0]},
     },
     "shots": [
         {"img": "orbit", "focus": [0.7, 0.3]},
-        {"at": 2, "img": "rift", "move": "rise", "from": [1.1, 0.5, 1.0]},
+        {"at": 2, "img": "rift", "move": "rise", "from": [1.6, 0.5, 0.9]},
         {"at": 3, "img": "orbit", "zoom": 1.5},
         {"at": 4, "theme": "inferno"},
     ],

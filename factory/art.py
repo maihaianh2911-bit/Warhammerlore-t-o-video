@@ -42,10 +42,6 @@ def contact_sheet(tiles, path, columns=4):
     sheet.save(path, quality=85)
 
 
-def fit_picture(image, size, focal=(0.5, 0.42)):
-    return ImageOps.fit(image, size, Image.Resampling.LANCZOS, centering=focal)
-
-
 def grade_frame(image):
     return ImageEnhance.Color(ImageEnhance.Contrast(image).enhance(1.06)).enhance(1.12)
 
