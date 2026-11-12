@@ -1,0 +1,5 @@
+Roboute Guilliman. Ultramarines. This is a test of the narration and the opening shot.
+
+The Great Rift. This part checks that the picture changes as the narration continues.
+
+Terra. The last line checks the subtitle and the sound at the end of the video.

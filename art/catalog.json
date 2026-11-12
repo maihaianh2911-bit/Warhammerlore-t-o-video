@@ -1,0 +1,32 @@
+{
+  "subjects": [
+    {
+      "name": "Roboute Guilliman",
+      "aliases": ["roboute", "guilliman"],
+      "gallery": "https://40k.gallery/tag/roboute-guilliman/",
+      "theme": "orbit"
+    },
+    {
+      "name": "Ultramarines",
+      "aliases": ["ultramarine", "macragge", "ultramar"],
+      "gallery": "https://40k.gallery/tag/ultramarines/",
+      "theme": "orbit"
+    },
+    {
+      "name": "Horus Heresy",
+      "aliases": ["horus heresy", "horus lupercal", "đại phản loạn"],
+      "theme": "archive"
+    },
+    {
+      "name": "Great Rift",
+      "aliases": ["cicatrix maledictum", "great rift", "khe nứt", "the warp", "immaterium"],
+      "theme": "rift"
+    },
+    {
+      "name": "Terra",
+      "aliases": ["holy terra", "terra", "imperial palace", "golden throne", "ngai vàng"],
+      "theme": "archive"
+    }
+  ],
+  "assets": []
+}

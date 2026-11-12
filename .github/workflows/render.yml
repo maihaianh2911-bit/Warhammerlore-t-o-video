@@ -1,0 +1,110 @@
+name: Dựng video 40K
+
+on:
+  issues:
+    types: [opened]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: Số Issue đã duyệt. Để trống để chạy mẫu kiểm tra.
+        required: false
+        type: string
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/render.yml'
+      - 'factory/**'
+      - 'art/**'
+      - 'examples/**'
+      - 'tests/**'
+      - 'requirements.txt'
+
+permissions:
+  contents: read
+
+jobs:
+  render:
+    if: >-
+      github.event_name != 'issues' ||
+      (github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.title, '[40K]'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    permissions:
+      contents: read
+      issues: read
+    outputs:
+      issue: ${{ steps.intake.outputs.issue }}
+      artifact: ${{ steps.artifact.outputs.artifact-url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Cài công cụ dựng
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg espeak-ng fonts-dejavu-core
+          python3 -m venv "$RUNNER_TEMP/factory"
+          "$RUNNER_TEMP/factory/bin/pip" install --disable-pip-version-check -r requirements.txt
+      - name: Đọc kịch bản
+        id: intake
+        env:
+          GH_TOKEN: ${{ github.token }}
+          INPUT_ISSUE: ${{ inputs.issue_number }}
+          EVENT_ISSUE: ${{ github.event.issue.number }}
+        run: |
+          if [[ "$GITHUB_EVENT_NAME" == issues ]]; then
+            source="$GITHUB_EVENT_PATH"
+            issue="$EVENT_ISSUE"
+          elif [[ -n "$INPUT_ISSUE" ]]; then
+            [[ "$INPUT_ISSUE" =~ ^[1-9][0-9]*$ ]]
+            issue="$INPUT_ISSUE"
+            source="$RUNNER_TEMP/issue.json"
+            gh api "repos/$GITHUB_REPOSITORY/issues/$issue" > "$source"
+          else
+            exit 0
+          fi
+          "$RUNNER_TEMP/factory/bin/python" -m factory.intake --issue "$source" \
+            --owner "$GITHUB_REPOSITORY_OWNER" --script "$RUNNER_TEMP/script.txt" > "$RUNNER_TEMP/title.txt"
+          echo "issue=$issue" >> "$GITHUB_OUTPUT"
+      - name: Dựng và kiểm tra mẫu
+        if: steps.intake.outputs.issue == ''
+        run: |
+          "$RUNNER_TEMP/factory/bin/python" -m unittest discover -s tests -v
+          "$RUNNER_TEMP/factory/bin/python" -m factory.render --title 'Warhammer 40,000' \
+            --script examples/smoke.txt --out out --language en --voice espeak --size preview
+          test -s out/video.mp4
+          test -s out/subtitles.srt
+          ffprobe -v error -show_entries stream=codec_type,width,height -of json out/video.mp4
+      - name: Dựng kịch bản đã duyệt
+        if: steps.intake.outputs.issue != ''
+        env:
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          ELEVENLABS_VOICE_ID: ${{ vars.ELEVENLABS_VOICE_ID }}
+          NARRATION_LANGUAGE: ${{ vars.NARRATION_LANGUAGE }}
+        run: |
+          "$RUNNER_TEMP/factory/bin/python" -m factory.render --title="$(cat "$RUNNER_TEMP/title.txt")" \
+            --script "$RUNNER_TEMP/script.txt" --out out --language "${NARRATION_LANGUAGE:-vi}"
+      - uses: actions/upload-artifact@v4
+        id: artifact
+        with:
+          name: 40k-video-${{ steps.intake.outputs.issue || 'demo' }}
+          path: out/
+          if-no-files-found: error
+          retention-days: 14
+
+  reply:
+    needs: render
+    if: needs.render.outputs.issue != ''
+    runs-on: ubuntu-24.04
+    permissions:
+      issues: write
+    steps:
+      - name: Trả video về Issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ needs.render.outputs.issue }}
+          ARTIFACT: ${{ needs.render.outputs.artifact }}
+        run: |
+          gh issue comment "$ISSUE" --repo "$GITHUB_REPOSITORY" \
+            --body "🤖 Đã dựng xong. [Tải video, phụ đề và nguồn hình]($ARTIFACT)."
