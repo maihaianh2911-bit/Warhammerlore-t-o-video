@@ -4,6 +4,8 @@ Usage: python3 -m factory.find_images <out_dir> "<query 1>" "<query 2>" ...
 Each query is searched in one place:
   Tyberos the Red Wake        file search of the Warhammer 40k Wiki (Fandom): artwork of characters, chapters, ships
   page:Carcharodons           every picture used on that wiki article (up to 16)
+  gallery:Sanguinius          the 40K Gallery catalogue kept in 00-video-mau/kho-anh-40k/ (14,000 titled artworks):
+                              every word must be in the title or tags; "gallery:Sanguinius p2" = the next 16
   artstation:Sanguinius       ArtStation, most liked first: modern, high-resolution artwork by named artists
                               (the best-looking source; use it for every character and scene)
   commons:gothic cathedral    Wikimedia Commons, only licences that allow use in a monetised video (public
@@ -20,6 +22,7 @@ from .art import contact_sheet
 COMMONS = 'https://commons.wikimedia.org/w/api.php'
 WIKI = 'https://warhammer40k.fandom.com/api.php'
 ARTSTATION = 'https://www.artstation.com/api/v2/search/projects.json'
+CATALOG = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '00-video-mau', 'kho-anh-40k')
 UA = 'LoreVideoFactory/1.0 (picture search)'
 OK = re.compile(r'^(public domain|pd|cc0|cc[- ]by(-sa)?[- ]?\d|cc[- ]by(-sa)?$)', re.I)
 
@@ -60,11 +63,44 @@ def artstation(q, n):
     return out
 
 
+def catalog():
+    """The 40K Gallery link catalogue: curated entries (tags, some artists) first, then the general list."""
+    import gzip
+    rows, seen = [], set()
+    for name, opener in (('priority.jsonl', open), ('assets.jsonl.gz', gzip.open)):
+        path = os.path.join(CATALOG, name)
+        if not os.path.exists(path):
+            continue
+        with opener(path, 'rt', encoding='utf-8') as f:
+            for line in f:
+                if line.strip():
+                    r = json.loads(line)
+                    if r.get('image_url') not in seen:
+                        seen.add(r.get('image_url')); rows.append(r)
+    return rows
+
+
+def gallery(q, n=16):
+    """Catalogue entries whose title or tags hold every word of the query; 'p2', 'p3'… pick the next batch."""
+    words = q.lower().split()
+    page = int(words.pop()[1:]) if words and re.fullmatch(r'p\d+', words[-1]) else 1
+    hits = []
+    for r in catalog():
+        text = (r.get('title', '') + ' ' + ' '.join(r.get('tags') or [])).lower().replace('-', ' ')
+        url = r.get('image_url') or ''
+        if words and all(w in text for w in words) and re.match(r'https://artwork\.40k\.gallery/[\w./%-]+$', url):
+            hits.append({'title': r.get('title', ''), 'page': r.get('source_url'), 'thumb': url, 'width': None, 'height': None,
+                         'source': '40K Gallery', 'artist': r.get('artist', ''), 'license': '© ' + (r.get('artist') or '40K Gallery')})
+    return hits[(page - 1) * n:page * n]
+
+
 def search(q, n=12):
     """Results of one query, in search order (see the module text for the kinds of query)."""
     q = q.strip()
     if q.lower().startswith('artstation:'):
         return artstation(q[11:].strip(), 24)
+    if q.lower().startswith('gallery:'):
+        return gallery(q[8:].strip())
     commons = q.lower().startswith('commons:')
     if commons:
         pages = api(COMMONS, {'generator': 'search', 'gsrsearch': q[8:].strip(), 'gsrnamespace': 6, 'gsrlimit': n,
@@ -132,7 +168,7 @@ def main():
     index, kept_hashes, dropped = [], seen_hashes(), {'small': 0, 'duplicate': 0}
     for k, q in enumerate(queries, 1):
         lim = MIN_SIDE_CAT if 'incategory:' in q.lower() else MIN_SIDE
-        art = q.strip().lower().startswith('artstation:')
+        art = q.strip().lower().startswith(('artstation:', 'gallery:'))
         keep = 16 if art or q.strip().lower().startswith('page:') else KEEP
         lim = 900 if art else lim      # ArtStation has enough large pictures to be strict
         hits = search(q)

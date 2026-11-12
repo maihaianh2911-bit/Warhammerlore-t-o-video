@@ -42,9 +42,11 @@ gh api "repos/$R/issues?state=open&labels=lore&per_page=50" --jq '[.[] | select(
 - 40K defaults to German and the `ww40k` voice (`clone_611`). The translated title is the on-screen hook; it is
   not read aloud.
 - Pictures are found by Claude and the machine, **not by the owner** (owner, 12/11): never ask the owner to
-  supply pictures. The machine searches ArtStation, the Warhammer 40k Wiki (Fandom) and Wikimedia Commons; you may add
+  supply pictures. The machine searches the 40K Gallery catalogue, ArtStation, the Warhammer 40k Wiki (Fandom) and
+  Wikimedia Commons; you may add
   pictures you find on the web yourself (§2.2). 40K Gallery blocks automated requests: do not try to get around
-  that. 40K artwork is copyrighted; the owner accepted that. Always credit the artist when known, else the source.
+  that — the catalogue in `00-video-mau/kho-anh-40k/` (made for the owner, 12/11) lists its artworks with direct
+  picture links, which do open. 40K artwork is copyrighted; the owner accepted that. Always credit the artist when known, else the source.
 - Pictures must be beautiful (owner, 12/11, on the first test: "why did you pick such ugly pictures?"). That test
   used small, dated wiki scans. Choose modern, sharp, well-painted artwork, at least ~1400 px on the short side,
   in one consistent look across the video; an older or smaller picture only when nothing else shows the subject.
@@ -71,6 +73,11 @@ Read the issue form (Kịch bản, Hình riêng, Ghi chú) and the owner's comme
 - `title`: the issue title in German, short (it is the red hook over the first two seconds, ≤ ~60 characters).
 - `queries`: 10–18 picture searches, at least one for every character, faction, ship, world and event the
   script names. Three kinds:
+  - `gallery:Sanguinius` — the 40K Gallery catalogue (14,000 artworks, up to 16 per query at 1920 px): every
+    word must be in the artwork's title or tags, so search names (`gallery:Leman Russ`, `gallery:Tyberos`,
+    `gallery:Badab`); `gallery:Sanguinius p2` gives the next 16. **Search here and on ArtStation for every
+    character, faction and scene.** You can look titles up yourself:
+    `gzip -dc 00-video-mau/kho-anh-40k/assets.jsonl.gz | grep -i '<word>'`.
   - `artstation:Sanguinius` — ArtStation, most liked first (up to 16, ≥ 900 px): modern, high-resolution
     artwork by named artists. **The main source**: one query for every character, faction and scene, with the
     English lore name (`artstation:Leman Russ`, `artstation:Space Wolves`, `artstation:Horus Heresy`). Two-name
@@ -125,7 +132,8 @@ Commit `[lore #<N>] kịch bản`, push, remove `lore-busy`. (Voice ~5–10 min;
    Tyberos": starts on his claws, passes the shark emblem, surges up to the helmet.)
 
    - `images`: `src` = `issue/<n>.jpg`, `art/<file>`, `<round>/<file>` or `own/<file>` (a file you saved in
-     `lore/<N>/own/`). `credit` (always): subject — artist when known, source (ArtStation: `<title> — <artist>, ArtStation`; wiki
+     `lore/<N>/own/`). `credit` (always): subject — artist when known, source (40K Gallery: `<title> — <artist when the index has one>, 40K
+     Gallery <page>`; ArtStation: `<title> — <artist>, ArtStation`; wiki
      artwork: `… — Games Workshop, Warhammer 40k Wiki`; Commons: author and licence from `index.json`). `crop` [x0, y0, x1, y1] in 0..1 cuts away borders,
      captions or a second subject before anything else.
    - `shots` in order. The first starts with line 1; `at` = line number where the next cuts in (13.5 = the middle
