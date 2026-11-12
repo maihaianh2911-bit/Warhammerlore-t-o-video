@@ -83,7 +83,18 @@ jobs:
           echo "issue=$issue" >> "$GITHUB_OUTPUT"
       - name: Cài công cụ dịch
         if: steps.intake.outputs.issue == '' || vars.NARRATION_LANGUAGE == '' || vars.NARRATION_LANGUAGE == 'de'
-        run: "$RUNNER_TEMP/factory/bin/pip install --disable-pip-version-check -r requirements-translation.txt"
+        run: |
+          "$RUNNER_TEMP/factory/bin/pip" install --disable-pip-version-check -r requirements-translation.txt
+          mkdir -p "$RUNNER_TEMP/llama"
+          archive="$RUNNER_TEMP/llama/llama.tar.gz"
+          curl --fail --silent --show-error --location --retry 3 \
+            https://github.com/ggml-org/llama.cpp/releases/download/b12308/llama-b12308-bin-ubuntu-x64.tar.gz \
+            --output "$archive"
+          echo "461d81331f0c6b7af2050a6bc09e6ef6edecb427803fe8f0118e9abe039c491b  $archive" | sha256sum --check
+          tar -xzf "$archive" -C "$RUNNER_TEMP/llama"
+          server="$(find "$RUNNER_TEMP/llama" -name llama-server -print -quit)"
+          test -x "$server"
+          dirname "$server" >> "$GITHUB_PATH"
       - name: Dịch và kiểm tra bản dựng mẫu
         if: steps.intake.outputs.issue == ''
         run: |

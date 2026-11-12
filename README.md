@@ -12,7 +12,7 @@ Issue trong repo Public có thể được người khác đọc. Đường dẫ
 
 ## Giọng và cách dựng
 
-Repo 40K mặc định dùng tiếng Đức và giọng `ww40k` đã lưu trên VN11 với mã `clone_611`. Mô hình MADLAD-400 dịch ngay trên máy chạy GitHub Actions, không cần khóa dịch riêng. Nếu lời thoại đã viết bằng tiếng Đức, bước này giữ nguyên lời thoại. Repo nhận khóa VN11 từ secret `VN11_API_KEY` hoặc `VOICE`. Đặt biến `NARRATION_LANGUAGE` thành `en` hoặc `vi` nếu đã có sẵn kịch bản ở ngôn ngữ đó.
+Repo 40K mặc định dùng tiếng Đức và giọng `ww40k` đã lưu trên VN11 với mã `clone_611`. Mô hình Qwen3 dịch ngay trên máy chạy GitHub Actions, không cần khóa dịch riêng. Nếu lời thoại đã viết bằng tiếng Đức, bước này giữ nguyên lời thoại. Repo nhận khóa VN11 từ secret `VN11_API_KEY` hoặc `VOICE`. Đặt biến `NARRATION_LANGUAGE` thành `en` hoặc `vi` nếu đã có sẵn kịch bản ở ngôn ngữ đó.
 
 VN11 đọc cả kịch bản trong một lượt để giữ nhịp. Whisper nghe lại để căn phụ đề theo lời đọc. Gói xuất có thêm `narration.mp3` và `voice-check.json` ghi những đoạn cần nghe lại, kể cả tên riêng mà Whisper có thể nghe nhầm. Nếu Whisper nghe được quá ít lời trùng với kịch bản, lượt dựng dừng để kiểm tra cấu hình giọng.
 
