@@ -1,0 +1,66 @@
+name: Dọn video cũ (nhánh renders)
+
+# Mỗi tuần: giữ file của các phiếu hoạt động trong KEEP_DAYS ngày gần đây (lore/<số phiếu>/), xóa file của phiếu cũ
+# hơn, và thay lịch sử nhánh renders bằng một commit duy nhất để GitHub dọn dung lượng cũ. Link tải của video cũ
+# hơn KEEP_DAYS ngày sẽ hết hiệu lực.
+on:
+  schedule:
+    - cron: '17 20 * * 0'   # Chủ nhật 20:17 UTC = thứ Hai 3:17 sáng giờ VN
+  workflow_dispatch:
+    inputs:
+      keep_days:
+        description: Giữ video của phiếu hoạt động trong bao nhiêu ngày gần đây
+        default: '14'
+
+permissions:
+  contents: write
+  issues: read
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-24.04   # chốt phiên bản: ubuntu-latest đang chuyển sang 26
+    env:
+      GH_TOKEN: ${{ github.token }}
+      KEEP_DAYS: ${{ inputs.keep_days || '14' }}
+    steps:
+      - name: Lấy nhánh renders
+        run: |
+          git init -q r && cd r
+          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git fetch -q --depth 1 origin renders
+          git checkout -q FETCH_HEAD
+          git rev-parse FETCH_HEAD > ../old_sha
+          du -sh --exclude=.git .
+      - name: Xóa file của video cũ
+        working-directory: r
+        run: |
+          python3 - <<'PY'
+          import os, subprocess, datetime, shutil
+          keep = int(os.environ['KEEP_DAYS'])
+          cutoff = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=keep)
+          repo = os.environ['GITHUB_REPOSITORY']
+          cache = {}
+          def recent(n):
+              if n not in cache:
+                  r = subprocess.run(['gh', 'api', f'repos/{repo}/issues/{n}', '--jq', '.updated_at'], capture_output=True, text=True)
+                  if r.returncode != 0:
+                      cache[n] = True   # không đọc được phiếu → giữ cho an toàn
+                  else:
+                      t = datetime.datetime.fromisoformat(r.stdout.strip().replace('Z', '+00:00'))
+                      cache[n] = t >= cutoff
+              return cache[n]
+          removed = 0
+          if os.path.isdir('lore'):   # videos: lore/<issue>/
+              for d in sorted(os.listdir('lore')):
+                  if d.isdigit() and not recent(int(d)):
+                      shutil.rmtree(os.path.join('lore', d)); removed += 1
+          print(f'removed {removed} files/folders; kept videos of issues active in the last {keep} days')
+          PY
+          du -sh --exclude=.git .
+      - name: Thay lịch sử nhánh renders bằng một commit
+        working-directory: r
+        run: |
+          git checkout -q --orphan fresh
+          git add -A
+          git -c user.name=render-bot -c user.email=render-bot@users.noreply.github.com commit -q -m "renders: giữ video $KEEP_DAYS ngày gần đây ($(date -u +%F))"
+          git push --force-with-lease=renders:$(cat ../old_sha) origin fresh:renders

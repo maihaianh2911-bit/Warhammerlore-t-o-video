@@ -1,0 +1,135 @@
+name: Video 40K
+
+# One issue "[40K] …" = one vertical lore short. The owner opens the issue → Claude writes lore/<N>/script.json
+# (German narration) → this workflow reads the voice (VN11, one take), times it with Whisper and collects pictures
+# (issue attachments, Wikimedia Commons) → Claude chooses the pictures (lore/<N>/picks.json) → this workflow
+# renders → Claude checks every shot → done. An owner comment → Claude fixes. Claude's side: AGENT.md.
+# Files: renders branch, folder lore/<N>/.
+on:
+  issues:
+    types: [opened]
+  issue_comment:
+    types: [created]
+  push:
+    branches: [main]
+    paths: ['lore/**']
+  workflow_dispatch:
+    inputs:
+      issue:
+        description: Số phiếu
+        required: true
+      steps:
+        description: 'Bước: prepare (giọng + ảnh), search (tìm thêm ảnh), render (dựng) — cách nhau bằng dấu cách'
+        default: render
+
+permissions:
+  contents: read
+
+jobs:
+  # 1) The owner opens a [40K] issue → wait for Claude's script, wake Claude now
+  start:
+    if: >-
+      github.event_name == 'issues' && startsWith(github.event.issue.title, '[40K]')
+      && github.event.issue.user.login == github.repository_owner
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+        with: { persist-credentials: false, sparse-checkout: scripts }
+      - name: Nhận phiếu
+        env: { GH_TOKEN: '${{ github.token }}', GH_REPO: '${{ github.repository }}', N: '${{ github.event.issue.number }}' }
+        run: |
+          gh issue edit "$N" --add-label lore,lore-plan
+          gh issue comment "$N" --body "🤖 Đã nhận kịch bản. Claude sẽ dịch sang tiếng Đức và chia câu, máy tạo giọng đọc và gom hình, Claude chọn hình cho từng ý, máy dựng video, Claude kiểm tra lại từng cảnh. Mỗi bước xong sẽ báo ở đây."
+      - name: Gọi Claude
+        env:
+          CLAUDE_TASK_URL: ${{ secrets.CLAUDE_TASK_URL }}
+          CLAUDE_TASK_TOKEN: ${{ secrets.CLAUDE_TASK_TOKEN }}
+          N: ${{ github.event.issue.number }}
+        run: bash scripts/wake_claude.sh "Phiếu 40K mới số $N."
+
+  # 2) The owner comments on a video issue → Claude reads it and fixes
+  fix:
+    if: >-
+      github.event_name == 'issue_comment' && github.event.issue.state == 'open'
+      && !github.event.issue.pull_request
+      && contains(github.event.issue.labels.*.name, 'lore')
+      && github.event.comment.user.login == github.repository_owner
+      && !startsWith(github.event.comment.body, '🤖')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+        with: { persist-credentials: false, sparse-checkout: scripts }
+      - name: Nhận yêu cầu sửa
+        env: { GH_TOKEN: '${{ github.token }}', GH_REPO: '${{ github.repository }}', N: '${{ github.event.issue.number }}' }
+        run: |
+          gh issue edit "$N" --add-label lore-fix --remove-label lore-done || true
+          gh issue comment "$N" --body "🤖 Đã nhận yêu cầu. Claude sẽ sửa và máy dựng lại."
+      - name: Gọi Claude
+        env:
+          CLAUDE_TASK_URL: ${{ secrets.CLAUDE_TASK_URL }}
+          CLAUDE_TASK_TOKEN: ${{ secrets.CLAUDE_TASK_TOKEN }}
+          N: ${{ github.event.issue.number }}
+        run: bash scripts/wake_claude.sh "Chủ kênh yêu cầu sửa phiếu 40K số $N."
+
+  # 3) Claude pushed lore/<N>/… (or a manual run) → voice + pictures, or the video
+  work:
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90   # no concurrency group: a pending run would be dropped when a third push arrives
+    permissions:
+      contents: write
+      issues: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      VN11_API_KEY: ${{ secrets.VN11_API_KEY || secrets.VOICE }}
+      CLAUDE_TASK_URL: ${{ secrets.CLAUDE_TASK_URL }}
+      CLAUDE_TASK_TOKEN: ${{ secrets.CLAUDE_TASK_TOKEN }}
+      PYTHONUNBUFFERED: '1'
+      BEFORE: ${{ github.event.before }}
+      IN_ISSUE: ${{ inputs.issue }}
+      IN_STEPS: ${{ inputs.steps }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Việc cần làm
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = workflow_dispatch ]; then
+            case "$IN_ISSUE" in ''|*[!0-9]*) echo "::error::số phiếu không hợp lệ"; exit 1;; esac
+            S=""; for s in $IN_STEPS; do case "$s" in prepare|search|render) S="$S $s";; esac; done
+            echo "$IN_ISSUE$S" > /tmp/todo.txt
+          else
+            # files changed by this push (only the last commit's when the old head cannot be fetched)
+            git fetch -q --depth 1 origin "$BEFORE" 2>/dev/null && FILES=$(git diff --name-only "$BEFORE" HEAD -- lore/) || FILES=$(git show --name-only --format= HEAD -- lore/)
+            printf '%s\n' "$FILES" | python3 -m factory.run todo > /tmp/todo.txt
+          fi
+          cat /tmp/todo.txt
+          [ -s /tmp/todo.txt ] && echo "TODO=1" >> "$GITHUB_ENV" || echo "Không có việc."
+      - name: Cài công cụ
+        if: env.TODO == '1'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg fonts-dejavu-core
+          python3 -m venv "$RUNNER_TEMP/venv"
+          echo "$RUNNER_TEMP/venv/bin" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/venv/bin/pip" install -q --disable-pip-version-check -r requirements.txt -r requirements-voice.txt
+      - name: Chạy
+        if: env.TODO == '1'
+        run: |
+          FAIL=0
+          while read -r N STEPS; do
+            echo "::group::phiếu #$N: $STEPS"
+            if ! python3 -m factory.run "$N" $STEPS; then
+              FAIL=1
+              gh issue edit "$N" --add-label lore-failed --remove-label lore-voice --remove-label lore-render || true
+              gh issue comment "$N" --body "🤖 Máy gặp lỗi ở bước \`$STEPS\` — xem nhật ký: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID . Claude sẽ xem và sửa." || true
+              bash scripts/wake_claude.sh "Phiếu 40K số $N bị lỗi ở bước $STEPS." || true
+            fi
+            echo "::endgroup::"
+          done < /tmp/todo.txt
+          exit $FAIL

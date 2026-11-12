@@ -1,0 +1,27 @@
+name: Video lore Warhammer 40K
+description: Dán kịch bản tiếng Việt đã duyệt → video dọc tiếng Đức có giọng ww40k, hình và phụ đề chạy theo giọng
+title: "[40K] "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Cách dùng:** đặt tên video sau `[40K]`, dán kịch bản, kéo thả các hình muốn dùng rồi bấm **Create**. Claude dịch sang tiếng Đức, máy tạo giọng đọc, Claude chọn hình cho từng ý, máy dựng video, Claude kiểm tra lại từng cảnh. Link video hiện ở bình luận cuối.
+        Muốn sửa gì thì viết một bình luận (ví dụ "cảnh 3 đổi hình khác", "câu 5 đọc sai tên").
+  - type: textarea
+    id: script
+    attributes:
+      label: Kịch bản (bắt buộc)
+      description: Tiếng Việt (Claude dịch sát sang tiếng Đức) hoặc tiếng Đức (giữ nguyên lời).
+    validations:
+      required: true
+  - type: textarea
+    id: pictures
+    attributes:
+      label: Hình muốn dùng (không bắt buộc)
+      description: Kéo thả hình vào đây, ví dụ tranh lưu từ 40K Gallery, kèm tên họa sĩ nếu biết. Máy không tự tải được hình từ 40K Gallery. Thiếu hình thì Claude dùng hình trong thư viện art/, ảnh miễn phí trên Wikimedia Commons hoặc đồ họa nền.
+  - type: textarea
+    id: notes
+    attributes:
+      label: Ghi chú (không bắt buộc)
+      description: Không khí, nhân vật cần xuất hiện, hình nên tránh…

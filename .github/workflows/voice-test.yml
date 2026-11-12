@@ -1,0 +1,20 @@
+name: Thử giọng VN11
+
+# Manual check that the VN11 key works and the account still has the ww40k voice. Reads the voice list only: no
+# audio is made and nothing is charged.
+on: workflow_dispatch
+
+permissions:
+  contents: read
+
+jobs:
+  voice:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with: { persist-credentials: false }
+      - name: Kiểm tra giọng ww40k
+        env:
+          VN11_API_KEY: ${{ secrets.VN11_API_KEY || secrets.VOICE }}
+        run: python3 -m factory.vn11 | tee -a "$GITHUB_STEP_SUMMARY"

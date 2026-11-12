@@ -1,17 +1,11 @@
-import io
-import json
 import math
 import random
-import re
 from pathlib import Path
-from urllib.parse import urlencode, urlsplit
-from urllib.request import Request, urlopen
 
 from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageOps
 
 
 ART_ROOT = Path(__file__).resolve().parent.parent / "art"
-CATALOG_PATH = ART_ROOT / "catalog.json"
 MAX_IMAGE_BYTES = 16 * 1024 * 1024
 
 PALETTES = {
@@ -23,85 +17,29 @@ PALETTES = {
 }
 
 
-def matches(text, term):
-    return re.search(r"(?<!\w)" + re.escape(term.casefold()) + r"(?!\w)", text.casefold()) is not None
-
-
-def load_catalog():
-    return json.loads(CATALOG_PATH.read_text(encoding="utf-8"))
-
-
-def mentioned_subjects(catalog, text):
-    return [
-        subject for subject in catalog["subjects"]
-        if any(matches(text, term) for term in [subject["name"], *subject.get("aliases", [])])
-    ]
-
-
-def choose_art(catalog, text, previous, index, context=""):
-    terms = mentioned_subjects(catalog, text)
-    inherited = mentioned_subjects(catalog, context) if not terms else []
-    terms = terms or inherited
-    theme = terms[0]["theme"] if terms else ["orbit", "archive", "rift"][index % 3]
-    references = []
-    for subject in terms:
-        references.append({
-            "subject": subject["name"],
-            "url": subject.get("gallery") or gallery_search(subject["name"]),
-        })
-    if not references:
-        references.append({"subject": "Tìm theo lời đọc", "url": gallery_search(text[:110])})
-
-    candidates = matching_assets(catalog, text, previous)
-    if not candidates and inherited:
-        candidates = matching_assets(catalog, context, previous)
-    return theme, references, candidates
-
-
-def matching_assets(catalog, text, previous):
-    candidates = []
-    for asset in catalog["assets"]:
-        score = sum(matches(text, term) for term in asset["keywords"])
-        # Optional qualifiers distinguish, for example, 30K and 40K depictions.
-        required = asset.get("require_any", [])
-        if score and (not required or any(matches(text, term) for term in required)):
-            candidates.append((score, asset["source"] != previous, asset["source"], asset))
-    candidates.sort(key=lambda item: (-item[0], not item[1], item[2]))
-    return [asset for _, _, _, asset in candidates]
-
-
-def gallery_search(query):
-    return "https://40k.gallery/?" + urlencode({"s": query})
-
-
-def read_picture(asset):
-    for key in ("title", "artist", "source", "rights"):
-        if not isinstance(asset.get(key), str) or not asset[key].strip():
-            raise ValueError(f"Mục ảnh thiếu {key}.")
-    if urlsplit(asset["source"]).scheme != "https":
-        raise ValueError("Nguồn ghi công của ảnh phải là liên kết HTTPS.")
-
-    if "file" in asset:
-        root = ART_ROOT.resolve()
-        path = (root / asset["file"]).resolve()
-        if not path.is_relative_to(root) or path.stat().st_size > MAX_IMAGE_BYTES:
-            raise ValueError("Tệp ảnh nằm ngoài thư mục art hoặc quá lớn.")
-        data = path.read_bytes()
-    else:
-        url = asset["url"]
-        if urlsplit(url).scheme != "https":
-            raise ValueError("URL ảnh phải dùng HTTPS.")
-        request = Request(url, headers={"User-Agent": "WarhammerLoreVideoFactory/1.0"})
-        with urlopen(request, timeout=12) as response:
-            if urlsplit(response.url).scheme != "https":
-                raise ValueError("Ảnh chuyển hướng sang URL không an toàn.")
-            data = response.read(MAX_IMAGE_BYTES + 1)
-        if len(data) > MAX_IMAGE_BYTES:
-            raise ValueError("Ảnh vượt giới hạn 16 MB.")
-    with Image.open(io.BytesIO(data)) as image:
+def open_picture(path):
+    if path.stat().st_size > MAX_IMAGE_BYTES:
+        raise ValueError(f"Ảnh {path.name} vượt giới hạn 16 MB.")
+    with Image.open(path) as image:
         if min(image.size) < 320 or image.width * image.height > 24_000_000:
-            raise ValueError("Kích thước ảnh ngoài phạm vi hỗ trợ.")
+            raise ValueError(f"Kích thước ảnh {path.name} ngoài phạm vi hỗ trợ.")
         return ImageOps.exif_transpose(image).convert("RGB")
+
+
+def contact_sheet(tiles, path, columns=4):
+    """Numbered overview of pictures: tiles = [(image, label)]."""
+    if not tiles:
+        return
+    cell_w = max(image.width for image, _ in tiles) + 12
+    cell_h = max(image.height for image, _ in tiles) + 30
+    rows = (len(tiles) + columns - 1) // columns
+    sheet = Image.new("RGB", (columns * cell_w, rows * cell_h), (12, 12, 14))
+    draw = ImageDraw.Draw(sheet)
+    for index, (image, label) in enumerate(tiles):
+        left, top = (index % columns) * cell_w, (index // columns) * cell_h
+        draw.text((left + 6, top + 8), label, fill=(255, 210, 90))
+        sheet.paste(image, (left + 6, top + 26))
+    sheet.save(path, quality=85)
 
 
 def fit_picture(image, size, focal=(0.5, 0.42)):

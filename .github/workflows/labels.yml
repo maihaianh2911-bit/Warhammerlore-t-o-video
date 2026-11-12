@@ -1,0 +1,33 @@
+name: Tạo nhãn
+
+# Tạo (hoặc cập nhật) các nhãn mà dây chuyền dùng. Tự chạy khi file này thay đổi, hoặc chạy tay.
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/labels.yml']
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  labels:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Tạo nhãn
+        env: { GH_TOKEN: '${{ github.token }}', GH_REPO: '${{ github.repository }}' }
+        run: |
+          while IFS='|' read -r name color desc; do
+            gh label create "$name" --color "$color" --description "$desc" --force
+          done <<'LABELS'
+          lore|5d4037|Video lore 40K
+          lore-plan|fbca04|40K: chờ Claude dịch và chia câu
+          lore-voice|c2e0c6|40K: máy đang tạo giọng và gom hình
+          lore-pick|fbca04|40K: chờ Claude chọn hình
+          lore-render|c2e0c6|40K: máy đang dựng video
+          lore-check|fbca04|40K: chờ Claude kiểm tra từng cảnh
+          lore-done|0b6e3a|40K: video xong
+          lore-fix|e99695|40K: chủ kênh yêu cầu sửa
+          lore-failed|b60205|40K: máy gặp lỗi
+          lore-busy|5319e7|40K: Claude đang làm phiếu này
+          LABELS

@@ -1,0 +1,41 @@
+name: Kiểm tra mã
+
+# Runs only when code changes (not when Claude pushes a video's lore/<N>/ files): unit tests and an offline
+# render of made-up data. No VN11, no Whisper, no picture search.
+on:
+  pull_request:
+  push:
+    branches: [main]
+    paths:
+      - 'factory/**'
+      - 'scripts/**'
+      - 'tests/**'
+      - 'requirements*.txt'
+      - '.github/workflows/check.yml'
+      - '.github/workflows/lore.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with: { persist-credentials: false }
+      - name: Cài công cụ dựng
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg fonts-dejavu-core
+          python3 -m venv "$RUNNER_TEMP/venv"
+          echo "$RUNNER_TEMP/venv/bin" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/venv/bin/pip" install -q --disable-pip-version-check -r requirements.txt
+      - name: Cú pháp
+        run: |
+          python3 -m compileall -q factory tests
+          for f in scripts/*.sh; do bash -n "$f"; done
+      - name: Kiểm thử
+        run: python3 -m unittest discover -s tests -v
+      - name: Dựng thử (dữ liệu giả)
+        run: python3 tests/smoke.py
