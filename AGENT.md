@@ -106,12 +106,15 @@ Commit `[lore #<N>] kịch bản`, push, remove `lore-busy`. (Voice ~5–10 min;
 {"images": {"tyberos": {"src": "1/1-1.jpg", "credit": "Tyberos the Red Wake — Games Workshop, Warhammer 40k Wiki"},
             "fleet": {"src": "art/carcharodons-fleet.jpg", "credit": "…", "crop": [0.1, 0.0, 0.9, 1.0]},
             "nebula": {"src": "1/9-3.jpg", "credit": "Carina Nebula — NASA/ESA, public domain (Wikimedia Commons)"}},
- "shots": [{"img": "tyberos", "focus": [0.5, 0.25], "move": "rise"},
-           {"at": 2, "img": "fleet", "focus": [0.7, 0.4], "move": "glide"},
-           {"at": 3.5, "img": "nebula"},
-           {"at": 5, "theme": "rift"},
-           {"at": 6, "img": "tyberos", "focus": [0.45, 0.2], "zoom": 1.35}]}
+ "shots": [{"img": "fleet", "focus": [0.7, 0.4], "from": [1.0, 0.3, 0.5], "zoom": 1.15, "pace": "even", "kick": 0},
+           {"at": 2, "img": "nebula", "focus": [0.5, 0.5], "move": "pull", "pace": "even"},
+           {"at": 3.5, "img": "tyberos", "focus": [0.5, 0.22], "from": [1.3, 0.35, 0.75],
+            "via": [[0.55, 1.25, 0.6, 0.55]], "zoom": 1.4, "pace": "surge", "kick": 0.08},
+           {"at": 5, "theme": "rift"}]}
 ```
+   (Shot 1, "a fleet came out of the dark": wide and steady, drifting to the flagship. Shot 3, "their leader was
+   Tyberos": starts on his claws, passes the shark emblem, surges up to the helmet.)
+
    - `images`: `src` = `issue/<n>.jpg`, `art/<file>`, `<round>/<file>` or `own/<file>` (a file you saved in
      `lore/<N>/own/`). `credit` (always): subject — artist when known, source (wiki artwork: `… — Games Workshop,
      Warhammer 40k Wiki`; Commons: author and licence from `index.json`). `crop` [x0, y0, x1, y1] in 0..1 cuts away borders,
@@ -119,33 +122,42 @@ Commit `[lore #<N>] kịch bản`, push, remove `lore-busy`. (Voice ~5–10 min;
    - `shots` in order. The first starts with line 1; `at` = line number where the next cuts in (13.5 = the middle
      of line 13). Each shot has `img` or `theme` (generated background: `orbit`, `archive`, `rift`, `decay`,
      `inferno`).
-   - Camera: **every shot ends pushed in on `focus`** [x, y] (0–1 across the picture after `crop`, default [0.5, 0.4]) —
-     the owner's rule (12/11): the last frame of a picture is always centred on its main character. So always
-     set `focus` on that character's face (or chest for a full figure; for a picture without a character, its
-     main subject). There is no `to`. A shot is two keyframes, as in a video editor: where it starts and the end
-     on the subject. How the camera gets there is `move`; vary it from shot to shot (left out → chosen in turn):
-     - `push`: the widest view of the picture, then a push-in — openings, portraits.
-     - `pull`: starts closer on the face and draws back to show the character in its setting — reveals, a line
-       that widens the view ("…and behind him stood a legion").
-     - `rise` / `fall`: starts well below / above and travels to the face — full figures (boots to helmet), tall
-       architecture, banners.
-     - `from-left` / `from-right`: starts far to that side and sweeps across — wide scenes, a second character,
-       the direction a figure looks or charges. `glide` takes the side with more picture.
-     Do not use the same move twice in a row. The owner wants motion that is clearly visible but keeps the scene
-     (12/11: 3% per second "looked static", zooming to 1.5–2× "was too big, the scene was lost"): moves close in
-     at about 4–5% per second and stay between 1.0× and about 1.45×, so at least two thirds of the picture's
-     width or height is always in view; they leave briskly, settle on the subject, and every cut lands with a
-     small extra push. Most of the movement comes from travelling across the picture, not from zooming. A sweep needs room: for `from-left` /
-     `from-right` choose pictures wider than they are tall, or a subject away from that edge; for `rise` a
-     subject in the upper part. `zoom` sets the end zoom yourself (stay at or under 1.5); `from` [zoom, x, y] sets your own
-     starting view (x, y = the point of the picture it looks at).
+   - Camera — **your decision for every shot, never a routine** (owner, 12/11: "the edit must fit the scene, use
+     your own thinking"). A shot is a path between keyframes, as in a video editor. Only one thing is fixed:
+     **the shot ends centred on `focus`** [x, y] (0–1 across the picture after `crop`), the main character of the
+     picture — the face, or the chest of a full figure; for a picture without a character, its main subject.
+     Everything else you choose after looking at the picture and reading the line it carries:
+     - Where the eye should start, and what it should discover on the way. A line that names a weapon, a wound,
+       an emblem, an enemy in the background: start there (`from`) or pass over it (`via`), then arrive at the
+       face. A line that sets a place or a host: start wide, let the scene be read, close in late. A line about
+       who someone is: stay near the face and barely move.
+     - How far to go. A picture whose setting matters to the line stays wide (end around 1.1–1.25×); a
+       confession, a threat, a death goes closer (1.3–1.5×). Never so close that the scene is lost (the owner
+       rejected 1.5–2× as "too big") and never so little that the picture looks frozen (3% per second "looked
+       static") — but the right amount differs from shot to shot, and a still moment may be nearly still.
+     - How it moves. `pace`: `settle` leaves briskly and eases onto the subject (most narration); `even` is a
+       steady drift (calm exposition, long establishing shots); `surge` starts quietly and gathers speed into the
+       subject (a reveal, a charge, the last word of a threat). `kick` 0–0.12 is the small extra push a cut lands
+       with: 0 for quiet lines, 0.03 usual, 0.06–0.1 when the line hits (a blow, a name revealed, a betrayal).
+     - Direction follows the picture: travel along the way a figure looks, charges or points, up a towering
+       figure or spire, down from a banner or a sky to the one beneath it, across a battle line.
+     - Rhythm across the video: do not repeat one move shot after shot; let a run of quiet shots be followed by
+       a strong one where the script turns, and give the last shot the move that fits the closing line.
+     How to write it: `from` [zoom, x, y] = your starting view (zoom 1 = the widest view the picture allows;
+     x, y = the point of the picture it looks at); `via` [[t, zoom, x, y], …] = views to pass through at share
+     t (0–1) of the shot; `zoom` = the end zoom on `focus`. Shorthands for a simple move, sized to the shot's
+     length: `"move": "push"` (widest view → subject), `"pull"` (close on the subject → wider, still centred),
+     `"rise"` / `"fall"` (from below / above), `"from-left"` / `"from-right"`, `"glide"`. Every picture shot needs
+     `focus` and either `move` or `from`; there is no default, because there is no move that fits every scene.
    - The title sits at 13–22% of the height for the first two seconds; captions sit at 61–67%. The shot ends with `focus` in the
      middle of the frame, between the two; a face right at the top edge of a picture ends as high as the picture
      allows.
 6. **Preview before pushing** (a wrong crop found after the render costs another render):
    `pip install -q pillow` if missing, then
-   `python3 -m factory.preview --job lore/<N> --images /tmp/r/lore/<N>/img --out /tmp/preview.jpg` and open the
-   sheet: every shot at the start and the end of its move, exactly as the video frames it. Fix any shot that cuts a
+   `python3 -m factory.preview --job lore/<N> --images /tmp/r/lore/<N>/img --voice /tmp/r/lore/<N>/voice --out /tmp/preview.jpg`
+   and open the sheet: every shot at each of its keyframes (start, via…, END) with its length in seconds, exactly
+   as the video frames it. Check that END sits on the character, that the path shows what the line talks about,
+   and that the distance suits the length (a long way in 2 s is a whip, a short way in 10 s is a freeze). Fix any shot that cuts a
    face, misses its subject or shows a border, and run it again until all are right.
 7. Commit `picks.json` together with any `script.json` fixes in **one** push as `[lore #<N>] chọn hình`, remove
    `lore-busy`. (The render takes ~5–10 min; you are woken at `lore-check`.)

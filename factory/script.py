@@ -65,7 +65,7 @@ def load_job(path: Path) -> Job:
 
 
 def load_picks(path: Path, line_count):
-    """picks.json: {"images": {name: {"src", "credit", "crop"}}, "shots": [{"at", "img" | "theme", "focus", "move", "zoom"}]}."""
+    """picks.json: {"images": {name: {"src", "credit", "crop"}}, "shots": [{"at", "img" | "theme", "focus", "move" | "from", "via", "zoom", "pace", "kick"}]}."""
     data = json.loads(path.read_text(encoding="utf-8-sig"))
     images = data.get("images") or {}
     shots = data.get("shots")
@@ -92,6 +92,19 @@ def load_picks(path: Path, line_count):
         focus = shot.get("focus")
         if focus is not None and not (isinstance(focus, list) and len(focus) == 2 and all(0 <= v <= 1 for v in focus)):
             raise ValueError(f"Cảnh {number}: focus là [x, y] trong khoảng 0–1.")
+        if "img" in shot and (focus is None or not ("move" in shot or "from" in shot)):
+            raise ValueError(f"Cảnh {number}: mỗi ảnh cần focus (trọng tâm nhân vật) và cách đi máy do bạn chọn "
+                             "cho cảnh đó (move hoặc from).")
+        if shot.get("pace") not in (None, "settle", "even", "surge"):
+            raise ValueError(f"Cảnh {number}: pace là settle, even hoặc surge.")
+        kick = shot.get("kick")
+        if kick is not None and not (isinstance(kick, (int, float)) and 0 <= kick <= 0.12):
+            raise ValueError(f"Cảnh {number}: kick từ 0 đến 0.12.")
+        via = shot.get("via", [])
+        times = [key[0] for key in via if isinstance(key, list) and len(key) == 4]
+        if (not isinstance(via, list) or len(times) != len(via) or times != sorted(set(times))
+                or any(not (0 < t < 1 and 1 <= zoom <= 2.3 and 0 <= x <= 1 and 0 <= y <= 1) for t, zoom, x, y in via)):
+            raise ValueError(f"Cảnh {number}: via là danh sách [thời điểm 0–1, zoom, x, y] theo thứ tự thời gian.")
         zoom = shot.get("zoom")
         if zoom is not None and not (isinstance(zoom, (int, float)) and 1 <= zoom <= 2.3):
             raise ValueError(f"Cảnh {number}: zoom từ 1 đến 2.3.")

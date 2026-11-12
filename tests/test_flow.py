@@ -5,7 +5,7 @@ from pathlib import Path
 
 from factory.attachments import attachment_urls, owner_texts
 from factory.run import todo
-from factory.render import camera_view, centred, default_move, eased
+from factory.render import along, camera_view, centred, default_move, eased
 from factory.script import MOVES, caption_chunks, chunk_events, line_times, load_job, load_picks, shot_frames
 
 
@@ -35,18 +35,22 @@ class PicksTest(unittest.TestCase):
 
     def test_accepts_pictures_and_backgrounds(self):
         picks = {"images": {**self.images, "b": {"src": "art/b.jpg", "credit": "B"}},
-                 "shots": [{"img": "b", "focus": [0.6, 0.3]}, {"at": 2.5, "img": "a", "zoom": 1.3}, {"at": 3, "theme": "rift"}]}
+                 "shots": [{"img": "b", "focus": [0.6, 0.3], "move": "pull", "pace": "even"},
+                           {"at": 2.5, "img": "a", "focus": [0.5, 0.2], "from": [1.2, 0.5, 0.9], "via": [[0.4, 1.1, 0.3, 0.5]], "zoom": 1.3},
+                           {"at": 3, "theme": "rift"}]}
         self.assertEqual(len(load_picks(write(picks), 3)[1]), 3)
 
     def test_refuses_what_the_renderer_cannot_place(self):
         cases = {
             "credit": {"images": {"a": {"src": "issue/1.jpg"}}, "shots": [{"img": "a"}]},
             "chưa khai báo": {"images": self.images, "shots": [{"img": "missing"}]},
-            "tăng dần": {"images": self.images, "shots": [{"img": "a"}, {"at": 3, "img": "a"}, {"at": 2, "img": "a"}]},
-            "từ 1 đến 3": {"images": self.images, "shots": [{"img": "a"}, {"at": 4, "img": "a"}]},
+            "cách đi máy": {"images": self.images, "shots": [{"img": "a", "focus": [0.5, 0.3]}]},
+            "via": {"images": self.images, "shots": [{"img": "a", "focus": [0.5, 0.3], "move": "push", "via": [[0.6, 1.2, 0.5, 0.5], [0.3, 1.2, 0.5, 0.5]]}]},
+            "tăng dần": {"images": self.images, "shots": [{"theme": "rift"}, {"at": 3, "theme": "rift"}, {"at": 2, "theme": "rift"}]},
+            "từ 1 đến 3": {"images": self.images, "shots": [{"theme": "rift"}, {"at": 4, "theme": "rift"}]},
             "theme": {"images": self.images, "shots": [{"at": 1}]},
-            "focus": {"images": self.images, "shots": [{"img": "a", "focus": [2, 0]}]},
-            "trọng tâm": {"images": self.images, "shots": [{"img": "a", "to": [1.2, 0.5, 0.5]}]},
+            "focus là": {"images": self.images, "shots": [{"img": "a", "focus": [2, 0], "move": "push"}]},
+            "không đặt to": {"images": self.images, "shots": [{"img": "a", "focus": [0.5, 0.5], "move": "push", "to": [1.2, 0.5, 0.5]}]},
         }
         for message, picks in cases.items():
             with self.subTest(message), self.assertRaisesRegex(ValueError, message):
@@ -88,6 +92,15 @@ class MotionTest(unittest.TestCase):
     def test_the_view_stays_inside_the_picture(self):
         self.assertEqual(centred(2.0, (0.02, 0.98), (200, 400, 0.5)), (2.0, 0.25, 0.75))
         self.assertEqual(centred(1.0, (0.2, 0.2), (200, 400, 0.5)), (1.0, 0.5, 0.5))
+
+    def test_the_camera_passes_through_its_keyframes(self):
+        keys = [(0.0, (1.0, 0.5, 0.5)), (0.5, (1.2, 0.2, 0.6)), (1.0, (1.4, 0.6, 0.3))]
+        self.assertEqual(along(keys, 0.5), (1.2, 0.2, 0.6))
+        self.assertEqual(along(keys, 1.0), (1.4, 0.6, 0.3))
+        self.assertAlmostEqual(along(keys, 0.25)[0], 1.1)
+        for pace in ("settle", "even", "surge"):
+            self.assertEqual((eased(0, pace), eased(1, pace)), (0, 1))
+        self.assertLess(eased(0.5, "surge"), 0.5)
 
     def test_motion_settles_without_stopping(self):
         self.assertEqual((eased(0), eased(1)), (0, 1))

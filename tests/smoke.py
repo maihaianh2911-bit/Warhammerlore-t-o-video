@@ -26,9 +26,9 @@ PICKS = {
         "orbit": {"src": "issue/1.jpg", "credit": "Testbild B", "crop": [0.1, 0.0, 0.9, 1.0]},
     },
     "shots": [
-        {"img": "orbit", "focus": [0.7, 0.3]},
-        {"at": 2, "img": "rift", "move": "rise", "from": [1.6, 0.5, 0.9]},
-        {"at": 3, "img": "orbit", "zoom": 1.5},
+        {"img": "orbit", "focus": [0.7, 0.3], "move": "push", "pace": "even", "kick": 0},
+        {"at": 2, "img": "rift", "focus": [0.5, 0.3], "from": [1.3, 0.5, 0.9], "via": [[0.5, 1.2, 0.2, 0.6]], "zoom": 1.15},
+        {"at": 3, "img": "orbit", "focus": [0.4, 0.5], "move": "from-right", "pace": "surge", "kick": 0.08},
         {"at": 4, "theme": "inferno"},
     ],
 }

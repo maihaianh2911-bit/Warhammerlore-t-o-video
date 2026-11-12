@@ -19,7 +19,7 @@ FPS = 30
 SIZES = {"preview": (720, 1280), "full": (1080, 1920)}
 ZOOM_PER_SECOND = 0.045     # how fast a shot closes in; the reference video does about 0.03
 DETAIL = 1.7                # stills are kept larger than the frame so a deep push-in stays sharp
-KICK = 0.04                 # every cut lands with a short extra push that settles in a third of a second
+KICK = 0.03                 # default extra push a cut lands with; it settles in a third of a second
 KICK_SECONDS = 0.33
 FONTS = Path(__file__).resolve().parent.parent / "fonts"
 
@@ -79,9 +79,24 @@ def default_move(focus, seconds, kind, shape):
     return centred(start_zoom, origin, shape), centred(min(start_zoom + drift * 0.6, 1.45), focus, shape)
 
 
-def eased(progress):
-    """Leaves briskly and settles on the subject without ever standing still."""
-    return 0.3 * progress + 0.7 * (1 - (1 - progress) ** 2)
+PACES = {
+    "settle": lambda t: 0.3 * t + 0.7 * (1 - (1 - t) ** 2),    # leaves briskly, eases onto the subject
+    "even": lambda t: t,                                        # a steady keyframe move, as in the reference
+    "surge": lambda t: 0.35 * t + 0.65 * t ** 2,                # starts quietly and gathers speed into the subject
+}
+
+
+def eased(progress, pace="settle"):
+    return PACES[pace](progress)
+
+
+def along(keys, progress):
+    """Camera position at a point of the path through the keyframes [(time 0–1, (zoom, x, y)), ...]."""
+    for (t0, first), (t1, second) in zip(keys, keys[1:]):
+        if progress <= t1:
+            share = (progress - t0) / (t1 - t0)
+            return tuple(a + (b - a) * share for a, b in zip(first, second))
+    return keys[-1][1]
 
 
 def camera_view(image, position, size):
@@ -94,24 +109,22 @@ def camera_view(image, position, size):
     return image.resize(size, Image.Resampling.BICUBIC, box=(left, top, left + wide * width, top + tall * height))
 
 
-def shot_frames_rgb(image, move, count, size, previous=None):
+def shot_frames_rgb(image, plan, count, size, previous=None):
     """Frames of one shot, blended out of the last frame of the shot before."""
-    start, end = move
     for index in range(count):
-        progress = eased(index / max(1, count - 1))
-        zoom, x, y = (a + (b - a) * progress for a, b in zip(start, end))
+        zoom, x, y = along(plan["keys"], eased(index / max(1, count - 1), plan["pace"]))
         landing = max(0.0, 1 - index / (KICK_SECONDS * FPS))
-        frame = camera_view(image, (zoom * (1 + KICK * landing ** 3), x, y), size)
+        frame = camera_view(image, (zoom * (1 + plan["kick"] * landing ** 3), x, y), size)
         if previous is not None and index < BLEND_FRAMES:
             frame = Image.blend(previous, frame, (index + 1) / (BLEND_FRAMES + 1))
         yield frame
 
 
 def all_frames(stills, size):
-    """stills yields (picture, move, frame count) one shot at a time, so only one large picture is in memory."""
+    """stills yields (picture, camera plan, frame count) one shot at a time, so only one large picture is in memory."""
     previous = None
-    for picture, move, count in stills:
-        for frame in shot_frames_rgb(picture, move, count, size, previous):
+    for picture, plan, count in stills:
+        for frame in shot_frames_rgb(picture, plan, count, size, previous):
             yield frame.tobytes()
         previous = frame
 
@@ -153,17 +166,18 @@ def shot_picture(shot, index, images, pictures, size, seconds):
         picture = picture.resize((round(size[0] * DETAIL), round(size[1] * DETAIL)), Image.Resampling.BICUBIC)
     shape = (*picture.size, aspect)
     focus = tuple(shot.get("focus", (0.5, 0.4)))
-    start, end = default_move(focus, seconds, shot.get("move") or MOVES[index % len(MOVES)], shape)
+    start, end = default_move(focus, seconds, shot.get("move") or "push", shape)
     if "zoom" in shot:
-        end = centred(max(shot["zoom"], 1.05), focus, shape)      # whatever the zoom, the shot ends on the subject
+        end = centred(shot["zoom"], focus, shape)      # whatever the zoom, the shot ends on the subject
     if "from" in shot:
         start = centred(shot["from"][0], shot["from"][1:], shape)
-    return picture, (start, end)
+    keys = [(0.0, start), *((t, centred(zoom, (x, y), shape)) for t, zoom, x, y in shot.get("via", [])), (1.0, end)]
+    return picture, {"keys": keys, "pace": shot.get("pace", "settle"), "kick": shot.get("kick", KICK)}
 
 
-def shot_views(picture, move, size):
-    """What the viewer sees at the start and at the end of the shot."""
-    return camera_view(picture, move[0], size), camera_view(picture, move[1], size)
+def shot_views(picture, plan, size):
+    """What the viewer sees at every keyframe of the shot, first to last."""
+    return [camera_view(picture, position, size) for _, position in plan["keys"]]
 
 
 def shot_credits(shot, images):
@@ -259,8 +273,8 @@ def render(job_dir, voice_dir, images_dir, out, size_name="full"):
         scenes = []
         def stills():
             for index, (shot, (first, last)) in enumerate(zip(shots, ranges)):
-                picture, move = shot_picture(shot, index, images, pictures, size, (last - first) / FPS)
-                yield grade_frame(picture), move, last - first
+                picture, plan = shot_picture(shot, index, images, pictures, size, (last - first) / FPS)
+                yield grade_frame(picture), plan, last - first
 
         for shot, (first, last) in zip(shots, ranges):
             scenes.append({
