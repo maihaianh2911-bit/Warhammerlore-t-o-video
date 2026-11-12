@@ -41,6 +41,8 @@ PROPER_NAMES = re.compile(
     r"Mantis Warriors|Lamenters|Night Lords|Raven Guard|Tranquility)\b",
     re.IGNORECASE,
 )
+NAME_MARKER = re.compile(r"\[NAME\d+\]", re.IGNORECASE)
+SENTENCE_END = re.compile(r"""[.!?…]["'’”»)]*$""")
 
 
 def language_of(text):
@@ -77,6 +79,8 @@ def restore_names(translation, names):
         if translation.count(placeholder) != 1:
             raise ValueError(f"Mô hình dịch không giữ tên {name}.")
         translation = translation.replace(placeholder, name)
+    if NAME_MARKER.search(translation):
+        raise ValueError("Bản dịch còn ký hiệu thay tên.")
     return translation
 
 
@@ -91,7 +95,7 @@ def wait_for_model(server, base_url):
     raise RuntimeError("Không khởi động được mô hình dịch trên máy dựng.")
 
 
-def request_translations(base_url, blocks):
+def request_translations(base_url, blocks, correction=""):
     schema = {
         "type": "object",
         "properties": {"translations": {"type": "array", "items": {"type": "string"},
@@ -101,7 +105,7 @@ def request_translations(base_url, blocks):
     }
     payload = {
         "messages": [
-            {"role": "system", "content": TRANSLATION_PROMPT},
+            {"role": "system", "content": TRANSLATION_PROMPT + correction},
             {"role": "user", "content": json.dumps(blocks, ensure_ascii=False)},
         ],
         "temperature": 0,
@@ -128,22 +132,36 @@ def request_translations(base_url, blocks):
     return translations
 
 
-def translate_group(base_url, protected):
-    if not protected:
-        return []
-    translations = request_translations(base_url, [block for block, _ in protected])
-    if len(translations) != len(protected):
-        raise RuntimeError("Mô hình dịch trả thiếu lời thoại.")
-    output = []
-    for translation, (block, names) in zip(translations, protected):
+def validate_sentence(source, translation):
+    translation = " ".join(translation.split())
+    if not translation:
+        raise ValueError("Mô hình trả câu dịch rỗng.")
+    if SENTENCE_END.search(source):
+        sentence_breaks = re.findall(r"""[.!?…](?:["'’”»)]+)?\s+""", translation)
+        if sentence_breaks or not SENTENCE_END.search(translation):
+            raise ValueError("Mô hình chưa trả đúng một câu tiếng Đức hoàn chỉnh.")
+    return translation
+
+
+def translate_passage(base_url, source, title=False):
+    block, names = protect_names(source)
+    corrections = [
+        "",
+        " Translate the single entry faithfully. Return one German sentence for one source sentence. "
+        "Do not include labels, explanations, or other text. Preserve the ending punctuation.",
+        " Copy any [NAME0] and other name markers character for character. "
+        "Translate only the current entry and include every clause. Stop at its end.",
+    ]
+    for correction in corrections:
         try:
-            output.append(restore_names(translation, names))
+            translated = request_translations(base_url, [block], correction)
+            if len(translated) != 1:
+                raise ValueError("Mô hình trả sai số câu dịch.")
+            translation = restore_names(translated[0], names)
+            return translation if title else validate_sentence(source, translation)
         except ValueError:
-            retried = request_translations(base_url, [block])
-            if len(retried) != 1:
-                raise ValueError("Mô hình dịch trả thiếu câu chứa tên riêng.") from None
-            output.append(restore_names(retried[0], names))
-    return output
+            continue
+    raise ValueError("Mô hình không trả được câu dịch đầy đủ sau ba lần thử.")
 
 
 def translate_blocks(blocks, separate_title=False):
@@ -166,11 +184,8 @@ def translate_blocks(blocks, separate_title=False):
         )
         try:
             wait_for_model(server, base_url)
-            protected = [protect_names(block) for block in blocks]
-            if separate_title:
-                title = translate_group(base_url, protected[:1])
-                return title + translate_group(base_url, protected[1:])
-            return translate_group(base_url, protected)
+            return [translate_passage(base_url, block, title=separate_title and index == 0)
+                    for index, block in enumerate(blocks)]
         except RuntimeError:
             if server.poll() is not None:
                 log.seek(0, 2)

@@ -1,7 +1,10 @@
 import unittest
 from unittest.mock import patch
 
-from factory.translate import MAX_BLOCK_CHARS, paragraph_blocks, prepare, protect_names, remove_added_title, restore_names
+from factory.translate import (
+    MAX_BLOCK_CHARS, paragraph_blocks, prepare, protect_names, remove_added_title, restore_names,
+    translate_passage,
+)
 
 
 class TranslationTest(unittest.TestCase):
@@ -53,6 +56,16 @@ class TranslationTest(unittest.TestCase):
                          "Roboute Guilliman kehrt nach Terra zurück.")
         with self.assertRaisesRegex(ValueError, "Terra"):
             restore_names("[NAME0] kehrt zurück.", names)
+        with self.assertRaisesRegex(ValueError, "ký hiệu"):
+            restore_names("Sie verschwanden auf [NAME2].", {})
+
+    def test_retries_when_translation_adds_a_sentence(self):
+        with patch("factory.translate.request_translations", side_effect=[
+            ["[NAME0] verschwand. Der Badab-Krieg"],
+            ["[NAME0] verschwand."],
+        ]) as model:
+            self.assertEqual(translate_passage("local", "Carcharodons biến mất."), "Carcharodons verschwand.")
+        self.assertEqual(model.call_count, 2)
 
     def test_removes_only_an_inserted_title_after_the_last_sentence(self):
         self.assertEqual(
