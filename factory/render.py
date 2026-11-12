@@ -30,10 +30,42 @@ def ffmpeg(scratch, *arguments, **options):
     )
 
 
-def default_move(focus, seconds):
-    """An even push-in towards the focus point, as in the reference: the point stays put, the rest grows."""
+MOVES = ("push", "rise", "glide")
+BLEND_FRAMES = 4            # a cut is softened over a few frames
+
+
+def centred(zoom, focus):
+    """Camera position [zoom, x, y] whose view has the focus point in its middle, as far as the picture allows."""
+    slack = 1 - 1 / zoom
+    if slack <= 0:
+        return (zoom, 0.5, 0.5)
+    return (zoom, *(min(1.0, max(0.0, (point - 0.5 / zoom) / slack)) for point in focus))
+
+
+def default_move(focus, seconds, kind="push"):
+    """Start and end of a shot. Every move ends pushed in on the focus point (the subject of the picture).
+
+    push   the whole frame, then an even push-in on the subject (the move of the reference video)
+    rise   starts lower on the picture and climbs to the subject while closing in
+    glide  starts to one side and travels across to the subject while closing in
+    """
     x, y = focus
-    return (1.0, x, y), (min(1.0 + ZOOM_PER_SECOND * seconds, MAX_AUTO_ZOOM), x, y)
+    end_zoom = min(max(1.0 + ZOOM_PER_SECOND * seconds, 1.14), MAX_AUTO_ZOOM)
+    if kind == "push":
+        return (1.0, 0.5, 0.5), centred(end_zoom, focus)
+    travel = min(0.34, 0.05 * seconds + 0.08)       # longer shots travel further, at the same calm speed
+    start_zoom = 1.16
+    end_zoom = min(start_zoom + ZOOM_PER_SECOND * seconds, MAX_AUTO_ZOOM + 0.1)
+    if kind == "rise":
+        origin = (x, min(1.0, y + travel))
+    else:
+        origin = (x + travel if x < 0.5 else x - travel, y)
+    return centred(start_zoom, origin), centred(end_zoom, focus)
+
+
+def eased(progress):
+    """Leaves briskly and settles on the subject without ever standing still."""
+    return 0.45 * progress + 0.55 * (1 - (1 - progress) ** 2)
 
 
 def camera_view(image, position, size):
@@ -46,12 +78,25 @@ def camera_view(image, position, size):
     return image.resize(size, Image.Resampling.BICUBIC, box=(left, top, left + crop_width, top + crop_height))
 
 
-def shot_frames_rgb(image, move, count, size):
+def shot_frames_rgb(image, move, count, size, previous=None):
+    """Frames of one shot; yields (frame bytes, last frame image) so the next shot can blend out of it."""
     start, end = move
+    frame = None
     for index in range(count):
-        progress = index / max(1, count - 1)
+        progress = eased(index / max(1, count - 1))
         position = [a + (b - a) * progress for a, b in zip(start, end)]
-        yield camera_view(image, position, size).tobytes()
+        frame = camera_view(image, position, size)
+        if previous is not None and index < BLEND_FRAMES:
+            frame = Image.blend(previous, frame, (index + 1) / (BLEND_FRAMES + 1))
+        yield frame
+
+
+def all_frames(stills, size):
+    previous = None
+    for picture, move, count in stills:
+        for frame in shot_frames_rgb(picture, move, count, size, previous):
+            yield frame.tobytes()
+        previous = frame
 
 
 def picture_path(source, job_dir, images_dir):
@@ -86,10 +131,11 @@ def shot_picture(shot, index, images, pictures, size, seconds):
         picture = fit_picture(pictures[shot["img"]], large, tuple(entry.get("focal", (0.5, 0.42))))
     else:
         picture = atmosphere(size, shot["theme"], seed=2099 + 37 * index).resize(large, Image.Resampling.BICUBIC)
-    start, end = default_move(shot.get("focus", (0.5, 0.4)), seconds)
+    focus = tuple(shot.get("focus", (0.5, 0.4)))
+    start, end = default_move(focus, seconds, shot.get("move") or MOVES[index % len(MOVES)])
     if "zoom" in shot:
-        end = (shot["zoom"], *end[1:])
-    return picture, (tuple(shot.get("from") or start), tuple(shot.get("to") or end))
+        end = centred(max(shot["zoom"], 1.05), focus)      # whatever the zoom, the shot ends on the subject
+    return picture, (tuple(shot.get("from") or start), end)
 
 
 def shot_views(picture, move, size):
@@ -134,7 +180,7 @@ def encode_video(frames_rgb, audio, frames, size, scratch, destination):
     )
     fade = min(0.8, duration / 3)
     mix = (
-        f"[0:v]ass=subtitles.ass:fontsdir={FONTS},format=yuv420p[video];"
+        f"[0:v]vignette=angle=PI/5.5,ass=subtitles.ass:fontsdir={FONTS},format=yuv420p[video];"
         "[1:a]loudnorm=I=-17:TP=-2:LRA=7,aresample=48000,apad[voice];"
         f"[2:a]afade=d={fade},afade=t=out:st={duration - fade}:d={fade}[bed];"
         "[voice][bed]amix=inputs=2:normalize=0,alimiter=limit=0.88:level=0[audio]"
@@ -201,9 +247,7 @@ def render(job_dir, voice_dir, images_dir, out, size_name="full"):
                 "credits": shot_credits(shot, images),
             })
 
-        frames_rgb = (frame for picture, move, count in stills
-                      for frame in shot_frames_rgb(picture, move, count, size))
-        encode_video(frames_rgb, scratch / audio.name, frames, size, scratch, stage / "video.mp4")
+        encode_video(all_frames(stills, size), scratch / audio.name, frames, size, scratch, stage / "video.mp4")
         ffmpeg(scratch, "-i", str(stage / "video.mp4"), "-frames:v", "1", "-q:v", "2", str(stage / "cover.jpg"))
         write_sheet(stage / "video.mp4", scenes, scratch, stage / "sheet.jpg")
         write_credits(scenes, stage / "credits.md")

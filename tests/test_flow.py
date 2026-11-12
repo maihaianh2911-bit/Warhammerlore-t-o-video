@@ -5,7 +5,7 @@ from pathlib import Path
 
 from factory.attachments import attachment_urls, owner_texts
 from factory.run import todo
-from factory.render import camera_view, default_move
+from factory.render import camera_view, centred, default_move, eased
 from factory.script import caption_chunks, chunk_events, line_times, load_job, load_picks, shot_frames
 
 
@@ -46,6 +46,7 @@ class PicksTest(unittest.TestCase):
             "từ 1 đến 3": {"images": self.images, "shots": [{"img": "a"}, {"at": 4, "img": "a"}]},
             "theme": {"images": self.images, "shots": [{"at": 1}]},
             "focus": {"images": self.images, "shots": [{"img": "a", "focus": [2, 0]}]},
+            "trọng tâm": {"images": self.images, "shots": [{"img": "a", "to": [1.2, 0.5, 0.5]}]},
         }
         for message, picks in cases.items():
             with self.subTest(message), self.assertRaisesRegex(ValueError, message):
@@ -63,18 +64,28 @@ class PicksTest(unittest.TestCase):
 
 
 class MotionTest(unittest.TestCase):
-    def test_push_in_is_even_and_keeps_the_focus_point_in_place(self):
-        start, end = default_move((0.7, 0.3), 10)
-        self.assertEqual(start, (1.0, 0.7, 0.3))
-        self.assertAlmostEqual(end[0], 1.32)
-        self.assertEqual(default_move((0.5, 0.5), 60)[1][0], 1.42)
+    def test_every_move_ends_centred_on_the_subject(self):
         from PIL import Image
         picture = Image.new("RGB", (200, 400))
-        picture.putpixel((140, 120), (255, 255, 255))          # the focus point of the picture
-        view = camera_view(picture, end, (200, 400)).convert("L")
-        brightest = max(range(200 * 400), key=view.tobytes().__getitem__)
-        self.assertLessEqual(abs(brightest % 200 - 140), 2)
-        self.assertLessEqual(abs(brightest // 200 - 120), 2)
+        picture.putpixel((120, 160), (255, 255, 255))          # the subject: focus (0.6, 0.4)
+        for kind in ("push", "rise", "glide"):
+            with self.subTest(kind):
+                start, end = default_move((0.6, 0.4), 10, kind)
+                self.assertNotEqual(start, end)
+                self.assertGreater(end[0], start[0])
+                view = camera_view(picture, end, (200, 400)).convert("L")
+                brightest = max(range(200 * 400), key=view.tobytes().__getitem__)
+                self.assertLessEqual(abs(brightest % 200 - 100), 3)
+                self.assertLessEqual(abs(brightest // 200 - 200), 3)
+
+    def test_a_subject_near_the_edge_stays_inside_the_picture(self):
+        self.assertEqual(centred(1.3, (0.02, 0.98)), (1.3, 0.0, 1.0))
+        self.assertEqual(centred(1.0, (0.2, 0.2)), (1.0, 0.5, 0.5))
+
+    def test_motion_settles_without_stopping(self):
+        self.assertEqual((eased(0), eased(1)), (0, 1))
+        self.assertGreater(eased(0.1) - eased(0), eased(1) - eased(0.9))
+        self.assertGreater(eased(1) - eased(0.9), 0.03)
 
 
 class CaptionTest(unittest.TestCase):

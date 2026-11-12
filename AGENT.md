@@ -2,7 +2,8 @@
 
 The owner (Vietnamese, not technical) opens an issue `[40K] …` with an approved script (Vietnamese, sometimes
 German). The result is a vertical short (1080×1920): full-frame artwork that the camera pushes into slowly and
-evenly (learned from the owner's reference, `00-video-mau/`), hard cuts, a gold title over the first two seconds,
+evenly and always ends on the picture's main character (learned from the owner's reference,
+`00-video-mau/`), soft quick cuts, a gold title over the first two seconds,
 and short captions that follow the German `ww40k` voice word by word (VN11 `clone_611`).
 Machine steps run in `.github/workflows/lore.yml` → `factory/run.py`; files land on the `renders` branch in
 `lore/<N>/` (`voice/`, `img/<round>/`, `video.mp4`, `sheet.jpg`, `subtitles.srt`, `credits.md`).
@@ -105,8 +106,8 @@ Commit `[lore #<N>] kịch bản`, push, remove `lore-busy`. (Voice ~5–10 min;
 {"images": {"tyberos": {"src": "1/1-1.jpg", "credit": "Tyberos the Red Wake — Games Workshop, Warhammer 40k Wiki", "focal": [0.5, 0.3]},
             "fleet": {"src": "art/carcharodons-fleet.jpg", "credit": "…", "crop": [0.1, 0.0, 0.9, 1.0]},
             "nebula": {"src": "1/9-3.jpg", "credit": "Carina Nebula — NASA/ESA, public domain (Wikimedia Commons)"}},
- "shots": [{"img": "tyberos", "focus": [0.5, 0.25]},
-           {"at": 2, "img": "fleet", "focus": [0.7, 0.4]},
+ "shots": [{"img": "tyberos", "focus": [0.5, 0.25], "move": "rise"},
+           {"at": 2, "img": "fleet", "focus": [0.7, 0.4], "move": "glide"},
            {"at": 3.5, "img": "nebula"},
            {"at": 5, "theme": "rift"},
            {"at": 6, "img": "tyberos", "focus": [0.45, 0.2], "zoom": 1.35}]}
@@ -118,11 +119,15 @@ Commit `[lore #<N>] kịch bản`, push, remove `lore-busy`. (Voice ~5–10 min;
    - `shots` in order. The first starts with line 1; `at` = line number where the next cuts in (13.5 = the middle
      of line 13). Each shot has `img` or `theme` (generated background: `orbit`, `archive`, `rift`, `decay`,
      `inferno`).
-   - Camera: every shot starts on the whole 9:16 frame and pushes in evenly, about 3% per second, towards
-     `focus` [x, y] (0–1 inside the frame; default [0.5, 0.4]): that point stays where it is while everything
-     else grows. Put `focus` on the face or the detail the line is about; off-centre points make the picture
-     drift sideways as in the reference. `zoom` (1–1.8) sets the end zoom yourself, e.g. a quick punch-in on a
-     short last shot. For anything else: `from` → `to`, each [zoom, x, y].
+   - Camera: **every shot ends pushed in on `focus`** [x, y] (0–1 inside the 9:16 frame, default [0.5, 0.4]) —
+     the owner's rule (12/11): the last frame of a picture is always centred on its main character. So always
+     set `focus` on that character's face (or chest for a full figure; for a picture without a character, its
+     main subject). There is no `to`. How the camera gets there is `move`, chosen in turn when left out:
+     `push` (whole frame, then an even push-in: the reference's move), `rise` (starts lower on the picture and
+     climbs to the face — good for full figures), `glide` (starts to one side and travels across — good for wide
+     scenes and for a second character in the picture). All of them close in at about 3% per second, leave
+     briskly and settle gently. `zoom` (1.05–1.8) sets the end zoom yourself, e.g. a stronger push on the last
+     shot; `from` [zoom, x, y] sets your own starting view.
    - The title sits at 13–22% of the height for the first two seconds; captions sit at 61–67%. Keep faces
      between them (choose `focal`/`crop` so the face is in the upper half).
 6. **Preview before pushing** (a wrong crop found after the render costs another render):
