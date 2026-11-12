@@ -10,7 +10,7 @@
 - Ambush — Makura Tomoana, 40K Gallery https://40k.gallery/ambush-10/
 - The Red Wake — Mykyta Vasilchuk, 40K Gallery https://40k.gallery/the-red-wake-3/
 - Purge — Zhang Bozi, 40K Gallery https://40k.gallery/purge-3/
-- Badab War — Zhang Bozi, 40K Gallery https://40k.gallery/badab-war/
+- mantis warrior 2 — Konstantin Void, 40K Gallery https://40k.gallery/mantis-warrior-2/
 - lamenters 9, 40K Gallery https://40k.gallery/lamenters-9/
 - Tyberos The Red Wake - Warhammer 40k — facundomileo, ArtStation
 - A Surprise Attack — Zhi Chen, 40K Gallery https://40k.gallery/a-surprise-attack/
