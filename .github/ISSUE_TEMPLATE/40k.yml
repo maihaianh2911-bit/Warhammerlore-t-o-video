@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        **Cách dùng:** đặt tên video sau `[40K]`, dán kịch bản, kéo thả các hình muốn dùng rồi bấm **Create**. Claude dịch sang tiếng Đức, máy tạo giọng đọc, Claude chọn hình cho từng ý, máy dựng video, Claude kiểm tra lại từng cảnh. Link video hiện ở bình luận cuối.
+        **Cách dùng:** đặt tên video sau `[40K]`, dán kịch bản rồi bấm **Create**. Không cần chuẩn bị hình: Claude dịch sang tiếng Đức, máy tạo giọng đọc và tìm hình, Claude chọn hình cho từng ý, máy dựng video, Claude kiểm tra lại từng cảnh. Link video hiện ở bình luận cuối.
         Muốn sửa gì thì viết một bình luận (ví dụ "cảnh 3 đổi hình khác", "câu 5 đọc sai tên").
   - type: textarea
     id: script
@@ -18,8 +18,8 @@ body:
   - type: textarea
     id: pictures
     attributes:
-      label: Hình muốn dùng (không bắt buộc)
-      description: Kéo thả hình vào đây, ví dụ tranh lưu từ 40K Gallery, kèm tên họa sĩ nếu biết. Máy không tự tải được hình từ 40K Gallery. Thiếu hình thì Claude dùng hình trong thư viện art/, ảnh miễn phí trên Wikimedia Commons hoặc đồ họa nền.
+      label: Hình riêng (không bắt buộc)
+      description: Để trống thì máy và Claude tự tìm hình. Nếu có hình riêng muốn dùng thì kéo thả vào đây, kèm tên họa sĩ nếu biết.
   - type: textarea
     id: notes
     attributes:

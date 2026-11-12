@@ -2,7 +2,7 @@ name: Video 40K
 
 # One issue "[40K] …" = one vertical lore short. The owner opens the issue → Claude writes lore/<N>/script.json
 # (German narration) → this workflow reads the voice (VN11, one take), times it with Whisper and collects pictures
-# (issue attachments, Wikimedia Commons) → Claude chooses the pictures (lore/<N>/picks.json) → this workflow
+# (Warhammer 40k Wiki, Wikimedia Commons, issue attachments) → Claude chooses the pictures (lore/<N>/picks.json) → this workflow
 # renders → Claude checks every shot → done. An owner comment → Claude fixes. Claude's side: AGENT.md.
 # Files: renders branch, folder lore/<N>/.
 on:
@@ -42,7 +42,7 @@ jobs:
         env: { GH_TOKEN: '${{ github.token }}', GH_REPO: '${{ github.repository }}', N: '${{ github.event.issue.number }}' }
         run: |
           gh issue edit "$N" --add-label lore,lore-plan
-          gh issue comment "$N" --body "🤖 Đã nhận kịch bản. Claude sẽ dịch sang tiếng Đức và chia câu, máy tạo giọng đọc và gom hình, Claude chọn hình cho từng ý, máy dựng video, Claude kiểm tra lại từng cảnh. Mỗi bước xong sẽ báo ở đây."
+          gh issue comment "$N" --body "🤖 Đã nhận kịch bản. Claude sẽ dịch sang tiếng Đức và chia câu, máy tạo giọng đọc và tìm hình, Claude chọn hình cho từng ý, máy dựng video, Claude kiểm tra lại từng cảnh. Mỗi bước xong sẽ báo ở đây."
       - name: Gọi Claude
         env:
           CLAUDE_TASK_URL: ${{ secrets.CLAUDE_TASK_URL }}

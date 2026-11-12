@@ -1,7 +1,7 @@
 """Machine steps of one video on GitHub Actions. Usage: python3 -m factory.run <N> <step> [<step> ...]
 
   prepare  voice (VN11, one take; reused when the script did not change), voice check (Whisper), pictures the
-           owner attached to the issue, Wikimedia Commons search for script.json "queries"
+           owner attached to the issue, picture search for script.json "queries" (40K wiki, Commons)
            → renders/lore/<N>/voice/, img/issue/, img/1/
   search   every lore/<N>/search-<r>.json whose round is not on renders yet → renders/lore/<N>/img/<r>/
   render   video from script.json + picks.json → renders/lore/<N>/video.mp4, subtitles.srt, credits.md, sheet.jpg
@@ -116,14 +116,14 @@ class Run:
             subprocess.run(["git", *BOT, "rebase", "-q", "FETCH_HEAD"], cwd=tree)
         raise SystemExit("không đẩy được lên nhánh renders")
 
-    def commons(self, folder, queries, earlier=()):
+    def find_images(self, folder, queries, earlier=()):
         """One search round; skipped when the same queries were already searched."""
         marker = folder / "queries.json"
         if marker.is_file() and json.loads(marker.read_text(encoding="utf-8")) == queries:
             return False
         shutil.rmtree(folder, ignore_errors=True)
         seen = ":".join(str(path) for path in earlier)
-        self.module("commons", folder, *queries, env={**os.environ, "FIND_SEEN": seen})
+        self.module("find_images", folder, *queries, env={**os.environ, "FIND_SEEN": seen})
         marker.write_text(json.dumps(queries, ensure_ascii=False), encoding="utf-8")
         return True
 
@@ -156,7 +156,7 @@ class Run:
         attached, changed = self.attachments()
         if changed:
             paths.append("img/issue")
-        if job.queries and self.commons(self.work / "img" / "1", list(job.queries)):
+        if job.queries and self.find_images(self.work / "img" / "1", list(job.queries)):
             paths.append("img/1")
         self.publish(paths, "giọng đọc + ảnh")
         return json.loads((voice / "timing.json").read_text(encoding="utf-8")), attached
@@ -169,7 +169,7 @@ class Run:
             images = self.work / "img"
             earlier = [folder for folder in sorted(images.iterdir()) if folder.name not in (round_name, "issue")] \
                 if images.is_dir() else []
-            if self.commons(images / round_name, queries, earlier):
+            if self.find_images(images / round_name, queries, earlier):
                 done.append(f"img/{round_name}")
         _, changed = self.attachments()   # pictures the owner attached since the last step
         if changed:
@@ -210,7 +210,7 @@ def main():
             run.comment(
                 f"🤖 Giọng đọc xong: {len(timing['lines'])} câu, {timing['duration']:.0f} giây"
                 f"{f' ({review} đoạn cần Claude nghe lại)' if review else ''}. "
-                f"{f'Đã lấy {attached} ảnh đính kèm trong phiếu. ' if attached else ''}"
+                f"{f'Đã lấy {attached} ảnh đính kèm trong phiếu. ' if attached else ''}Hình đã tìm xong. "
                 "Claude sẽ chọn hình cho từng ý."
             )
             run.wake(f"Phiếu 40K số {number}: giọng và ảnh đã sẵn sàng, chờ chọn hình.")

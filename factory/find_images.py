@@ -1,18 +1,23 @@
-"""Free-to-use pictures from Wikimedia Commons, with their licence (ported from japan-video-factory).
+"""Pictures for a video, searched by the machine (the search of japan-video-factory, extended to 40K artwork).
 
-Usage: python3 -m factory.commons <out_dir> "<query 1>" "<query 2>" ...
-For every query: up to 8 files, keeping only licences that allow use in a monetised video (public domain, CC0,
-CC BY, CC BY-SA), dropping files under 400 px (250 px for incategory: searches) and duplicate scans of the same
-picture (also across earlier rounds listed in FIND_SEEN). Writes <out_dir>/<k>-<n>.jpg, <out_dir>/index.json
-(query, file page, licence, author, size) and <out_dir>/sheet_<k>.jpg (numbered contact sheet).
+Usage: python3 -m factory.find_images <out_dir> "<query 1>" "<query 2>" ...
+Each query is searched in one place:
+  Tyberos the Red Wake        file search of the Warhammer 40k Wiki (Fandom): artwork of characters, chapters, ships
+  page:Carcharodons           every picture used on that wiki article (up to 16)
+  commons:gothic cathedral    Wikimedia Commons, only licences that allow use in a monetised video (public
+                              domain, CC0, CC BY, CC BY-SA); incategory:"…" works there
+Wiki artwork is copyrighted by Games Workshop and the artists (the owner accepted that); its index entry has the
+file page for the credit. Files under 400 px and duplicates of the same picture (also across earlier rounds
+listed in FIND_SEEN) are dropped. Writes <out_dir>/<k>-<n>.jpg, <out_dir>/index.json and <out_dir>/sheet_<k>.jpg.
 """
 import io, json, os, re, sys, time, urllib.error, urllib.parse, urllib.request
 from PIL import Image
 
 from .art import contact_sheet
 
-API = 'https://commons.wikimedia.org/w/api.php'
-UA = 'LoreVideoFactory/1.0 (licence-checked picture search)'
+COMMONS = 'https://commons.wikimedia.org/w/api.php'
+WIKI = 'https://warhammer40k.fandom.com/api.php'
+UA = 'LoreVideoFactory/1.0 (picture search)'
 OK = re.compile(r'^(public domain|pd|cc0|cc[- ]by(-sa)?[- ]?\d|cc[- ]by(-sa)?$)', re.I)
 
 
@@ -31,27 +36,43 @@ def strip(html):
     return re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', '', html or '')).strip()
 
 
-def search(q, n=8):
-    p = {'action': 'query', 'format': 'json', 'generator': 'search', 'gsrsearch': q, 'gsrnamespace': 6, 'gsrlimit': n,
-         'prop': 'imageinfo', 'iiprop': 'url|extmetadata|size|mime', 'iiurlwidth': 2000, 'maxlag': 5}
-    d = json.loads(get(API + '?' + urllib.parse.urlencode(p)))
-    pages = sorted((d.get('query') or {}).get('pages', {}).values(), key=lambda x: x.get('index', 0))
+def api(base, params):
+    d = json.loads(get(base + '?' + urllib.parse.urlencode({'action': 'query', 'format': 'json', **params})))
+    return sorted((d.get('query') or {}).get('pages', {}).values(), key=lambda x: x.get('index', 0))
+
+
+def search(q, n=12):
+    """Results of one query, in search order (see the module text for the three kinds of query)."""
+    q = q.strip()
+    commons = q.lower().startswith('commons:')
+    if commons:
+        pages = api(COMMONS, {'generator': 'search', 'gsrsearch': q[8:].strip(), 'gsrnamespace': 6, 'gsrlimit': n,
+                              'prop': 'imageinfo', 'iiprop': 'url|extmetadata|size|mime', 'iiurlwidth': 2000, 'maxlag': 5})
+    elif q.lower().startswith('page:'):
+        pages = api(WIKI, {'generator': 'images', 'titles': q[5:].strip(), 'gimlimit': 50, 'redirects': 1,
+                           'prop': 'imageinfo', 'iiprop': 'url|size|mime', 'iiurlwidth': 2000})
+        pages.sort(key=lambda pg: -((pg.get('imageinfo') or [{}])[0].get('width') or 0))   # artwork before icons
+    else:
+        pages = api(WIKI, {'generator': 'search', 'gsrsearch': q, 'gsrnamespace': 6, 'gsrlimit': n,
+                           'prop': 'imageinfo', 'iiprop': 'url|size|mime', 'iiurlwidth': 2000})
     out = []
     for pg in pages:
         ii = (pg.get('imageinfo') or [{}])[0]
-        if ii.get('mime') not in ('image/jpeg', 'image/png', 'image/tiff'):
+        if ii.get('mime') not in ('image/jpeg', 'image/png', 'image/tiff', 'image/webp'):
             continue
-        md = ii.get('extmetadata') or {}
-        lic = strip((md.get('LicenseShortName') or {}).get('value'))
-        if not OK.search(lic):
-            continue
-        out.append({'title': pg['title'], 'page': ii.get('descriptionurl'), 'thumb': ii.get('thumburl') or ii.get('url'),
-                    'width': ii.get('width'), 'height': ii.get('height'), 'license': lic,
-                    'artist': strip((md.get('Artist') or {}).get('value'))[:160],
-                    'credit': strip((md.get('Credit') or {}).get('value'))[:160],
-                    'date': strip((md.get('DateTimeOriginal') or {}).get('value'))[:60],
-                    'description': strip((md.get('ImageDescription') or {}).get('value'))[:300],
-                    'attribution_required': (md.get('AttributionRequired') or {}).get('value') == 'true'})
+        r = {'title': pg['title'], 'page': ii.get('descriptionurl'), 'thumb': ii.get('thumburl') or ii.get('url'),
+             'width': ii.get('width'), 'height': ii.get('height')}
+        if commons:
+            md = ii.get('extmetadata') or {}
+            lic = strip((md.get('LicenseShortName') or {}).get('value'))
+            if not OK.search(lic):
+                continue
+            r.update({'source': 'Wikimedia Commons', 'license': lic,
+                      'artist': strip((md.get('Artist') or {}).get('value'))[:160],
+                      'description': strip((md.get('ImageDescription') or {}).get('value'))[:300]})
+        else:
+            r.update({'source': 'Warhammer 40k Wiki (Fandom)', 'license': '© GW'})
+        out.append(r)
     return out
 
 
@@ -89,12 +110,14 @@ def main():
     os.makedirs(out, exist_ok=True)
     index, kept_hashes, dropped = [], seen_hashes(), {'small': 0, 'duplicate': 0}
     for k, q in enumerate(queries, 1):
-        lim = MIN_SIDE_CAT if q.strip().lower().startswith('incategory:') else MIN_SIDE
-        found = [r for r in search(q, n=12) if min(r.get('width') or 0, r.get('height') or 0) >= lim]
-        dropped['small'] += 12 - len(found)
+        lim = MIN_SIDE_CAT if 'incategory:' in q.lower() else MIN_SIDE
+        keep = 16 if q.strip().lower().startswith('page:') else KEEP
+        hits = search(q)
+        found = [r for r in hits if min(r.get('width') or 0, r.get('height') or 0) >= lim]
+        dropped['small'] += len(hits) - len(found)
         kept = []   # [(result, image, hash)] in search order; a duplicate inside this query keeps the bigger file
         for r in found:
-            if len(kept) >= KEEP:
+            if len(kept) >= keep:
                 break
             try:
                 im = Image.open(io.BytesIO(get(r['thumb']))).convert('RGB')

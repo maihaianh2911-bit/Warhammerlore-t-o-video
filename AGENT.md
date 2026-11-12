@@ -39,13 +39,14 @@ gh api "repos/$R/issues?state=open&labels=lore&per_page=50" --jq '[.[] | select(
   add, reorder or correct ideas, and do not ask for another approval. Only write proper names the canonical way.
 - 40K defaults to German and the `ww40k` voice (`clone_611`). The translated title is the on-screen hook; it is
   not read aloud.
-- Pictures: the owner chose 40K Gallery artwork. That site blocks automated requests, so the machine cannot
-  search it: the owner attaches pictures to the issue (or adds them to `art/`). Do not try to get around the
-  block. Always credit the artist when known.
+- Pictures are found by Claude and the machine, **not by the owner** (owner, 12/11): never ask the owner to
+  supply pictures. The machine searches the Warhammer 40k Wiki (Fandom) and Wikimedia Commons; you may add
+  pictures you find on the web yourself (§2.2). 40K Gallery blocks automated requests: do not try to get around
+  that. 40K artwork is copyrighted; the owner accepted that. Always credit the artist when known, else the source.
 - Quality is not traded for usage: look at the pictures yourself and preview before rendering.
 
 ## 1. `lore-plan` → `lore/<N>/script.json`
-Read the issue form (Kịch bản, Hình muốn dùng, Ghi chú) and the owner's comments.
+Read the issue form (Kịch bản, Hình riêng, Ghi chú) and the owner's comments.
 ```json
 {"title": "Wer sind die Weltraumhaie?",
  "paragraphs": [["Im Badab-Krieg tauchte eine Flotte aus der Dunkelheit auf.", "Niemand hatte sie gerufen."],
@@ -61,10 +62,13 @@ Read the issue form (Kịch bản, Hình muốn dùng, Ghi chú) and the owner's
   Usual German terms: cá mập không gian = Weltraumhaie, mầm gen = Gensaat, thập tự chinh đền tội = Bußkreuzzug,
   quân đoàn = Legion, Chiến tranh Badab = Badab-Krieg, thiên niên kỷ 41 = 41. Jahrtausend.
 - `title`: the issue title in German, short (it is the red hook over the first two seconds, ≤ ~60 characters).
-- `queries` (optional, 0–12): Wikimedia Commons searches for mood pictures that are free to use: space and
-  nebulae, gothic architecture, old battle paintings, skulls, armour, ruins, storms. Commons has almost no 40K
-  artwork, so do not search for characters there. English words; `incategory:"<Commons category>"` lists a
-  category; only 8 files come back per query.
+- `queries`: 10–18 picture searches, at least one for every character, faction, ship, world and event the
+  script names. Three kinds:
+  - `Tyberos the Red Wake` — file search of the Warhammer 40k Wiki: the English lore name, 1–3 words (8 files).
+  - `page:Carcharodons` — every picture of that wiki article (up to 16): the best source for a chapter, a
+    primarch, a war. The exact English article title (`page:Badab War`, `page:Roboute Guilliman`).
+  - `commons:deep space nebula` — Wikimedia Commons, free licences only: mood pictures (space, gothic
+    architecture, old battle paintings, skulls, ruins, storms). No 40K artwork there.
 - `voice` (optional): another VN11 voice id; leave it out for `clone_611`.
 Commit `[lore #<N>] kịch bản`, push, remove `lore-busy`. (Voice ~5–10 min; you are woken at `lore-pick`.)
 
@@ -75,29 +79,34 @@ Commit `[lore #<N>] kịch bản`, push, remove `lore-busy`. (Voice ~5–10 min;
 2. Where pictures come from, best first:
    - `img/issue/sheet.jpg` + `index.json`: pictures the owner attached to the issue (`#n` = `issue/<n>.jpg`).
    - `art/` in the repo: the owner's library, described in `art/README.md` and `art/index.json`.
-   - `img/<r>/sheet_<k>.jpg` + `index.json`: Commons results of round r (`<r>/<k>-<n>.jpg`), with licence and author.
-   - No fitting picture for a beat → more Commons queries in `lore/<N>/search-<r>.json` `{"queries": […]}`
-     (r = 2, 3…), push, poll the renders branch for `lore/<N>/img/<r>/index.json` (every 30 s, ≤ 10 min); or a
-     generated background (`theme`). When a named character has no picture at all, say so in your closing
-     comment and ask the owner to attach one — never present another character as that one.
-3. Open the full picture before using it. Drop blurred, tiny, watermarked or captioned ones; no gore close-ups.
+   - `img/<r>/sheet_<k>.jpg` + `index.json`: search results of round r (`<r>/<k>-<n>.jpg`; tiles: number, size,
+     `©GW` = wiki artwork or the Commons licence; the index has the file page for the credit).
+   - No fitting picture for a beat → more queries in `lore/<N>/search-<r>.json` `{"queries": […]}` (r = 2, 3…),
+     push, poll the renders branch for `lore/<N>/img/<r>/index.json` (every 30 s, ≤ 10 min).
+   - Still nothing → search the web yourself (web search for the subject's artwork), download the picture, look
+     at it, save it as `lore/<N>/own/<name>.jpg` (≥ 800 px on the short side, ≤ 16 MB) and note the artist and
+     page for the credit. Skip sites that refuse automated requests.
+   - Last resort: a generated background (`theme`). Never present another character as the one named; say in
+     your closing comment which beats have no real picture.
+3. Open the full picture before using it. Drop blurred, tiny, watermarked or captioned ones, photos of painted miniatures when artwork exists, and
+   plain white-background diagrams unless the line is about that vehicle or armour; no gore close-ups.
 4. What each line needs: a named character, faction or ship → artwork of exactly that subject; a place or event →
    artwork of it, else a fitting mood picture; feelings and ideas → a picture whose mood matches. A new picture
    every 1–2 lines (3–6 s), never longer than ~10 s; a strong picture may return once with another crop. The first
    two seconds must be striking: with three or more good pictures, open with a panned collage.
 5. Format:
 ```json
-{"images": {"tyberos": {"src": "issue/2.jpg", "credit": "Tyberos the Red Wake — tranh của <họa sĩ>, 40K Gallery", "focal": [0.5, 0.3]},
+{"images": {"tyberos": {"src": "1/1-1.jpg", "credit": "Tyberos the Red Wake — Games Workshop, Warhammer 40k Wiki", "focal": [0.5, 0.3]},
             "fleet": {"src": "art/carcharodons-fleet.jpg", "credit": "…", "crop": [0.1, 0.0, 0.9, 1.0]},
-            "nebula": {"src": "1/1-3.jpg", "credit": "Carina Nebula — NASA/ESA, public domain (Wikimedia Commons)"}},
+            "nebula": {"src": "1/9-3.jpg", "credit": "Carina Nebula — NASA/ESA, public domain (Wikimedia Commons)"}},
  "shots": [{"collage": ["tyberos", "fleet", "nebula"], "pan": true},
            {"at": 2, "img": "fleet", "from": [1.05, 0.5, 0.4], "to": [1.25, 0.6, 0.35]},
            {"at": 3.5, "img": "tyberos"},
            {"at": 5, "theme": "rift"}]}
 ```
    - `images`: `src` = `issue/<n>.jpg`, `art/<file>`, `<round>/<file>` or `own/<file>` (a file you saved in
-     `lore/<N>/own/`). `credit` (always): subject — artist, source; for Commons the author and licence from
-     `index.json`. `crop` [x0, y0, x1, y1] in 0..1. `focal` [x, y]: the point kept in view when the picture is cut
+     `lore/<N>/own/`). `credit` (always): subject — artist when known, source (wiki artwork: `… — Games Workshop,
+     Warhammer 40k Wiki`; Commons: author and licence from `index.json`). `crop` [x0, y0, x1, y1] in 0..1. `focal` [x, y]: the point kept in view when the picture is cut
      to the 9:16 frame (default [0.5, 0.42]).
    - `shots` in order. The first starts with line 1; `at` = line number where the next cuts in (13.5 = the middle
      of line 13). Each shot has `img`, or `collage` (2+ pictures side by side; `"pan": true` slides across them),

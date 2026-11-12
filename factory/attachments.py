@@ -1,6 +1,6 @@
 """Pictures the owner attached to the issue (dragged into the issue text or a comment).
 
-40K Gallery blocks automated requests, so the owner saves pictures in a browser and attaches them; this step
+Optional: the machine and Claude find pictures themselves, but the owner may attach their own. This step
 copies them to <out>/<n>.jpg with index.json (where each came from) and a numbered sheet.jpg for Claude to choose.
 """
 import io

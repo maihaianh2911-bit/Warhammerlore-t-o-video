@@ -4,7 +4,7 @@ Dây chuyền làm **video lore Warhammer 40K tiếng Đức** khổ dọc (1080
 
 ## Làm một video
 
-1. **Issues → New issue → Video lore Warhammer 40K.** Đặt tên video sau `[40K]`, dán kịch bản tiếng Việt đã duyệt, kéo thả các hình muốn dùng → **Create**.
+1. **Issues → New issue → Video lore Warhammer 40K.** Đặt tên video sau `[40K]`, dán kịch bản tiếng Việt đã duyệt → **Create**. Không cần chuẩn bị hình.
 2. Không cần làm gì thêm. Claude dịch sang tiếng Đức và chia câu → máy tạo giọng đọc, nghe lại để căn phụ đề, gom hình → Claude xem và chọn hình cho từng ý, xem trước khung hình → máy dựng video → Claude kiểm tra lại từng cảnh. Mỗi bước báo trong phiếu.
 3. Bình luận cuối có link **video**, **phụ đề** (SRT) và **nguồn hình** (dán vào mô tả video).
 4. Muốn sửa: viết **một bình luận** gom hết yêu cầu, ví dụ "cảnh 3 đổi hình, câu 5 đọc sai tên". Không bắt đầu bình luận bằng 🤖 (đó là dấu của Claude).
@@ -13,13 +13,14 @@ Chỉ phiếu do chủ repo mở mới chạy. Kịch bản chủ repo gửi đ�
 
 ## Hình
 
-Máy **không tự tải được hình từ 40K Gallery** (trang chặn truy cập tự động). Hình đến từ ba nơi:
+Bạn không phải tìm hình. Máy và Claude tự tìm:
 
-- **Hình kéo thả vào phiếu**: lưu tranh từ 40K Gallery bằng trình duyệt rồi kéo vào phiếu hoặc một bình luận, ghi tên họa sĩ nếu biết. 40K Gallery có [điều khoản sử dụng ảnh](https://40k.gallery/image-usage-terms/).
-- **Thư viện `art/`**: hình dùng lại cho nhiều video, xem [`art/README.md`](art/README.md).
-- **Wikimedia Commons**: ảnh miễn phí cho không khí (tinh vân, kiến trúc gothic, tranh chiến trận cổ). Ở đó gần như không có tranh 40K.
+- **Warhammer 40k Wiki (Fandom)**: máy tìm tranh theo tên nhân vật, phe, tàu, sự kiện mà kịch bản nhắc tới. Đây là tranh có bản quyền của Games Workshop và họa sĩ; nguồn được ghi trong `credits.md`.
+- **Wikimedia Commons**: ảnh miễn phí cho không khí (tinh vân, kiến trúc gothic, tranh chiến trận cổ).
+- **Claude tìm thêm trên web** khi hai nơi trên thiếu hình cho một ý.
+- **Hình riêng của bạn** (không bắt buộc): kéo thả vào phiếu, hoặc để trong thư viện [`art/`](art/README.md) để dùng lại.
 
-Ý nào không có hình phù hợp thì dùng đồ họa nền do máy vẽ; Claude ghi rõ trong bình luận cuối để bạn bổ sung hình nếu muốn.
+Trang 40K Gallery chặn truy cập tự động nên máy không lấy hình ở đó. Ý nào vẫn không có hình phù hợp thì dùng đồ họa nền do máy vẽ, và Claude ghi rõ trong bình luận cuối.
 
 ## Nhãn trên phiếu (máy tự gắn)
 
