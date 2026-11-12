@@ -64,7 +64,7 @@ def load_job(path: Path) -> Job:
 
 
 def load_picks(path: Path, line_count):
-    """picks.json: {"images": {name: {"src", "credit", "crop", "focal"}}, "shots": [{"at", "img" | "collage" | "theme"}]}."""
+    """picks.json: {"images": {name: {"src", "credit", "crop", "focal"}}, "shots": [{"at", "img" | "theme", "focus", "zoom"}]}."""
     data = json.loads(path.read_text(encoding="utf-8-sig"))
     images = data.get("images") or {}
     shots = data.get("shots")
@@ -83,13 +83,17 @@ def load_picks(path: Path, line_count):
         if (number == 1 and at != 1) or at <= previous:
             raise ValueError(f"Cảnh {number}: cảnh đầu bắt đầu ở câu 1, các cảnh sau có at tăng dần.")
         previous = at
-        names = [shot["img"]] if "img" in shot else shot.get("collage")
-        if names is None:
-            if shot.get("theme") not in THEMES:
-                raise ValueError(f"Cảnh {number} cần img, collage hoặc theme ({', '.join(THEMES)}).")
-        elif (not isinstance(names, list) or not names or ("collage" in shot and len(names) < 2)
-              or any(name not in images for name in names)):
-            raise ValueError(f"Cảnh {number} dùng ảnh chưa khai báo trong images.")
+        if "img" in shot:
+            if shot["img"] not in images:
+                raise ValueError(f"Cảnh {number} dùng ảnh chưa khai báo trong images.")
+        elif shot.get("theme") not in THEMES:
+            raise ValueError(f"Cảnh {number} cần img hoặc theme ({', '.join(THEMES)}).")
+        focus = shot.get("focus")
+        if focus is not None and not (isinstance(focus, list) and len(focus) == 2 and all(0 <= v <= 1 for v in focus)):
+            raise ValueError(f"Cảnh {number}: focus là [x, y] trong khoảng 0–1.")
+        zoom = shot.get("zoom")
+        if zoom is not None and not (isinstance(zoom, (int, float)) and 1 <= zoom <= 1.8):
+            raise ValueError(f"Cảnh {number}: zoom từ 1 đến 1.8.")
         for key in ("from", "to"):
             move = shot.get(key)
             if move is not None and not (isinstance(move, list) and len(move) == 3
@@ -176,24 +180,69 @@ def caption_lines(text, width=29):
 
 
 def ass_text(lines):
-    translate = str.maketrans({"\\": "＼", "{": "｛", "}": "｝"})
-    return r"\N".join(line.translate(translate) for line in lines)
+    return r"\N".join(ass_escape(line) for line in lines)
 
 
-def write_subtitles(cues, srt: Path, ass: Path, hook, hook_end):
-    blocks = []
+def ass_escape(text):
+    return text.translate(str.maketrans({"\\": "＼", "{": "｛", "}": "｝"}))
+
+
+CHUNK_WORDS = 3
+CHUNK_CHARS = 16
+GOLD = "&H3FD2FF&"      # ASS colours are BGR
+WHITE = "&HFFFFFF&"
+
+
+def caption_chunks(text, starts, ends, duration):
+    """Short groups of words (as the voice says them): [[(word, start, end), ...], ...], broken at punctuation."""
+    chunks = [[]]
+    words = list(re.finditer(r"\S+", text))
+    for index, word in enumerate(words):
+        start = min(max(starts[word.start()], 0), duration)
+        end = min(max(ends[word.end() - 1], start), duration)
+        chunk = chunks[-1]
+        length = sum(len(item[0]) + 1 for item in chunk) + len(word.group())
+        if chunk and (len(chunk) >= CHUNK_WORDS or length > CHUNK_CHARS):
+            chunks.append(chunk := [])
+        chunk.append((word.group(), start, end))
+        following = text[word.end():words[index + 1].start()] if index + 1 < len(words) else ""
+        if re.search(r"""[.!?…,;:–—]["'”’»)]*$""", word.group()) or "\n" in following:
+            chunks.append([])
+    return [chunk for chunk in chunks if chunk]
+
+
+def chunk_events(chunks, duration):
+    """One subtitle event per spoken word: the chunk stays, the word being said turns gold."""
     events = []
+    for number, chunk in enumerate(chunks):
+        following = chunks[number + 1][0][1] if number + 1 < len(chunks) else duration
+        last = min(chunk[-1][2] + 0.35, following)      # the caption leaves during a pause
+        for index, (_, start, _) in enumerate(chunk):
+            end = chunk[index + 1][1] if index + 1 < len(chunk) else last
+            if end - start < 0.02:
+                continue
+            words = [f"{{\\c{GOLD}}}{ass_escape(word)}{{\\c{WHITE}}}" if position == index else ass_escape(word)
+                     for position, (word, _, _) in enumerate(chunk)]
+            size = round(100 * min(1, (CHUNK_CHARS + 2) / len(" ".join(word for word, _, _ in chunk))))
+            small = round(size * 0.86)      # a long word is narrowed to fit; every chunk pops in once
+            look = (rf"{{\fscx{small}\fscy{small}\t(0,90,\fscx{size}\fscy{size})}}" if index == 0
+                    else rf"{{\fscx{size}\fscy{size}}}")
+            events.append((start, end, look + " ".join(words)))
+    return events
+
+
+def write_subtitles(cues, chunks, duration, srt: Path, ass: Path, hook, hook_end):
+    blocks = []
     for index, cue in enumerate(cues, start=1):
-        lines = caption_lines(cue.text)
         srt_start = format_time(cue.start, 3, ",", True)
         srt_end = format_time(cue.end, 3, ",", True)
-        blocks.append(f"{index}\n{srt_start} --> {srt_end}\n" + "\n".join(lines))
-        ass_start = format_time(cue.start, 2, ".", False)
-        ass_end = format_time(cue.end, 2, ".", False)
-        events.append(f"Dialogue: 0,{ass_start},{ass_end},Default,,0,0,0,," + ass_text(lines))
-    hook_text = textwrap.shorten(" ".join(hook.split()), width=63, placeholder="…")
+        blocks.append(f"{index}\n{srt_start} --> {srt_end}\n" + "\n".join(caption_lines(cue.text)))
+    events = [f"Dialogue: 0,{format_time(start, 2, '.', False)},{format_time(end, 2, '.', False)},Default,,0,0,0,,{text}"
+              for start, end, text in chunk_events(chunks, duration)]
+    hook_text = textwrap.shorten(" ".join(hook.split()), width=66, placeholder="…")
     hook_time = format_time(hook_end, 2, ".", False)
-    events.append(f"Dialogue: 1,0:00:00.00,{hook_time},Hook,,0,0,0,," + ass_text(caption_lines(hook_text, 31)))
+    fade = r"{\fad(180,260)}"
+    events.append(f"Dialogue: 1,0:00:00.00,{hook_time},Hook,,0,0,0,,{fade}" + ass_text(caption_lines(hook_text, 18)))
     srt.write_text("\n\n".join(blocks) + "\n", encoding="utf-8")
     ass.write_text(
         """[Script Info]
@@ -205,8 +254,8 @@ ScaledBorderAndShadow: yes
 
 [V4+ Styles]
 Format: Name,Fontname,Fontsize,PrimaryColour,SecondaryColour,OutlineColour,BackColour,Bold,Italic,Underline,StrikeOut,ScaleX,ScaleY,Spacing,Angle,BorderStyle,Outline,Shadow,Alignment,MarginL,MarginR,MarginV,Encoding
-Style: Default,DejaVu Sans,58,&H00FFFFFF,&H00000000,&H00080707,&H70080707,-1,0,0,0,81,100,0,0,1,5.4,1.5,2,105,105,317,1
-Style: Hook,DejaVu Sans,76,&H003031FF,&H00000000,&H00080C16,&H80080C16,-1,-1,0,0,81,100,0,0,1,5.5,2,5,86,86,0,1
+Style: Default,Montserrat Thin ExtraBold,92,&H00FFFFFF,&H00000000,&H00060404,&HA0000000,0,0,0,0,100,100,0.5,0,1,7,3,8,60,60,1170,1
+Style: Hook,Cinzel Black,76,&H0048C8FF,&H00000000,&H00050818,&HB0000000,0,0,0,0,100,100,1.5,0,1,6,4,8,70,70,250,1
 
 [Events]
 Format: Layer,Start,End,Style,Name,MarginL,MarginR,MarginV,Effect,Text

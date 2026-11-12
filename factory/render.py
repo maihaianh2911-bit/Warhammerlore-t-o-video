@@ -8,69 +8,50 @@ from pathlib import Path
 
 from PIL import Image
 
-from .art import ART_ROOT, atmosphere, contact_sheet, fit_picture, grade_frame, open_picture, opening_collage
+from .art import ART_ROOT, atmosphere, contact_sheet, fit_picture, grade_frame, open_picture
 from .script import (
-    line_times, load_job, load_picks, make_cues, opening_frames, shot_frames, write_subtitles,
+    caption_chunks, line_times, load_job, load_picks, make_cues, opening_frames, shot_frames, write_subtitles,
 )
 from .voice import audio_duration
 
 
 FPS = 30
 SIZES = {"preview": (720, 1280), "full": (1080, 1920)}
-CAMERA_MOVES = (
-    ((1.06, 0.12, 0.36), (1.19, 0.85, 0.49)),
-    ((1.07, 0.25, 0.44), (1.22, 0.58, 0.31)),
-    ((1.21, 0.75, 0.38), (1.08, 0.38, 0.52)),
-    ((1.13, 0.85, 0.46), (1.19, 0.17, 0.51)),
-)
+ZOOM_PER_SECOND = 0.032     # the reference video pushes in at an even ~3% of the frame per second
+MAX_AUTO_ZOOM = 1.42
+DETAIL = 1.5                # stills are kept larger than the frame so a push-in stays sharp
+FONTS = Path(__file__).resolve().parent.parent / "fonts"
 
 
-def ffmpeg(scratch, *arguments):
-    subprocess.run(
+def ffmpeg(scratch, *arguments, **options):
+    return subprocess.run(
         ["ffmpeg", "-hide_banner", "-loglevel", "error", "-nostdin", "-y", *arguments],
-        cwd=scratch, check=True,
+        cwd=scratch, check=True, **options,
     )
 
 
-def animate(still, clip, frames, size, move, previous_end, scratch, strip=False):
-    width, height = size
-    progress = f"(on/{max(1, frames - 1)})"
-    start, end = move
-    zoom, x, y = [f"{a}+({b - a})*{progress}" for a, b in zip(start, end)]
-    camera = (
-        f"scale={width * 2}:{height * 2},"
-        f"zoompan=z='{zoom}':x='(iw-iw/zoom)*({x})':y='(ih-ih/zoom)*({y})':"
-        f"d={frames}:s={width}x{height}:fps={FPS},format=yuv420p"
-    )
-    if strip:
-        strip_progress = f"min(n/{max(1, frames - 1)},1)"
-        camera = f"crop={width}:{height}:x='(iw-ow)*{strip_progress}':y=0,format=yuv420p"
-    transition = min(6, frames - 1)
-    if previous_end is not None and transition > 0:
-        overlay = (
-            f"[0:v]{camera}[picture];"
-            f"[1:v]format=yuva420p,fade=t=out:s=0:n={transition}:alpha=1[previous];"
-            "[picture][previous]overlay=eof_action=pass[out]"
-        )
-        filters = [
-            "-loop", "1", "-framerate", str(FPS), "-t", f"{(transition + 1) / FPS:.6f}",
-            "-i", previous_end.name, "-filter_complex", overlay, "-map", "[out]",
-        ]
-    else:
-        filters = ["-vf", camera]
-    source = ["-loop", "1", "-framerate", str(FPS)] if strip else []
-    ffmpeg(scratch, "-filter_threads", "1", "-filter_complex_threads", "1", *source, "-i", still.name, *filters,
-           "-frames:v", str(frames), "-c:v", "libx264", "-threads", "3",
-           "-preset", "veryfast", "-crf", "16", "-an", clip.name)
+def default_move(focus, seconds):
+    """An even push-in towards the focus point, as in the reference: the point stays put, the rest grows."""
+    x, y = focus
+    return (1.0, x, y), (min(1.0 + ZOOM_PER_SECOND * seconds, MAX_AUTO_ZOOM), x, y)
 
 
-def camera_end(image, position):
+def camera_view(image, position, size):
+    """The frame at one camera position [zoom, x, y]; fractional crops keep slow moves free of jitter."""
     zoom, x, y = position
     width, height = image.size
     crop_width, crop_height = width / zoom, height / zoom
     left = (width - crop_width) * x
     top = (height - crop_height) * y
-    return image.resize(image.size, Image.Resampling.LANCZOS, box=(left, top, left + crop_width, top + crop_height))
+    return image.resize(size, Image.Resampling.BICUBIC, box=(left, top, left + crop_width, top + crop_height))
+
+
+def shot_frames_rgb(image, move, count, size):
+    start, end = move
+    for index in range(count):
+        progress = index / max(1, count - 1)
+        position = [a + (b - a) * progress for a, b in zip(start, end)]
+        yield camera_view(image, position, size).tobytes()
 
 
 def picture_path(source, job_dir, images_dir):
@@ -97,30 +78,27 @@ def load_images(images, job_dir, images_dir):
     return pictures
 
 
-def shot_picture(shot, index, images, pictures, size):
-    """The still of one shot (twice as wide for a panned collage) and its camera move."""
-    width, height = size
-    move = CAMERA_MOVES[index % len(CAMERA_MOVES)]
-    move = (tuple(shot.get("from") or move[0]), tuple(shot.get("to") or move[1]))
-    if "theme" in shot and "img" not in shot and "collage" not in shot:
-        return atmosphere(size, shot["theme"], seed=2099 + 37 * index), move
-    if "collage" in shot:
-        target = (width * 2, height) if shot.get("pan") else size
-        return opening_collage([pictures[name] for name in shot["collage"]], target), move
-    focal = tuple(images[shot["img"]].get("focal", (0.5, 0.42)))
-    return fit_picture(pictures[shot["img"]], size, focal), move
+def shot_picture(shot, index, images, pictures, size, seconds):
+    """The still of one shot (larger than the frame) and its camera move (start, end)."""
+    large = (round(size[0] * DETAIL), round(size[1] * DETAIL))
+    if "img" in shot:
+        entry = images[shot["img"]]
+        picture = fit_picture(pictures[shot["img"]], large, tuple(entry.get("focal", (0.5, 0.42))))
+    else:
+        picture = atmosphere(size, shot["theme"], seed=2099 + 37 * index).resize(large, Image.Resampling.BICUBIC)
+    start, end = default_move(shot.get("focus", (0.5, 0.4)), seconds)
+    if "zoom" in shot:
+        end = (shot["zoom"], *end[1:])
+    return picture, (tuple(shot.get("from") or start), tuple(shot.get("to") or end))
 
 
 def shot_views(picture, move, size):
     """What the viewer sees at the start and at the end of the shot."""
-    if picture.width > size[0]:
-        return picture.crop((0, 0, size[0], size[1])), picture.crop((picture.width - size[0], 0, picture.width, size[1]))
-    return camera_end(picture, move[0]), camera_end(picture, move[1])
+    return camera_view(picture, move[0], size), camera_view(picture, move[1], size)
 
 
 def shot_credits(shot, images):
-    names = [shot["img"]] if "img" in shot else shot.get("collage", [])
-    return [images[name]["credit"] for name in names]
+    return [images[shot["img"]]["credit"]] if "img" in shot else []
 
 
 def write_credits(scenes, path):
@@ -147,7 +125,8 @@ def write_sheet(video, scenes, scratch, path):
     contact_sheet(tiles, path, columns=6)
 
 
-def mux_video(audio, frames, scratch, destination):
+def encode_video(frames_rgb, audio, frames, size, scratch, destination):
+    """Frames from Python, subtitles, voice and a quiet bed, in one pass."""
     duration = frames / FPS
     ambient = (
         "aevalsrc=0.012*sin(2*PI*46*t)+0.006*sin(2*PI*69*t)*(0.6+0.4*sin(2*PI*0.17*t))"
@@ -155,18 +134,29 @@ def mux_video(audio, frames, scratch, destination):
     )
     fade = min(0.8, duration / 3)
     mix = (
+        f"[0:v]ass=subtitles.ass:fontsdir={FONTS},format=yuv420p[video];"
         "[1:a]loudnorm=I=-17:TP=-2:LRA=7,aresample=48000,apad[voice];"
         f"[2:a]afade=d={fade},afade=t=out:st={duration - fade}:d={fade}[bed];"
         "[voice][bed]amix=inputs=2:normalize=0,alimiter=limit=0.88:level=0[audio]"
     )
-    ffmpeg(
-        scratch, "-filter_threads", "1", "-filter_complex_threads", "1",
-        "-f", "concat", "-safe", "1", "-i", "shots.txt", "-i", audio.name, "-f", "lavfi", "-i", ambient,
-        "-vf", "ass=subtitles.ass", "-filter_complex", mix, "-map", "0:v", "-map", "[audio]",
-        "-frames:v", str(frames), "-t", f"{duration:.6f}", "-c:v", "libx264",
-        "-threads", "3", "-preset", "fast", "-crf", "23", "-c:a", "aac", "-b:a", "160k",
-        "-movflags", "+faststart", str(destination),
+    process = subprocess.Popen(
+        ["ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+         "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{size[0]}x{size[1]}", "-r", str(FPS), "-i", "-",
+         "-i", audio.name, "-f", "lavfi", "-i", ambient,
+         "-filter_complex", mix, "-map", "[video]", "-map", "[audio]",
+         "-frames:v", str(frames), "-t", f"{duration:.6f}", "-c:v", "libx264",
+         "-preset", "medium", "-crf", "21", "-c:a", "aac", "-b:a", "160k",
+         "-movflags", "+faststart", str(destination)],
+        cwd=scratch, stdin=subprocess.PIPE,
     )
+    try:
+        for frame in frames_rgb:
+            process.stdin.write(frame)
+        process.stdin.close()
+    except BrokenPipeError:
+        pass
+    if process.wait():
+        raise RuntimeError("FFmpeg không xuất được video.")
 
 
 def render(job_dir, voice_dir, images_dir, out, size_name="full"):
@@ -192,34 +182,28 @@ def render(job_dir, voice_dir, images_dir, out, size_name="full"):
         cues = make_cues(job.text, starts, ends, duration)
         times = line_times(job.spans, starts, ends)
         ranges = shot_frames(shots, times, frames, FPS)
-        write_subtitles(cues, stage / "subtitles.srt", scratch / "subtitles.ass",
+        write_subtitles(cues, caption_chunks(job.text, starts, ends, duration), duration,
+                        stage / "subtitles.srt", scratch / "subtitles.ass",
                         job.title, opening_frames(frames, FPS) / FPS)
         pictures = load_images(images, job_dir, images_dir)
 
         scenes = []
-        playlist = []
-        previous_end = scratch / "camera-end.png"
+        stills = []
         for index, (shot, (first, last)) in enumerate(zip(shots, ranges)):
-            picture, move = shot_picture(shot, index, images, pictures, size)
-            picture = grade_frame(picture)
-            still = scratch / f"shot-{index:03}.png"
-            clip = scratch / f"shot-{index:03}.mp4"
-            picture.save(still)
-            strip = picture.width > size[0]
-            animate(still, clip, last - first, size, move, previous_end if index else None, scratch, strip=strip)
-            shot_views(picture, move, size)[1].save(previous_end)
-            playlist.append(f"file '{clip.name}'")
+            picture, move = shot_picture(shot, index, images, pictures, size, (last - first) / FPS)
+            stills.append((grade_frame(picture), move, last - first))
             scenes.append({
                 "start": round(first / FPS, 3),
                 "end": round(last / FPS, 3),
-                "picture": shot.get("img") or "+".join(shot.get("collage", [])) or shot["theme"],
+                "picture": shot.get("img") or shot["theme"],
                 "text": " ".join(job.text[a:b] for (a, b), (begin, _) in zip(job.spans, times)
                                  if first <= round(begin * FPS) < last),
                 "credits": shot_credits(shot, images),
             })
 
-        (scratch / "shots.txt").write_text("\n".join(playlist) + "\n", encoding="ascii")
-        mux_video(scratch / audio.name, frames, scratch, stage / "video.mp4")
+        frames_rgb = (frame for picture, move, count in stills
+                      for frame in shot_frames_rgb(picture, move, count, size))
+        encode_video(frames_rgb, scratch / audio.name, frames, size, scratch, stage / "video.mp4")
         ffmpeg(scratch, "-i", str(stage / "video.mp4"), "-frames:v", "1", "-q:v", "2", str(stage / "cover.jpg"))
         write_sheet(stage / "video.mp4", scenes, scratch, stage / "sheet.jpg")
         write_credits(scenes, stage / "credits.md")

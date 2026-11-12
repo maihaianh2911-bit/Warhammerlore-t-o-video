@@ -46,18 +46,6 @@ def fit_picture(image, size, focal=(0.5, 0.42)):
     return ImageOps.fit(image, size, Image.Resampling.LANCZOS, centering=focal)
 
 
-def opening_collage(pictures, size):
-    width, height = size
-    montage = Image.new("RGB", size)
-    for index, picture in enumerate(pictures):
-        left = round(width * index / len(pictures))
-        right = round(width * (index + 1) / len(pictures))
-        montage.paste(fit_picture(picture, (right - left, height), (0.5, 0.5)), (left, 0))
-        if index:
-            ImageDraw.Draw(montage).line((left, 0, left, height), fill=(14, 10, 14), width=max(1, width // 380))
-    return montage
-
-
 def grade_frame(image):
     return ImageEnhance.Color(ImageEnhance.Contrast(image).enhance(1.06)).enhance(1.12)
 

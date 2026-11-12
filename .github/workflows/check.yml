@@ -8,6 +8,7 @@ on:
     branches: [main]
     paths:
       - 'factory/**'
+      - 'fonts/**'
       - 'scripts/**'
       - 'tests/**'
       - 'requirements*.txt'
@@ -27,7 +28,7 @@ jobs:
       - name: Cài công cụ dựng
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y ffmpeg fonts-dejavu-core
+          sudo apt-get install -y ffmpeg
           python3 -m venv "$RUNNER_TEMP/venv"
           echo "$RUNNER_TEMP/venv/bin" >> "$GITHUB_PATH"
           "$RUNNER_TEMP/venv/bin/pip" install -q --disable-pip-version-check -r requirements.txt

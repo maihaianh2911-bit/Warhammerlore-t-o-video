@@ -5,7 +5,8 @@ from pathlib import Path
 
 from factory.attachments import attachment_urls, owner_texts
 from factory.run import todo
-from factory.script import line_times, load_job, load_picks, shot_frames
+from factory.render import camera_view, default_move
+from factory.script import caption_chunks, chunk_events, line_times, load_job, load_picks, shot_frames
 
 
 def write(data):
@@ -32,9 +33,9 @@ class JobTest(unittest.TestCase):
 class PicksTest(unittest.TestCase):
     images = {"a": {"src": "issue/1.jpg", "credit": "Künstler — Titel"}}
 
-    def test_accepts_pictures_collages_and_backgrounds(self):
+    def test_accepts_pictures_and_backgrounds(self):
         picks = {"images": {**self.images, "b": {"src": "art/b.jpg", "credit": "B"}},
-                 "shots": [{"collage": ["a", "b"], "pan": True}, {"at": 2.5, "img": "a"}, {"at": 3, "theme": "rift"}]}
+                 "shots": [{"img": "b", "focus": [0.6, 0.3]}, {"at": 2.5, "img": "a", "zoom": 1.3}, {"at": 3, "theme": "rift"}]}
         self.assertEqual(len(load_picks(write(picks), 3)[1]), 3)
 
     def test_refuses_what_the_renderer_cannot_place(self):
@@ -44,6 +45,7 @@ class PicksTest(unittest.TestCase):
             "tăng dần": {"images": self.images, "shots": [{"img": "a"}, {"at": 3, "img": "a"}, {"at": 2, "img": "a"}]},
             "từ 1 đến 3": {"images": self.images, "shots": [{"img": "a"}, {"at": 4, "img": "a"}]},
             "theme": {"images": self.images, "shots": [{"at": 1}]},
+            "focus": {"images": self.images, "shots": [{"img": "a", "focus": [2, 0]}]},
         }
         for message, picks in cases.items():
             with self.subTest(message), self.assertRaisesRegex(ValueError, message):
@@ -58,6 +60,35 @@ class PicksTest(unittest.TestCase):
 
     def test_line_times_follow_the_voice(self):
         self.assertEqual(line_times([(0, 2), (3, 5)], [0, 1, 2, 3, 4], [1, 2, 3, 4, 5]), [(0, 2), (3, 5)])
+
+
+class MotionTest(unittest.TestCase):
+    def test_push_in_is_even_and_keeps_the_focus_point_in_place(self):
+        start, end = default_move((0.7, 0.3), 10)
+        self.assertEqual(start, (1.0, 0.7, 0.3))
+        self.assertAlmostEqual(end[0], 1.32)
+        self.assertEqual(default_move((0.5, 0.5), 60)[1][0], 1.42)
+        from PIL import Image
+        picture = Image.new("RGB", (200, 400))
+        picture.putpixel((140, 120), (255, 255, 255))          # the focus point of the picture
+        view = camera_view(picture, end, (200, 400)).convert("L")
+        brightest = max(range(200 * 400), key=view.tobytes().__getitem__)
+        self.assertLessEqual(abs(brightest % 200 - 140), 2)
+        self.assertLessEqual(abs(brightest // 200 - 120), 2)
+
+
+class CaptionTest(unittest.TestCase):
+    def test_captions_follow_the_words(self):
+        text = "Im 41. Jahrtausend gibt es nur Krieg. Niemand ruft."
+        starts = [index * 0.1 for index in range(len(text))]
+        ends = [value + 0.1 for value in starts]
+        chunks = caption_chunks(text, starts, ends, len(text) * 0.1)
+        self.assertEqual([" ".join(word for word, _, _ in chunk) for chunk in chunks],
+                         ["Im 41.", "Jahrtausend gibt", "es nur Krieg.", "Niemand ruft."])
+        events = chunk_events(chunks, len(text) * 0.1)
+        self.assertEqual(len(events), 9)
+        self.assertTrue(all(first[1] <= second[0] + 1e-9 for first, second in zip(events, events[1:])))
+        self.assertIn("Krieg.", events[4][2])
 
 
 class RunTest(unittest.TestCase):

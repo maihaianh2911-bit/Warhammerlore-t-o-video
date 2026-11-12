@@ -1,5 +1,5 @@
 """Render a made-up video end to end without VN11, Whisper or the network: a silent voice track with even
-timings, one generated picture, a panned collage and a generated background. Usage: python3 tests/smoke.py"""
+timings, two generated pictures and a generated background. Usage: python3 tests/smoke.py"""
 import json
 import subprocess
 import sys
@@ -26,9 +26,9 @@ PICKS = {
         "orbit": {"src": "issue/1.jpg", "credit": "Testbild B", "crop": [0.1, 0.0, 0.9, 1.0]},
     },
     "shots": [
-        {"collage": ["rift", "orbit"], "pan": True},
+        {"img": "orbit", "focus": [0.7, 0.3]},
         {"at": 2, "img": "rift", "from": [1.0, 0.5, 0.5], "to": [1.3, 0.5, 0.3]},
-        {"at": 3, "img": "orbit"},
+        {"at": 3, "img": "orbit", "zoom": 1.5},
         {"at": 4, "theme": "inferno"},
     ],
 }
@@ -57,7 +57,7 @@ with tempfile.TemporaryDirectory() as temporary:
     length, count = render(job_dir, voice, images, root / "out", "preview")
     scenes = json.loads((root / "out" / "scenes.json").read_text(encoding="utf-8"))["scenes"]
     assert count == 4 and abs(length - duration) < 0.2, (count, length)
-    assert [scene["picture"] for scene in scenes] == ["rift+orbit", "rift", "orbit", "inferno"], scenes
+    assert [scene["picture"] for scene in scenes] == ["orbit", "rift", "orbit", "inferno"], scenes
     assert scenes[1]["text"] == SCRIPT["paragraphs"][0][1], scenes[1]
     for name in ("video.mp4", "subtitles.srt", "cover.jpg", "sheet.jpg", "credits.md"):
         assert (root / "out" / name).stat().st_size > 0, name

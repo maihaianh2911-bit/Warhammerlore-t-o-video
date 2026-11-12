@@ -10,15 +10,22 @@ from .render import SIZES, load_images, shot_picture, shot_views
 from .script import load_job, load_picks
 
 
+def shot_seconds(job, shots):
+    """Rough length of every shot before the voice exists: German narration runs at about 15 characters a second."""
+    starts = [job.spans[int(shot.get("at", 1)) - 1][0] for shot in shots] + [len(job.text)]
+    return [max(1.0, (after - before) / 15) for before, after in zip(starts, starts[1:])]
+
+
 def preview(job_dir, images_dir, out):
     job = load_job(job_dir / "script.json")
     images, shots = load_picks(job_dir / "picks.json", len(job.spans))
     pictures = load_images(images, job_dir, images_dir)
     size = SIZES["preview"]
+    seconds = shot_seconds(job, shots)
     tiles = []
     for index, shot in enumerate(shots):
-        picture, move = shot_picture(shot, index, images, pictures, size)
-        name = shot.get("img") or "+".join(shot.get("collage", [])) or shot["theme"]
+        picture, move = shot_picture(shot, index, images, pictures, size, seconds[index])
+        name = shot.get("img") or shot["theme"]
         for label, view in zip(("start", "end"), shot_views(grade_frame(picture), move, size)):
             tiles.append((view.resize((216, 384)), f"{index + 1} L{shot.get('at', 1)} {name} {label}"[:34]))
     contact_sheet(tiles, out, columns=6)

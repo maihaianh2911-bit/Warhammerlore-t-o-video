@@ -1,6 +1,6 @@
 # Warhammer Lore Video Factory
 
-Dây chuyền làm **video lore Warhammer 40K tiếng Đức** khổ dọc (1080 × 1920): hình phủ kín khung với chuyển động máy chậm, câu hook chữ đỏ ở hai giây đầu, phụ đề trắng chạy theo giọng `ww40k`. Chạy hoàn toàn trên GitHub, theo cách làm của repo `japan-video-factory`.
+Dây chuyền làm **video lore Warhammer 40K tiếng Đức** khổ dọc (1080 × 1920): tranh phủ kín khung, máy đẩy vào chậm và đều như video mẫu trong [`00-video-mau`](00-video-mau/), tiêu đề vàng ở hai giây đầu, phụ đề từng cụm ngắn chạy theo giọng `ww40k` với từ đang đọc tô vàng. Chạy hoàn toàn trên GitHub, theo cách làm của repo `japan-video-factory`.
 
 ## Làm một video
 
@@ -59,7 +59,7 @@ Hướng dẫn cho Claude: [`AGENT.md`](AGENT.md).
 
 ## Chạy thử cục bộ
 
-Cần Python 3.11+, FFmpeg có libass và libx264, phông DejaVu.
+Cần Python 3.11+, FFmpeg có libass và libx264. Phông chữ nằm sẵn trong `fonts/`.
 
 ```sh
 python3 -m pip install -r requirements.txt

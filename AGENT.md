@@ -1,8 +1,9 @@
 # 40K lore videos — runbook for Claude
 
 The owner (Vietnamese, not technical) opens an issue `[40K] …` with an approved script (Vietnamese, sometimes
-German). The result is a vertical short (1080×1920): full-frame pictures with slow camera moves, a red hook title
-in the first two seconds, white subtitles timed to the German `ww40k` voice (VN11 `clone_611`).
+German). The result is a vertical short (1080×1920): full-frame artwork that the camera pushes into slowly and
+evenly (learned from the owner's reference, `00-video-mau/`), hard cuts, a gold title over the first two seconds,
+and short captions that follow the German `ww40k` voice word by word (VN11 `clone_611`).
 Machine steps run in `.github/workflows/lore.yml` → `factory/run.py`; files land on the `renders` branch in
 `lore/<N>/` (`voice/`, `img/<round>/`, `video.mp4`, `sheet.jpg`, `subtitles.srt`, `credits.md`).
 
@@ -43,6 +44,8 @@ gh api "repos/$R/issues?state=open&labels=lore&per_page=50" --jq '[.[] | select(
   supply pictures. The machine searches the Warhammer 40k Wiki (Fandom) and Wikimedia Commons; you may add
   pictures you find on the web yourself (§2.2). 40K Gallery blocks automated requests: do not try to get around
   that. 40K artwork is copyrighted; the owner accepted that. Always credit the artist when known, else the source.
+- Motion follows the reference video in `00-video-mau/` (owner, 12/11): only its way of moving pictures. The
+  lettering is ours and may be made better than the reference.
 - Quality is not traded for usage: look at the pictures yourself and preview before rendering.
 
 ## 1. `lore-plan` → `lore/<N>/script.json`
@@ -91,29 +94,37 @@ Commit `[lore #<N>] kịch bản`, push, remove `lore-busy`. (Voice ~5–10 min;
 3. Open the full picture before using it. Drop blurred, tiny, watermarked or captioned ones, photos of painted miniatures when artwork exists, and
    plain white-background diagrams unless the line is about that vehicle or armour; no gore close-ups.
 4. What each line needs: a named character, faction or ship → artwork of exactly that subject; a place or event →
-   artwork of it, else a fitting mood picture; feelings and ideas → a picture whose mood matches. A new picture
-   every 1–2 lines (3–6 s), never longer than ~10 s; a strong picture may return once with another crop. The first
-   two seconds must be striking: with three or more good pictures, open with a panned collage.
+   artwork of it, else a fitting mood picture; feelings and ideas → a picture whose mood matches.
+   Pacing as in the reference: a picture stays while the narration is about its subject and changes when the
+   subject or the speaker changes — 3–12 s each, about 8–10 pictures a minute. A strong picture may return with
+   another `focus` (the reference shows its key scene twice). Open on the most striking portrait or scene and
+   close on a picture that carries the last line. Prefer tall or square artwork with one clear subject: a wide
+   picture is cut to 9:16 around its `focal`.
 5. Format:
 ```json
 {"images": {"tyberos": {"src": "1/1-1.jpg", "credit": "Tyberos the Red Wake — Games Workshop, Warhammer 40k Wiki", "focal": [0.5, 0.3]},
             "fleet": {"src": "art/carcharodons-fleet.jpg", "credit": "…", "crop": [0.1, 0.0, 0.9, 1.0]},
             "nebula": {"src": "1/9-3.jpg", "credit": "Carina Nebula — NASA/ESA, public domain (Wikimedia Commons)"}},
- "shots": [{"collage": ["tyberos", "fleet", "nebula"], "pan": true},
-           {"at": 2, "img": "fleet", "from": [1.05, 0.5, 0.4], "to": [1.25, 0.6, 0.35]},
-           {"at": 3.5, "img": "tyberos"},
-           {"at": 5, "theme": "rift"}]}
+ "shots": [{"img": "tyberos", "focus": [0.5, 0.25]},
+           {"at": 2, "img": "fleet", "focus": [0.7, 0.4]},
+           {"at": 3.5, "img": "nebula"},
+           {"at": 5, "theme": "rift"},
+           {"at": 6, "img": "tyberos", "focus": [0.45, 0.2], "zoom": 1.35}]}
 ```
    - `images`: `src` = `issue/<n>.jpg`, `art/<file>`, `<round>/<file>` or `own/<file>` (a file you saved in
      `lore/<N>/own/`). `credit` (always): subject — artist when known, source (wiki artwork: `… — Games Workshop,
      Warhammer 40k Wiki`; Commons: author and licence from `index.json`). `crop` [x0, y0, x1, y1] in 0..1. `focal` [x, y]: the point kept in view when the picture is cut
      to the 9:16 frame (default [0.5, 0.42]).
    - `shots` in order. The first starts with line 1; `at` = line number where the next cuts in (13.5 = the middle
-     of line 13). Each shot has `img`, or `collage` (2+ pictures side by side; `"pan": true` slides across them),
-     or `theme` (generated background: `orbit`, `archive`, `rift`, `decay`, `inferno`).
-   - Camera (optional): `from` → `to`, each [zoom 1.0–1.8, x, y] with x, y = position of the view inside the
-     picture (0 = left/top, 1 = right/bottom). Left out → gentle default moves. Push in on faces, pull back on
-     wide scenes. Subtitles cover the band at about 75–85% of the height: keep faces above it.
+     of line 13). Each shot has `img` or `theme` (generated background: `orbit`, `archive`, `rift`, `decay`,
+     `inferno`).
+   - Camera: every shot starts on the whole 9:16 frame and pushes in evenly, about 3% per second, towards
+     `focus` [x, y] (0–1 inside the frame; default [0.5, 0.4]): that point stays where it is while everything
+     else grows. Put `focus` on the face or the detail the line is about; off-centre points make the picture
+     drift sideways as in the reference. `zoom` (1–1.8) sets the end zoom yourself, e.g. a quick punch-in on a
+     short last shot. For anything else: `from` → `to`, each [zoom, x, y].
+   - The title sits at 13–22% of the height for the first two seconds; captions sit at 61–67%. Keep faces
+     between them (choose `focal`/`crop` so the face is in the upper half).
 6. **Preview before pushing** (a wrong crop found after the render costs another render):
    `pip install -q pillow` if missing, then
    `python3 -m factory.preview --job lore/<N> --images /tmp/r/lore/<N>/img --out /tmp/preview.jpg` and open the
@@ -123,8 +134,8 @@ Commit `[lore #<N>] kịch bản`, push, remove `lore-busy`. (Voice ~5–10 min;
    `lore-busy`. (The render takes ~5–10 min; you are woken at `lore-check`.)
 
 ## 3. `lore-check` → done
-Open `sheet.jpg` (one tile per shot, mid-shot, with subtitles) and `voice/check.md` once more. Push a corrected
-`picks.json` only for a real fault (a cut face, the wrong subject, a blurred picture, subtitles over a face).
+Open `sheet.jpg` (one tile per shot, mid-shot, with captions) and `voice/check.md` once more. Push a corrected
+`picks.json` only for a real fault (a cut face, the wrong subject, a blurred picture, captions over a face).
 Otherwise remove `lore-check`, add `lore-done` and comment (🤖, short, Vietnamese): video link
 `https://github.com/maihaianh2911-bit/Warhammerlore-t-o-video/blob/renders/lore/<N>/video.mp4`, its length,
 links to `subtitles.srt` and `credits.md` (to paste into the video description), one line on the pictures used
