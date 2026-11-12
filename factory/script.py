@@ -24,6 +24,7 @@ class Job:
 
 MAX_NARRATION_CHARS = 10_000
 THEMES = ("orbit", "archive", "rift", "decay", "inferno")
+MOVES = ("push", "rise", "from-left", "pull", "from-right", "fall", "glide")
 
 
 def clean(value):
@@ -94,8 +95,8 @@ def load_picks(path: Path, line_count):
         zoom = shot.get("zoom")
         if zoom is not None and not (isinstance(zoom, (int, float)) and 1 <= zoom <= 1.8):
             raise ValueError(f"Cảnh {number}: zoom từ 1 đến 1.8.")
-        if shot.get("move") not in (None, "push", "rise", "glide"):
-            raise ValueError(f"Cảnh {number}: move là push, rise hoặc glide.")
+        if shot.get("move") not in (None, *MOVES):
+            raise ValueError(f"Cảnh {number}: move là một trong {', '.join(MOVES)}.")
         start = shot.get("from")
         if start is not None and not (isinstance(start, list) and len(start) == 3
                                       and 1 <= start[0] <= 1.8 and 0 <= start[1] <= 1 and 0 <= start[2] <= 1):

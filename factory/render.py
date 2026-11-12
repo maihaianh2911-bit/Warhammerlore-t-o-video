@@ -10,7 +10,7 @@ from PIL import Image
 
 from .art import ART_ROOT, atmosphere, contact_sheet, fit_picture, grade_frame, open_picture
 from .script import (
-    caption_chunks, line_times, load_job, load_picks, make_cues, opening_frames, shot_frames, write_subtitles,
+    MOVES, caption_chunks, line_times, load_job, load_picks, make_cues, opening_frames, shot_frames, write_subtitles,
 )
 from .voice import audio_duration
 
@@ -30,7 +30,6 @@ def ffmpeg(scratch, *arguments, **options):
     )
 
 
-MOVES = ("push", "rise", "glide")
 BLEND_FRAMES = 4            # a cut is softened over a few frames
 
 
@@ -43,24 +42,31 @@ def centred(zoom, focus):
 
 
 def default_move(focus, seconds, kind="push"):
-    """Start and end of a shot. Every move ends pushed in on the focus point (the subject of the picture).
+    """Two keyframes of a shot, start and end. Every move ends centred on the focus point (the subject).
 
-    push   the whole frame, then an even push-in on the subject (the move of the reference video)
-    rise   starts lower on the picture and climbs to the subject while closing in
-    glide  starts to one side and travels across to the subject while closing in
+    push        the whole frame, then a push-in on the subject (the move of the reference video)
+    pull        starts close on the subject and draws back to show it in its setting, still centred on it
+    rise, fall  starts lower / higher on the picture and travels to the subject while closing in
+    from-left, from-right   starts to that side of the subject and slides across to it while closing in
+    glide       from-left or from-right, whichever side has more picture
     """
     x, y = focus
-    end_zoom = min(max(1.0 + ZOOM_PER_SECOND * seconds, 1.14), MAX_AUTO_ZOOM)
+    drift = ZOOM_PER_SECOND * seconds
+    # an off-centre subject can only be brought to the middle of the frame from a certain zoom on
+    needed = min(1.3, max(1.16, 0.5 / max(0.05, min(x, 1 - x)), 0.5 / max(0.05, min(y, 1 - y))))
     if kind == "push":
-        return (1.0, 0.5, 0.5), centred(end_zoom, focus)
+        return (1.0, 0.5, 0.5), centred(min(max(1.0 + drift, needed), MAX_AUTO_ZOOM), focus)
+    if kind == "pull":
+        return centred(min(needed + max(drift * 1.3, 0.22), 1.8), focus), centred(needed, focus)
     travel = min(0.34, 0.05 * seconds + 0.08)       # longer shots travel further, at the same calm speed
+    if kind == "glide":
+        kind = "from-right" if x < 0.5 else "from-left"
+    origin = {
+        "rise": (x, min(1.0, y + travel)), "fall": (x, max(0.0, y - travel)),
+        "from-left": (max(0.0, x - travel), y), "from-right": (min(1.0, x + travel), y),
+    }[kind]
     start_zoom = 1.16
-    end_zoom = min(start_zoom + ZOOM_PER_SECOND * seconds, MAX_AUTO_ZOOM + 0.1)
-    if kind == "rise":
-        origin = (x, min(1.0, y + travel))
-    else:
-        origin = (x + travel if x < 0.5 else x - travel, y)
-    return centred(start_zoom, origin), centred(end_zoom, focus)
+    return centred(start_zoom, origin), centred(min(max(start_zoom + drift, needed), MAX_AUTO_ZOOM + 0.1), focus)
 
 
 def eased(progress):

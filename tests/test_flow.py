@@ -6,7 +6,7 @@ from pathlib import Path
 from factory.attachments import attachment_urls, owner_texts
 from factory.run import todo
 from factory.render import camera_view, centred, default_move, eased
-from factory.script import caption_chunks, chunk_events, line_times, load_job, load_picks, shot_frames
+from factory.script import MOVES, caption_chunks, chunk_events, line_times, load_job, load_picks, shot_frames
 
 
 def write(data):
@@ -68,11 +68,11 @@ class MotionTest(unittest.TestCase):
         from PIL import Image
         picture = Image.new("RGB", (200, 400))
         picture.putpixel((120, 160), (255, 255, 255))          # the subject: focus (0.6, 0.4)
-        for kind in ("push", "rise", "glide"):
+        for kind in MOVES:
             with self.subTest(kind):
                 start, end = default_move((0.6, 0.4), 10, kind)
                 self.assertNotEqual(start, end)
-                self.assertGreater(end[0], start[0])
+                self.assertEqual(end[0] < start[0], kind == "pull")
                 view = camera_view(picture, end, (200, 400)).convert("L")
                 brightest = max(range(200 * 400), key=view.tobytes().__getitem__)
                 self.assertLessEqual(abs(brightest % 200 - 100), 3)

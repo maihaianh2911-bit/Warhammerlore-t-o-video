@@ -122,10 +122,16 @@ Commit `[lore #<N>] kịch bản`, push, remove `lore-busy`. (Voice ~5–10 min;
    - Camera: **every shot ends pushed in on `focus`** [x, y] (0–1 inside the 9:16 frame, default [0.5, 0.4]) —
      the owner's rule (12/11): the last frame of a picture is always centred on its main character. So always
      set `focus` on that character's face (or chest for a full figure; for a picture without a character, its
-     main subject). There is no `to`. How the camera gets there is `move`, chosen in turn when left out:
-     `push` (whole frame, then an even push-in: the reference's move), `rise` (starts lower on the picture and
-     climbs to the face — good for full figures), `glide` (starts to one side and travels across — good for wide
-     scenes and for a second character in the picture). All of them close in at about 3% per second, leave
+     main subject). There is no `to`. A shot is two keyframes, as in a video editor: where it starts and the end
+     on the subject. How the camera gets there is `move`; vary it from shot to shot (left out → chosen in turn):
+     - `push`: the whole frame, then a push-in (the reference's move) — openings, portraits.
+     - `pull`: starts close on the face and draws back to show the character in its setting — reveals, a line
+       that widens the view ("…and behind him stood a legion").
+     - `rise` / `fall`: starts lower / higher on the picture and travels to the face — full figures (boots to
+       helmet), tall architecture, banners.
+     - `from-left` / `from-right`: starts to that side and slides across — wide scenes, a second character, the
+       direction a figure looks or charges. `glide` takes the side with more picture.
+     Do not use the same move twice in a row. All of them move at a calm speed (about 3% zoom per second), leave
      briskly and settle gently. `zoom` (1.05–1.8) sets the end zoom yourself, e.g. a stronger push on the last
      shot; `from` [zoom, x, y] sets your own starting view.
    - The title sits at 13–22% of the height for the first two seconds; captions sit at 61–67%. Keep faces
