@@ -15,6 +15,8 @@ from .art import (
 )
 from .script import make_cues, make_shots, opening_frames, read_script, write_subtitles
 from .voice import audio_duration, elevenlabs, preview_voice
+from .vn11 import configuration as vn11_configuration, synthesize as vn11_synthesize
+from .voice_check import align_words, load_model, transcribe
 
 
 FPS = 30
@@ -183,11 +185,22 @@ def render(args):
         scratch = Path(temporary)
         stage = scratch / "result"
         stage.mkdir()
-        if args.voice == "elevenlabs":
+        if args.voice == "vn11":
+            key, voice_id = vn11_configuration()
+            model = load_model()
+            audio = vn11_synthesize(text, args.language, scratch, key, voice_id)
+            duration = audio_duration(audio)
+            starts, ends, report = align_words(text, transcribe(model, audio, args.language), duration)
+            (stage / "voice-check.json").write_text(
+                json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8",
+            )
+            shutil.copyfile(audio, stage / "narration.mp3")
+        elif args.voice == "elevenlabs":
             audio, starts, ends = elevenlabs(text, args.language, scratch)
+            duration = audio_duration(audio)
         else:
             audio, starts, ends = preview_voice(text, args.language, scratch, args.voice)
-        duration = audio_duration(audio)
+            duration = audio_duration(audio)
         frames = math.ceil(duration * FPS)
         cues = make_cues(text, starts, ends, duration)
         def subjects(line):
@@ -245,8 +258,12 @@ def main():
     parser.add_argument("--script", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--language", choices=("vi", "en"), default="vi")
-    parser.add_argument("--voice", choices=("espeak", "elevenlabs", "flite"),
-                        default="elevenlabs" if os.environ.get("ELEVENLABS_API_KEY") else "espeak")
+    default_voice = "espeak"
+    if os.environ.get("ELEVENLABS_API_KEY"):
+        default_voice = "elevenlabs"
+    if os.environ.get("VN11_API_KEY"):
+        default_voice = "vn11"
+    parser.add_argument("--voice", choices=("vn11", "elevenlabs", "espeak", "flite"), default=default_voice)
     parser.add_argument("--size", choices=tuple(SIZES), default="full")
     args = parser.parse_args()
     if not " ".join(args.title.split()):

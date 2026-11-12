@@ -18,6 +18,7 @@ on:
       - 'examples/**'
       - 'tests/**'
       - 'requirements.txt'
+      - 'requirements-voice.txt'
 
 permissions:
   contents: read
@@ -29,7 +30,7 @@ jobs:
       (github.event.issue.user.login == github.repository_owner &&
       startsWith(github.event.issue.title, '[40K]'))
     runs-on: ubuntu-24.04
-    timeout-minutes: 40
+    timeout-minutes: 55
     permissions:
       contents: read
       issues: read
@@ -80,12 +81,27 @@ jobs:
       - name: Dựng kịch bản đã duyệt
         if: steps.intake.outputs.issue != ''
         env:
+          VN11_API_KEY: ${{ secrets.VN11_API_KEY }}
+          VN11_VOICE_ID: ${{ vars.VN11_VOICE_ID }}
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
           ELEVENLABS_VOICE_ID: ${{ vars.ELEVENLABS_VOICE_ID }}
           NARRATION_LANGUAGE: ${{ vars.NARRATION_LANGUAGE }}
         run: |
+          if [[ -n "$VN11_API_KEY" || -n "$VN11_VOICE_ID" ]]; then
+            if [[ -z "$VN11_API_KEY" || -z "$VN11_VOICE_ID" ]]; then
+              echo "::error::Cần secret VN11_API_KEY và biến VN11_VOICE_ID trong repo 40K."
+              exit 1
+            fi
+            "$RUNNER_TEMP/factory/bin/pip" install --disable-pip-version-check -r requirements-voice.txt
+            provider=vn11
+          elif [[ -n "$ELEVENLABS_API_KEY" ]]; then
+            provider=elevenlabs
+          else
+            echo "::error::Cần cấu hình VN11_API_KEY và VN11_VOICE_ID để tạo giọng cho kịch bản đã duyệt."
+            exit 1
+          fi
           "$RUNNER_TEMP/factory/bin/python" -m factory.render --title="$(cat "$RUNNER_TEMP/title.txt")" \
-            --script "$RUNNER_TEMP/script.txt" --out out --language "${NARRATION_LANGUAGE:-vi}"
+            --script "$RUNNER_TEMP/script.txt" --out out --language "${NARRATION_LANGUAGE:-vi}" --voice "$provider"
       - uses: actions/upload-artifact@v4
         id: artifact
         with:
@@ -96,7 +112,7 @@ jobs:
 
   reply:
     needs: render
-    if: needs.render.outputs.issue != ''
+    if: always() && !cancelled() && needs.render.outputs.issue != ''
     runs-on: ubuntu-24.04
     permissions:
       issues: write
@@ -106,6 +122,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           ISSUE: ${{ needs.render.outputs.issue }}
           ARTIFACT: ${{ needs.render.outputs.artifact }}
+          RESULT: ${{ needs.render.result }}
         run: |
-          gh issue comment "$ISSUE" --repo "$GITHUB_REPOSITORY" \
-            --body "🤖 Đã dựng xong. [Tải video, phụ đề và nguồn hình]($ARTIFACT)."
+          if [[ "$RESULT" == success ]]; then
+            message="🤖 Đã dựng xong. [Tải video, phụ đề và nguồn hình]($ARTIFACT)."
+          else
+            message="🤖 Lượt dựng dừng giữa chừng. [Xem bước gặp lỗi]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)."
+          fi
+          gh issue comment "$ISSUE" --repo "$GITHUB_REPOSITORY" --body "$message"
