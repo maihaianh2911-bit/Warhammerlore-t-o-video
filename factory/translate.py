@@ -29,12 +29,16 @@ TRANSLATION_PROMPT = (
     "Copy every token of the form [NAME0] exactly, including brackets, wherever it occurs. "
     "Keep any other proper names unchanged. "
     "Preserve questions, narrative perspective, and the sequence of ideas. "
-    "Use natural concise German suitable for a continuous voiceover. "
+    "Use grammatical, natural, concise spoken German. "
+    "Use these German Warhammer terms when corresponding Vietnamese phrases occur: "
+    "cá mập không gian = Weltraumhaie, mầm gen = Gensaat, "
+    "thập tự chinh đền tội = Bußkreuzzug, quân đoàn = Legion, Chiến tranh Badab = Badab-Krieg. "
     "Do not expand, repeat, summarize, add lore, add explanations, or append a closing line."
 )
 PROPER_NAMES = re.compile(
-    r"\b(?:Roboute Guilliman|Horus Lupercal|Guilliman|Slaanesh|Tzeentch|Nurgle|Khorne|"
-    r"Ultramarines|Macragge|Ultramar|Terra|Cicatrix Maledictum)\b",
+    r"\b(?:Roboute Guilliman|Horus Lupercal|Tyberos the Red Wake|Guilliman|Slaanesh|Tzeentch|Nurgle|Khorne|"
+    r"Ultramarines|Macragge|Ultramar|Terra|Cicatrix Maledictum|Carcharodons|Tyberos|"
+    r"Mantis Warriors|Lamenters|Night Lords|Raven Guard|Tranquility)\b",
     re.IGNORECASE,
 )
 
@@ -124,7 +128,25 @@ def request_translations(base_url, blocks):
     return translations
 
 
-def translate_blocks(blocks):
+def translate_group(base_url, protected):
+    if not protected:
+        return []
+    translations = request_translations(base_url, [block for block, _ in protected])
+    if len(translations) != len(protected):
+        raise RuntimeError("Mô hình dịch trả thiếu lời thoại.")
+    output = []
+    for translation, (block, names) in zip(translations, protected):
+        try:
+            output.append(restore_names(translation, names))
+        except ValueError:
+            retried = request_translations(base_url, [block])
+            if len(retried) != 1:
+                raise ValueError("Mô hình dịch trả thiếu câu chứa tên riêng.") from None
+            output.append(restore_names(retried[0], names))
+    return output
+
+
+def translate_blocks(blocks, separate_title=False):
     from huggingface_hub import hf_hub_download
 
     executable = shutil.which("llama-server")
@@ -145,19 +167,10 @@ def translate_blocks(blocks):
         try:
             wait_for_model(server, base_url)
             protected = [protect_names(block) for block in blocks]
-            translations = request_translations(base_url, [block for block, _ in protected])
-            if len(translations) != len(protected):
-                raise RuntimeError("Mô hình dịch trả thiếu lời thoại.")
-            output = []
-            for translation, (block, names) in zip(translations, protected):
-                try:
-                    output.append(restore_names(translation, names))
-                except ValueError:
-                    retried = request_translations(base_url, [block])
-                    if len(retried) != 1:
-                        raise ValueError("Mô hình dịch trả thiếu câu chứa tên riêng.") from None
-                    output.append(restore_names(retried[0], names))
-            return output
+            if separate_title:
+                title = translate_group(base_url, protected[:1])
+                return title + translate_group(base_url, protected[1:])
+            return translate_group(base_url, protected)
         except RuntimeError:
             if server.poll() is not None:
                 log.seek(0, 2)
@@ -174,6 +187,14 @@ def translate_blocks(blocks):
                     server.wait()
 
 
+def remove_added_title(original_title, original_script, title, script):
+    if original_script.rstrip(".!?… ").casefold().endswith(original_title.rstrip(".!?… ").casefold()):
+        return script
+    clean_title = re.escape(title.rstrip(".!?… ").strip())
+    trailer = rf"(?<=[.!?…])\s+{clean_title}[.!?…]?\s*$"
+    return re.sub(trailer, "", script, flags=re.IGNORECASE)
+
+
 def prepare(title, script, target, source="auto"):
     if target != "de":
         return title, script
@@ -184,14 +205,16 @@ def prepare(title, script, target, source="auto"):
     blocks = ([title] if title_needs_translation else []) + [block for p in paragraphs for block in p]
     if not blocks:
         return title, script
-    translations = translate_blocks(blocks)
+    translations = translate_blocks(blocks, separate_title=title_needs_translation)
     if len(translations) != len(blocks) or any(not part.strip() for part in translations):
         raise ValueError("Mô hình dịch trả thiếu tiêu đề hoặc lời thoại.")
     translated = iter(translations)
+    original_title = title
     if title_needs_translation:
         title = " ".join(next(translated).split())
     if paragraphs:
-        script = "\n\n".join(" ".join(next(translated) for _ in p) for p in paragraphs)
+        german = "\n\n".join(" ".join(next(translated) for _ in p) for p in paragraphs)
+        script = remove_added_title(original_title, script, title, german)
         if len(script) > MAX_NARRATION_CHARS:
             raise ValueError("Lời đọc tiếng Đức vượt quá 10.000 ký tự.")
         if language_of(script) == "vi":
