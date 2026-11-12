@@ -1,0 +1,24 @@
+# Nguồn hình
+
+- Carcharodons — Zhang Bozi, 40K Gallery https://40k.gallery/carcharodons-2/
+- Tyberos "The Red Wake" — galgannet, ArtStation
+- carcharodon 4, 40K Gallery https://40k.gallery/carcharodon-4/
+- raven guard — zhanghan, ArtStation
+- Sevatar, VIIIth Legion Night Lords — diegogisbert, ArtStation
+- war for badab, 40K Gallery https://40k.gallery/war-for-badab/
+- Carcharodons-Outer Dark — diegogisbert, ArtStation
+- Ambush — Makura Tomoana, 40K Gallery https://40k.gallery/ambush-10/
+- The Red Wake — Mykyta Vasilchuk, 40K Gallery https://40k.gallery/the-red-wake-3/
+- Purge — Zhang Bozi, 40K Gallery https://40k.gallery/purge-3/
+- Badab War — Zhang Bozi, 40K Gallery https://40k.gallery/badab-war/
+- lamenters 9, 40K Gallery https://40k.gallery/lamenters-9/
+- Tyberos The Red Wake - Warhammer 40k — facundomileo, ArtStation
+- A Surprise Attack — Zhi Chen, 40K Gallery https://40k.gallery/a-surprise-attack/
+- Tyberos the Red Wake. — onearmedwolf, ArtStation
+- Tyberos — Christopher Regalario, 40K Gallery https://40k.gallery/tyberos-4/
+- Carcharadons Red Tithe — Diego Gisbert Llorens, 40K Gallery https://40k.gallery/black-library-carcharadons-red-tithe/
+- mantis warriors 2, 40K Gallery https://40k.gallery/mantis-warriors-2/
+- Space Marines — Zhang Bozi, 40K Gallery https://40k.gallery/space-marines-15/
+- mantis warriors chapter, 40K Gallery https://40k.gallery/mantis-warriors-chapter/
+- The Red Wake — niellustrate06, ArtStation
+- Void Stares — niellustrate06, ArtStation
