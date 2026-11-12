@@ -1,168 +1,196 @@
 1
-00:00:00,000 --> 00:00:02,500
+00:00:00,000 --> 00:00:02,260
 Stell dir einen
-Space-Marine-Orden vor, so
+Space-Marine-Orden vor,
 
 2
-00:00:02,500 --> 00:00:05,620
-furchterregend, dass selbst
-seine Verbündeten ihn
+00:00:02,400 --> 00:00:03,660
+so furchterregend,
 
 3
-00:00:05,620 --> 00:00:09,140
-fürchten. Das sind die
-Carcharodons, auch bekannt als
+00:00:03,900 --> 00:00:06,180
+dass selbst seine Verbündeten
+ihn fürchten.
 
 4
-00:00:09,140 --> 00:00:12,580
-die Weltraumhaie. Verriegelt
-die Vakuumschleusen.
+00:00:06,540 --> 00:00:08,160
+Das sind die Carcharodons,
 
 5
-00:00:13,240 --> 00:00:15,920
-Die Carcharodons sind einer
-der geheimnisvollsten
+00:00:08,400 --> 00:00:10,240
+auch bekannt als die
+Weltraumhaie.
 
 6
-00:00:15,920 --> 00:00:19,440
-Orden. Manche glauben sogar,
-dass sie von der Raven
+00:00:10,540 --> 00:00:12,580
+Verriegelt die
+Vakuumschleusen.
 
 7
-00:00:19,440 --> 00:00:22,400
-Guard abstammen, vielleicht
-auch von den Night Lords,
+00:00:13,240 --> 00:00:14,920
+Die Carcharodons sind einer
 
 8
-00:00:22,880 --> 00:00:24,340
-doch niemand weiß es
-wirklich.
+00:00:14,920 --> 00:00:16,460
+der geheimnisvollsten Orden.
 
 9
+00:00:17,120 --> 00:00:19,160
+Manche glauben sogar, dass
+sie von der
+
+10
+00:00:19,160 --> 00:00:21,700
+Raven Guard abstammen,
+vielleicht auch von den
+
+11
+00:00:21,700 --> 00:00:24,340
+Night Lords, doch niemand
+weiß es wirklich.
+
+12
 00:00:24,960 --> 00:00:27,880
 Im Badab-Krieg tauchten die
 Carcharodons aus dem
 
-10
-00:00:27,880 --> 00:00:31,200
-Nichts auf und stiegen aus
-den Tiefen des Alls empor,
-
-11
-00:00:31,420 --> 00:00:33,420
-um sich den loyalistischen
-Streitkräften
-
-12
-00:00:33,420 --> 00:00:36,500
-anzuschließen. Niemand hatte
-mit ihnen gerechnet,
-
 13
+00:00:27,880 --> 00:00:30,260
+Nichts auf und stiegen aus
+den Tiefen
+
+14
+00:00:30,260 --> 00:00:32,640
+des Alls empor, um sich den
+loyalistischen
+
+15
+00:00:32,640 --> 00:00:34,300
+Streitkräften anzuschließen.
+
+16
+00:00:34,780 --> 00:00:36,500
+Niemand hatte mit ihnen
+gerechnet,
+
+17
 00:00:37,300 --> 00:00:38,680
 niemand hatte sie gerufen.
 
-14
+18
 00:00:39,180 --> 00:00:41,340
 Doch als sie erschienen,
 änderte sich alles.
 
-15
-00:00:42,220 --> 00:00:45,080
-Der Badab-Krieg war einer der
-grausamsten Bürgerkriege
-
-16
-00:00:45,080 --> 00:00:48,240
-in der Geschichte des
-Imperiums, und die Carcharodons
-
-17
-00:00:48,240 --> 00:00:51,320
-wurden entsandt, um die
-Sezessionisten zu zermalmen,
-
-18
-00:00:51,320 --> 00:00:54,040
-darunter Orden wie die Mantis
-Warriors und die
-
 19
-00:00:54,040 --> 00:00:57,460
-Lamenters. Ihre Taktik:
-vollkommen gnadenlos.
+00:00:42,220 --> 00:00:44,300
+Der Badab-Krieg war einer der
+grausamsten
 
 20
+00:00:44,300 --> 00:00:46,780
+Bürgerkriege in der
+Geschichte des Imperiums,
+
+21
+00:00:46,780 --> 00:00:49,300
+und die Carcharodons wurden
+entsandt,
+
+22
+00:00:49,600 --> 00:00:51,320
+um die Sezessionisten zu
+zermalmen,
+
+23
+00:00:51,320 --> 00:00:52,700
+darunter Orden wie die
+
+24
+00:00:52,700 --> 00:00:54,760
+Mantis Warriors und die
+Lamenters.
+
+25
+00:00:55,100 --> 00:00:57,460
+Ihre Taktik: vollkommen
+gnadenlos.
+
+26
 00:00:57,920 --> 00:01:00,460
 Sie gewannen nicht nur
 Schlachten, sie vernichteten
 
-21
+27
 00:01:00,460 --> 00:01:03,860
 ganze Streitmächte und
 löschten jeden Widerstand aus.
 
-22
+28
 00:01:04,360 --> 00:01:07,840
 Angeführt von ihrem gefürchteten
 Anführer Tyberos the
 
-23
-00:01:07,840 --> 00:01:11,840
+29
+00:01:07,840 --> 00:01:11,260
 Red Wake, schlachteten die
-Carcharodons ohne Gnade und
+Carcharodons ohne Gnade
 
-24
-00:01:11,840 --> 00:01:15,160
-ernteten sogar die Gensaat
-gefallener Feinde, um ihre
+30
+00:01:11,260 --> 00:01:14,620
+und ernteten sogar die
+Gensaat gefallener Feinde,
 
-25
-00:01:15,160 --> 00:01:16,820
-eigenen Reihen wieder
+31
+00:01:14,780 --> 00:01:16,820
+um ihre eigenen Reihen wieder
 aufzubauen.
 
-26
+32
 00:01:16,820 --> 00:01:19,920
 In einem der berüchtigtsten
 Momente des Krieges
 
-27
+33
 00:01:19,920 --> 00:01:23,360
 griffen die Carcharodons das
 Tranquility-System an,
 
-28
+34
 00:01:23,560 --> 00:01:25,260
 die Heimat der Mantis
 Warriors.
 
-29
+35
 00:01:25,860 --> 00:01:28,700
 Ihr Angriff war so barbarisch,
 dass er diesen Orden
 
-30
+36
 00:01:28,700 --> 00:01:31,700
 beinahe vollständig
 auslöschte und ihn zu einem
 
-31
+37
 00:01:31,700 --> 00:01:35,460
 Bußkreuzzug zwang, der ein
 ganzes Jahrhundert dauerte.
 
-32
-00:01:35,700 --> 00:01:38,740
+38
+00:01:35,700 --> 00:01:37,120
 Als der Krieg endete,
+
+39
+00:01:37,400 --> 00:01:39,180
 verweilten die Carcharodons
+nicht.
 
-33
-00:01:38,740 --> 00:01:41,700
-nicht. Sie verschwanden
-wieder im Nichts und
+40
+00:01:39,580 --> 00:01:41,700
+Sie verschwanden wieder im
+Nichts und
 
-34
+41
 00:01:41,700 --> 00:01:44,400
 hinterließen nichts als Angst
 und Geflüster.
