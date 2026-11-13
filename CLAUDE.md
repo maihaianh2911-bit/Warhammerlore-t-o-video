@@ -14,6 +14,11 @@ starts only when GitHub calls it, which needs the secrets `CLAUDE_TASK_URL` and 
 button "Gọi Claude ngay" or a chat.
 An issue opened before the workflow existed (or reopened) gets no labels by itself: add `lore` and `lore-plan`.
 
+## When you were started by GitHub (a Claude task, nobody in the chat)
+The prompt may be as short as "Làm việc đang chờ trong repo này" ("do the work waiting in this repo"), and GitHub
+adds a line such as "Phiếu 40K số 1: giọng và ảnh đã sẵn sàng, chờ chọn hình". Then: follow `AGENT.md` from §0 (its first check lists the `lore-*` issues waiting for you). Nobody answers questions, so do not ask; comments go on the issues
+(🤖, Vietnamese).
+
 ## When the owner pastes a script in a chat
 1. Create one issue in this repo: title `[40K] <tên video>`, body = the script exactly as pasted under
    `### Kịch bản (bắt buộc)`. No labels: the workflow adds them.
