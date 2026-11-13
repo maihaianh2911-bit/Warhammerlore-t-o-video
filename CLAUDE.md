@@ -7,7 +7,8 @@ This repo makes one thing: vertical Warhammer 40K lore shorts in German — the 
 chosen for each idea, subtitles timed to the voice. One issue `[40K] …` = one video; the machine steps run on
 GitHub Actions (`lore.yml` → `factory/run.py`), Claude's steps are in `AGENT.md`. Unattended, those steps are done
 by the owner's Claude task "japan-video-factory", which also checks `lore-*` issues of this repo (see
-`maihaianh2911-bit/japan-video-factory` → `AGENT_NIGHTLY.md`). There is no hourly run (owner, 13/11/2026): the task
+`maihaianh2911-bit/japan-video-factory` → `AGENT_NIGHTLY.md`), or by this repo's own task when each repo has its
+own Claude seat (its prompt: "Làm theo AGENT.md của repo maihaianh2911-bit/Warhammerlore-t-o-video."). There is no hourly run (owner, 13/11/2026): the task
 starts only when GitHub calls it, which needs the secrets `CLAUDE_TASK_URL` and `CLAUDE_TASK_TOKEN` in this repo
 (the same values as in japan-video-factory). Without them, or when a call is missed, the issue waits for the
 button "Gọi Claude ngay" or a chat.
