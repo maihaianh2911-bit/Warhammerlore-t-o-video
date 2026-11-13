@@ -1,7 +1,7 @@
 name: Gọi Claude ngay
 
-# Manual button: starts the Claude routine now instead of waiting for its hourly run (for example after the usage
-# limit was reset). Its log also shows whether the secrets CLAUDE_TASK_URL / CLAUDE_TASK_TOKEN work.
+# Manual button: starts the Claude task now. There is no hourly run, so press it when a step waits for Claude
+# (for example after the usage limit was reset, or after the secrets were added). Its log also shows whether the secrets CLAUDE_TASK_URL / CLAUDE_TASK_TOKEN work.
 on: workflow_dispatch
 
 permissions:

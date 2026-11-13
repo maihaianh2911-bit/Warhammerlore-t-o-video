@@ -13,7 +13,8 @@ pictures) → `lore-pick` → you write `lore/<N>/picks.json` → `lore-render` 
 the shot sheet → `lore-done`. `lore-fix`: the owner commented. `lore-failed`: a machine step failed.
 
 ## 0. Every run
-You may run unattended (started by GitHub through the routine's API trigger, or on a schedule). Nobody answers
+You may run unattended, started by GitHub through the Claude task's API trigger (after each machine step, an owner
+comment, a failure, or the button "Gọi Claude ngay"); there is no hourly run (owner, 13/11/2026). Nobody answers
 questions then. **First action, before anything else** (one API call, no clone):
 ```bash
 R=maihaianh2911-bit/Warhammerlore-t-o-video
