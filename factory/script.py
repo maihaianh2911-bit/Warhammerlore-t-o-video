@@ -22,7 +22,9 @@ class Job:
     voice: str
 
 
-MAX_NARRATION_CHARS = 10_000
+# the voice may last at most 600 s (voice.py); ww40k reads ~15.6 characters a second, so ~9,400 characters
+# would already fail, after the paid reading. 8,500 leaves a margin for slower passages and pauses.
+MAX_NARRATION_CHARS = 8_500
 THEMES = ("orbit", "archive", "rift", "decay", "inferno")
 MOVES = ("push", "rise", "from-left", "pull", "from-right", "fall", "glide")
 
@@ -54,7 +56,9 @@ def load_job(path: Path) -> Job:
             spans.append((len(text), len(text) + len(line)))
             text += line
     if len(text) > MAX_NARRATION_CHARS:
-        raise ValueError(f"Lời đọc dài {len(text):,} ký tự, vượt giới hạn {MAX_NARRATION_CHARS:,}.")
+        length, limit = (f"{value:,}".replace(",", ".") for value in (len(text), MAX_NARRATION_CHARS))
+        raise ValueError(f"Lời đọc dài {length} ký tự, vượt giới hạn {limit} ký tự: giọng đọc tối đa 10 phút "
+                         "(khoảng 15 ký tự mỗi giây), dài hơn sẽ hỏng sau khi đã trả tiền đọc.")
     queries = data.get("queries") or []
     if not isinstance(queries, list) or any(not clean(query) for query in queries):
         raise ValueError("queries trong script.json là danh sách từ khóa tìm ảnh.")
@@ -147,16 +151,37 @@ def shot_frames(shots, times, duration_frames, fps):
 
 
 CUE_CHARS = 54          # two subtitle lines of ~29 characters
+CLOSING = r"""["'”’»«“‘)]*"""       # closing quotes, German ones too (»…«, „…“)
+# a word ending in "." that does not end a sentence: abbreviations (z. B., Dr., St., Nr., bzw., ca.); "usw." and
+# "etc." usually close a sentence and are not listed
+ABBREVIATIONS = {"bzw", "ca", "dr", "st", "nr", "vgl", "bd", "jh", "jhd", "jhdt", "mio", "mrd", "evtl", "ggf",
+                 "inkl", "sog", "prof", "hl", "abb", "ggü", "mr", "mrs", "ms", "vs", "zb"}
 
 
-def caption_spans(text: str):
+def sentence_end(word):
+    """True when a word closes a sentence. An ordinal ("41. Jahrtausend", "3. Kompanie"), an initial ("z.", "B.",
+    "M. Bauza", "d.h.") or a known abbreviation does not."""
+    match = re.fullmatch(rf"(.*?)([.!?。！？]+){CLOSING}", word, re.S)
+    if not match:
+        return False
+    stem, marks = match.groups()
+    if marks != ".":
+        return True
+    stem = stem.lstrip("\"'„“‚‘«»(")
+    return not (re.fullmatch(r"\d+", stem) or re.fullmatch(r"(?:\w\.)*\w", stem)
+                or stem.lower() in ABBREVIATIONS)
+
+
+def caption_spans(text: str, breaks=()):
     """Subtitle cues for the .srt: one sentence each; a long sentence is split into even parts, at a comma when
-    one is near, never between two capitalised words (Raven Guard, Mantis Warriors, Red Wake)."""
+    one is near, never between two capitalised words (Raven Guard, Mantis Warriors, Red Wake). `breaks`: end
+    positions of the script's lines, which always close a cue."""
+    breaks = set(breaks)
     words = list(re.finditer(r"\S+", text))
     first = 0
     for i, word in enumerate(words):
         last = i == len(words) - 1
-        at_sentence = bool(re.search(r"""[.!?。！？]["'”’»)]*$""", word.group()))
+        at_sentence = sentence_end(word.group()) or word.end() in breaks
         at_paragraph = not last and "\n" in text[word.end():words[i + 1].start()]
         if last or at_sentence or at_paragraph:
             yield from split_sentence(words[first:i + 1])
@@ -181,6 +206,8 @@ def split_sentence(words):
             elif words[i].group()[:1].isupper() and (words[i + 1].group()[:1].isupper()
                                                       or words[i + 1].group() in ("the", "of")):
                 cost += 25                                # Tyberos the Red Wake
+            elif re.search(rf"\.{CLOSING}$", words[i].group()):
+                cost += 25                                # 41. Jahrtausend, z. B. (not a sentence end here)
             if len(words) - i - 1 == 1:                   # no single word left alone
                 cost += 20
             if best_cost is None or cost < best_cost:
@@ -189,10 +216,10 @@ def split_sentence(words):
         words = words[best + 1:]
 
 
-def make_cues(text, starts, ends, duration):
+def make_cues(text, starts, ends, duration, breaks=()):
     if len(starts) != len(text) or len(ends) != len(text):
         raise ValueError("Dấu thời gian không khớp với lời đọc.")
-    spans = list(caption_spans(text))
+    spans = list(caption_spans(text, breaks))
     cues = []
     for i, (first, last) in enumerate(spans):
         start = max(starts[first], 0)
@@ -244,8 +271,10 @@ GOLD = "&H3FD2FF&"      # ASS colours are BGR
 WHITE = "&HFFFFFF&"
 
 
-def caption_chunks(text, starts, ends, duration):
-    """Short groups of words (as the voice says them): [[(word, start, end), ...], ...], broken at punctuation."""
+def caption_chunks(text, starts, ends, duration, breaks=()):
+    """Short groups of words (as the voice says them): [[(word, start, end), ...], ...], broken at punctuation
+    (not after an ordinal or abbreviation, as in the .srt) and at the end of every script line (`breaks`)."""
+    breaks = set(breaks)
     chunks = [[]]
     words = list(re.finditer(r"\S+", text))
     for index, word in enumerate(words):
@@ -257,7 +286,8 @@ def caption_chunks(text, starts, ends, duration):
             chunks.append(chunk := [])
         chunk.append((word.group(), start, end))
         following = text[word.end():words[index + 1].start()] if index + 1 < len(words) else ""
-        if re.search(r"""[.!?…,;:–—]["'”’»)]*$""", word.group()) or "\n" in following:
+        if (re.search(rf"[!?…,;:–—]{CLOSING}$", word.group()) or sentence_end(word.group())
+                or word.end() in breaks or "\n" in following):
             chunks.append([])
     return [chunk for chunk in chunks if chunk]
 

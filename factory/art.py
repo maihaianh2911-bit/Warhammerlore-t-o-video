@@ -2,10 +2,11 @@ import math
 import random
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageOps
+from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont, ImageOps
 
 
 ART_ROOT = Path(__file__).resolve().parent.parent / "art"
+LABEL_FONT = Path(__file__).resolve().parent.parent / "fonts" / "Montserrat-ExtraBold.ttf"
 MAX_IMAGE_BYTES = 16 * 1024 * 1024
 
 PALETTES = {
@@ -37,9 +38,22 @@ def contact_sheet(tiles, path, columns=4):
     draw = ImageDraw.Draw(sheet)
     for index, (image, label) in enumerate(tiles):
         left, top = (index % columns) * cell_w, (index // columns) * cell_h
-        draw.text((left + 6, top + 8), label, fill=(255, 210, 90))
+        draw.text((left + 6, top + 6), label, fill=(255, 210, 90), font=label_font(draw, label, cell_w - 12))
         sheet.paste(image, (left + 6, top + 26))
     sheet.save(path, quality=85)
+
+
+def label_font(draw, label, width):
+    """The repo's Montserrat (Pillow's built-in bitmap font drops the spaces: "1 L1 3sorbitstart"), as large as
+    fits the tile."""
+    try:
+        for size in range(15, 8, -1):
+            font = ImageFont.truetype(str(LABEL_FONT), size)
+            if draw.textlength(label, font=font) <= width:
+                break
+        return font
+    except OSError:
+        return ImageFont.load_default()
 
 
 def grade_frame(image):

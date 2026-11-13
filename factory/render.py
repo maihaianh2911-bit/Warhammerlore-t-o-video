@@ -262,10 +262,11 @@ def render(job_dir, voice_dir, images_dir, out, size_name="full"):
         duration = audio_duration(audio)
         frames = math.ceil(duration * FPS)
         starts, ends = timing["starts"], timing["ends"]
-        cues = make_cues(job.text, starts, ends, duration)
+        breaks = [last for _, last in job.spans]      # every script line closes a caption
+        cues = make_cues(job.text, starts, ends, duration, breaks)
         times = line_times(job.spans, starts, ends)
         ranges = shot_frames(shots, times, frames, FPS)
-        write_subtitles(cues, caption_chunks(job.text, starts, ends, duration), duration,
+        write_subtitles(cues, caption_chunks(job.text, starts, ends, duration, breaks), duration,
                         stage / "subtitles.srt", scratch / "subtitles.ass",
                         job.title, opening_frames(frames, FPS) / FPS)
         pictures = load_images(images, job_dir, images_dir)

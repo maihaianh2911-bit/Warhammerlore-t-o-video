@@ -2,8 +2,9 @@ name: Video 40K
 
 # One issue "[40K] …" = one vertical lore short. The owner opens the issue → Claude writes lore/<N>/script.json
 # (German narration) → this workflow reads the voice (VN11, one take), times it with Whisper and collects pictures
-# (Warhammer 40k Wiki, Wikimedia Commons, issue attachments) → Claude chooses the pictures (lore/<N>/picks.json) → this workflow
-# renders → Claude checks every shot → done. An owner comment → Claude fixes. Claude's side: AGENT.md.
+# (40K Gallery catalogue, ArtStation, Warhammer 40k Wiki, Wikimedia Commons, issue attachments) → Claude chooses
+# the pictures (lore/<N>/picks.json) → this workflow renders → Claude checks every shot → done. An owner comment →
+# Claude fixes. Claude's side: AGENT.md.
 # Files: renders branch, folder lore/<N>/.
 on:
   issues:

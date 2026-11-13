@@ -6,7 +6,8 @@ from pathlib import Path
 from factory.attachments import attachment_urls, owner_texts
 from factory.run import todo
 from factory.render import along, camera_view, centred, default_move, eased
-from factory.script import MOVES, caption_chunks, chunk_events, line_times, load_job, load_picks, shot_frames
+from factory.script import (MAX_NARRATION_CHARS, MOVES, caption_chunks, caption_spans, chunk_events, line_times, load_job,
+                            load_picks, make_cues, sentence_end, shot_frames)
 
 
 def write(data):
@@ -27,7 +28,10 @@ class JobTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Câu số 2"):
             load_job(write({"title": "T", "paragraphs": [["Eins.", " "]]}))
         with self.assertRaisesRegex(ValueError, "vượt giới hạn"):
-            load_job(write({"title": "T", "paragraphs": [["a" * 10_001]]}))
+            load_job(write({"title": "T", "paragraphs": [["a" * (MAX_NARRATION_CHARS + 1)]]}))
+        # the voice may last 600 s and ww40k reads ~15.6 characters a second: a longer script must fail before the
+        # paid reading, not after it
+        self.assertLessEqual(MAX_NARRATION_CHARS, 600 * 15)
 
 
 class PicksTest(unittest.TestCase):
@@ -123,11 +127,90 @@ class CaptionTest(unittest.TestCase):
         self.assertIn("Krieg.", events[4][2])
 
 
+    def test_ordinals_and_abbreviations_do_not_end_a_sentence(self):
+        for word in ("41.", "3.", "z.", "B.", "d.h.", "Dr.", "St.", "Nr.", "bzw.", "ca.", "„41."):
+            with self.subTest(word):
+                self.assertFalse(sentence_end(word))
+        for word in ("Krieg.", "usw.", "etc.", "ruft!", "wer?", "Ende.«", "Tor…?", "Krieg...", "Sanguinius.\""):
+            with self.subTest(word):
+                self.assertTrue(sentence_end(word))
+        self.assertFalse(sentence_end("Krieg,"))
+
+    def test_srt_keeps_ordinals_with_their_noun(self):
+        text = "Im 41. Jahrtausend gibt es nur Krieg. Dr. Vox kam z. B. am 3. Mai. Das war usw. Dann Ende."
+        cues = [text[a:b] for a, b in caption_spans(text)]
+        self.assertEqual(cues, ["Im 41. Jahrtausend gibt es nur Krieg.", "Dr. Vox kam z. B. am 3. Mai.",
+                                "Das war usw.", "Dann Ende."])
+
+    def test_a_script_line_always_closes_a_caption(self):
+        text = "Es geschah im Jahr 999. Dann kam der Sturm."
+        self.assertEqual([text[a:b] for a, b in caption_spans(text)], [text])
+        self.assertEqual([text[a:b] for a, b in caption_spans(text, [23])],
+                         ["Es geschah im Jahr 999.", "Dann kam der Sturm."])
+        starts = [index * 0.1 for index in range(len(text))]
+        ends = [value + 0.1 for value in starts]
+        cues = make_cues(text, starts, ends, len(text) * 0.1, [23, len(text)])
+        self.assertEqual([cue.text for cue in cues], ["Es geschah im Jahr 999.", "Dann kam der Sturm."])
+        chunks = caption_chunks(text, starts, ends, len(text) * 0.1, [23, len(text)])
+        self.assertEqual(chunks[1][-1][0], "999.")
+
+    def test_a_long_sentence_is_not_cut_after_an_ordinal(self):
+        text = "Im 41. Jahrtausend kämpfen die Weltraumhaie der Carcharodons in den Tiefen des Alls gegen alle Feinde."
+        for first, last in caption_spans(text):
+            self.assertFalse(text[first:last].endswith("41."), text[first:last])
+
+    def test_burned_in_captions_keep_a_short_ordinal_with_its_noun(self):
+        text = "Am 3. Mai fiel Cadia."
+        starts = [index * 0.1 for index in range(len(text))]
+        ends = [value + 0.1 for value in starts]
+        chunks = caption_chunks(text, starts, ends, len(text) * 0.1)
+        self.assertEqual([" ".join(word for word, _, _ in chunk) for chunk in chunks], ["Am 3. Mai", "fiel Cadia."])
+
+
 class RunTest(unittest.TestCase):
     def test_changed_files_choose_the_steps(self):
         files = ["lore/7/picks.json", "lore/7/script.json", "lore/8/search-2.json", "lore/8/own/a.jpg",
                  "lore/9/notes.txt", "factory/run.py"]
         self.assertEqual(todo(files), ["7 prepare render", "8 search render"])
+
+    def test_claude_is_woken_once_the_pictures_are_there(self):
+        from unittest import mock
+        import factory.run as run_module
+
+        class FakeRun:
+            def __init__(self, number):
+                self.calls, self.job, self.work = [], Path(tempfile.mkdtemp()), Path(tempfile.mkdtemp())
+                runs.append(self)
+
+            def fetch_renders(self):
+                pass
+
+            def prepare(self):
+                self.calls.append("prepare")
+                return {"lines": [1], "duration": 3, "review": []}, 0, True
+
+            def search(self):
+                self.calls.append("search")
+
+            def labels(self, add=(), remove=()):
+                self.calls.append(("labels", tuple(add)))
+
+            def comment(self, body):
+                self.calls.append("comment")
+
+            def wake(self, why):
+                self.calls.append(("wake", why))
+
+        for steps, wanted in ((["search"], "đã tìm thêm hình"), (["prepare", "search"], "giọng và ảnh"),
+                              (["prepare"], "giọng và ảnh")):
+            runs = []
+            with self.subTest(steps), mock.patch.object(run_module, "Run", FakeRun), \
+                    mock.patch("sys.argv", ["run", "7", *steps]):
+                run_module.main()
+                wakes = [call for call in runs[0].calls if call[0] == "wake"]
+                self.assertEqual(len(wakes), 1, runs[0].calls)
+                self.assertIn(wanted, wakes[0][1])
+                self.assertEqual(runs[0].calls[-1][0], "wake")      # only after every picture round is published
 
     def test_only_the_owners_attachments_are_collected(self):
         url = "https://github.com/user-attachments/assets/0f8fad5b-d9cb-469f-a165-70867728950e"

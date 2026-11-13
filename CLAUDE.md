@@ -22,7 +22,8 @@ adds a line such as "Phiếu 40K số 1: giọng và ảnh đã sẵn sàng, ch�
 ## When the owner pastes a script in a chat
 1. Create one issue in this repo: title `[40K] <tên video>`, body = the script exactly as pasted under
    `### Kịch bản (bắt buộc)`. No labels: the workflow adds them.
-2. Do Claude's steps of `AGENT.md` for that issue right away (claim with `lore-busy` as written there).
+2. Add `lore-busy` to the issue right away, then do Claude's steps of `AGENT.md` for it (claim as written there,
+   "In a chat").
 3. Give the owner the links to the video, the subtitles and the picture credits.
 
 ## Changing the pipeline

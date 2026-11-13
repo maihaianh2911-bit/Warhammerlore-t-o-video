@@ -34,6 +34,13 @@ gh api "repos/$R/issues?state=open&labels=lore&per_page=50" --jq '[.[] | select(
   never force-push. A failure that needs a workflow change: say so in a 🤖 comment and leave `lore-failed`.
 - **Claim** one issue at a time: skip it when `lore-busy` was added less than 2 hours ago (issue events); else add
   `lore-busy`, do **one step**, remove `lore-busy`. Do not push `picks.json` while the issue is `lore-voice`.
+- **In a chat** (the owner pasted a script, see `CLAUDE.md`): opening the issue, and every machine step after it,
+  wakes the Claude task, which would take the same step as you. So add `lore-busy` right after creating the issue,
+  before anything else, and keep it while you wait for the machine. Each time you pick up the next step, claim it
+  again (remove `lore-busy`, then add it, so the 2 hours count from now; adding a label the issue already has does
+  not count). Remove `lore-busy` when you stop: after the closing comment, or when the owner does not want to wait —
+  then stop right after one of your pushes, so that the machine's next call finds the issue free. If you stop while
+  the issue waits for Claude (`lore-plan`, `lore-pick`, `lore-check`), tell the owner to press "Gọi Claude ngay".
 - Files of an issue: `mkdir -p /tmp/r && git fetch -q --depth 1 origin +refs/heads/renders:refs/remotes/origin/renders
   && git archive origin/renders lore/<N> | tar -x -C /tmp/r`.
 
@@ -64,7 +71,9 @@ Read the issue form (Kịch bản, Hình riêng, Ghi chú) and the owner's comme
  "queries": ["deep space nebula", "gothic cathedral interior painting", "shark jaws"]}
 ```
 - `paragraphs` → lines: one spoken sentence each, numbered 1, 2, 3… across paragraphs (picks refer to these
-  numbers). Keep the owner's paragraph breaks: the voice pauses there. At most 10,000 characters in total.
+  numbers). Keep the owner's paragraph breaks: the voice pauses there. At most 8,500 characters in total: the
+  voice may last 10 minutes and `ww40k` reads ~15.6 characters a second; the machine refuses a longer script
+  before the paid reading. A longer script: tell the owner in a 🤖 comment and suggest two videos; never cut it.
 - Vietnamese script → idiomatic spoken German, one German sentence per source sentence, every assertion,
   number, name, place and faction preserved, nothing added (no closing line, no explanations). German script →
   the owner's words exactly, only split into lines.
@@ -201,6 +210,19 @@ and which beats still use a generated background, "bình luận nếu muốn s�
 - `lore-fix`: the request = owner comments after your last `🤖` comment. Wording → `script.json`; pictures →
   `picks.json` (newly attached pictures: push `lore/<N>/search-<r>.json` with `{"queries": []}` to have the
   machine collect them, or re-run `prepare`). Push, one-line 🤖 comment, remove `lore-fix`.
+  A comment that needs no change (thanks, a question you answer): answer in a 🤖 comment, remove `lore-fix` and,
+  when the video had been delivered, add `lore-done` back (the workflow removed it when the comment came). Never
+  leave the issue with no step label: with only `lore` nobody looks at it again.
+- **An old issue:** "Dọn video cũ" (`renders-cleanup.yml`, weekly) deletes `renders/lore/<N>/` — voice, every
+  picture round, video — of issues with no activity for 14 days. When `git ls-tree origin/renders lore/<N>/` is
+  empty, a change request needs everything made again: re-run
+  `gh api -X POST repos/maihaianh2911-bit/Warhammerlore-t-o-video/actions/workflows/lore.yml/dispatches -f ref=main -f 'inputs[issue]=<N>' -f 'inputs[steps]=prepare search'`.
+  (A wording change: push the fixed `script.json` instead, which runs `prepare`, and once that run is done run
+  the same call with `inputs[steps]=search` for the rounds `search-<r>.json`.)
+  The voice is read again (VN11 credit is paid again) and the searches are run again, so their numbers may now
+  mean other pictures: you are woken at `lore-pick` and choose every picture again (`own/` pictures stay, they
+  are on `main`). Say so in your 🤖 comment first ("video cũ đã bị dọn sau 14 ngày, phải đọc lại giọng — tốn
+  thêm tiền VN11"); then make the change as usual.
 - `lore-failed`: read the failed run's log (link in the issue; `gh api repos/…/actions/runs/<id>/jobs`, then
   `gh api repos/…/actions/jobs/<job>/logs`), fix the cause (your JSON, or `factory/*` tested with
   `python3 tests/smoke.py`), re-run

@@ -19,7 +19,7 @@ Bạn không phải tìm hình. Máy và Claude tự tìm:
 - **ArtStation**: nguồn chính thứ hai. Máy tìm tranh hiện đại, độ phân giải cao theo tên nhân vật, phe, sự kiện; tên họa sĩ được ghi trong `credits.md`. Tranh thuộc bản quyền của họa sĩ.
 - **Warhammer 40k Wiki (Fandom)**: dự phòng khi ArtStation thiếu. Tranh thuộc bản quyền Games Workshop và họa sĩ.
 - **Wikimedia Commons**: ảnh miễn phí cho không khí (tinh vân, kiến trúc gothic, tranh chiến trận cổ).
-- **Claude tìm thêm trên web** khi hai nơi trên thiếu hình cho một ý.
+- **Claude tìm thêm trên web** khi các nguồn trên đều thiếu hình cho một ý.
 - **Hình riêng của bạn** (không bắt buộc): kéo thả vào phiếu, hoặc để trong thư viện [`art/`](art/README.md) để dùng lại.
 
 Ý nào vẫn không có hình phù hợp thì dùng đồ họa nền do máy vẽ, và Claude ghi rõ trong bình luận cuối.

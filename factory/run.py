@@ -1,7 +1,8 @@
 """Machine steps of one video on GitHub Actions. Usage: python3 -m factory.run <N> <step> [<step> ...]
 
   prepare  voice (VN11, one take; reused when the script did not change), voice check (Whisper), pictures the
-           owner attached to the issue, picture search for script.json "queries" (40K wiki, Commons)
+           owner attached to the issue, picture search for script.json "queries" (40K Gallery catalogue,
+           ArtStation, Warhammer 40k Wiki, Wikimedia Commons)
            → renders/lore/<N>/voice/, img/issue/, img/1/
   search   every lore/<N>/search-<r>.json whose round is not on renders yet → renders/lore/<N>/img/<r>/
   render   video from script.json + picks.json → renders/lore/<N>/video.mp4, subtitles.srt, credits.md, sheet.jpg
@@ -224,13 +225,14 @@ def main():
     run = Run(number)
     run.fetch_renders()
     has_picks = (run.job / "picks.json").is_file()
+    wake = None     # one call to Claude once the pictures of this run are all there (prepare and search together)
     if "prepare" in steps:
         timing, attached, searched = run.prepare()
         if has_picks and searched:
             # round 1 was searched again: its numbers (1/k-n.jpg) now mean other pictures, so picks.json is stale
             run.labels(add=["lore-pick"], remove=["lore-voice"])
             run.comment("🤖 Từ khóa tìm hình đã đổi nên bộ hình cũng đổi. Claude sẽ chọn lại hình trước khi dựng.")
-            run.wake(f"Phiếu 40K số {number}: tìm lại hình, cần chọn lại hình.")
+            wake = f"Phiếu 40K số {number}: tìm lại hình, cần chọn lại hình."
             steps = [step for step in steps if step != "render"]
         elif not has_picks:
             review = len(timing["review"])
@@ -241,13 +243,17 @@ def main():
                 f"{f'Đã lấy {attached} ảnh đính kèm trong phiếu. ' if attached else ''}Hình đã tìm xong. "
                 "Claude sẽ chọn hình cho từng ý."
             )
-            run.wake(f"Phiếu 40K số {number}: giọng và ảnh đã sẵn sàng, chờ chọn hình.")
+            wake = f"Phiếu 40K số {number}: giọng và ảnh đã sẵn sàng, chờ chọn hình."
         elif "render" not in steps:
             steps.append("render")
     if "search" in steps:
         run.search()
         if "render" not in steps:
             run.labels(add=["lore-pick"], remove=["lore-voice"])
+            # as after every machine step: Claude may have stopped waiting for this round
+            wake = wake or f"Phiếu 40K số {number}: đã tìm thêm hình, chờ chọn hình."
+    if wake:
+        run.wake(wake)
     if "render" in steps and not has_picks and "prepare" not in steps and os.environ.get("GITHUB_EVENT_NAME") == "push":
         # own/ pictures pushed before picks.json: nothing to render yet, and nothing failed
         print("chưa có picks.json — chưa dựng; ảnh riêng sẽ được dùng khi có picks.json")
