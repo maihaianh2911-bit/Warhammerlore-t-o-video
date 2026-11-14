@@ -39,17 +39,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with: { persist-credentials: false, sparse-checkout: scripts }
-      - name: Nhận phiếu
-        env: { GH_TOKEN: '${{ github.token }}', GH_REPO: '${{ github.repository }}', N: '${{ github.event.issue.number }}' }
-        run: |
-          gh issue edit "$N" --add-label lore,lore-plan
-          gh issue comment "$N" --body "🤖 Đã nhận kịch bản. Claude sẽ dịch sang tiếng Đức và chia câu, máy tạo giọng đọc và tìm hình, Claude chọn hình cho từng ý, máy dựng video, Claude kiểm tra lại từng cảnh. Mỗi bước xong sẽ báo ở đây."
-      - name: Gọi Claude
+      - name: Nhận phiếu và gọi Claude
+        # the comment is written by wake_claude.sh: it says what happens next only when Claude was really called
         env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
           CLAUDE_TASK_URL: ${{ secrets.CLAUDE_TASK_URL }}
           CLAUDE_TASK_TOKEN: ${{ secrets.CLAUDE_TASK_TOKEN }}
           N: ${{ github.event.issue.number }}
-        run: bash scripts/wake_claude.sh "Phiếu 40K mới số $N."
+        run: |
+          gh issue edit "$N" --add-label lore,lore-plan
+          bash scripts/wake_claude.sh "Phiếu 40K mới số $N." "$N" \
+            "🤖 Đã nhận kịch bản. Các bước: dịch sang tiếng Đức và chia câu (Claude), tạo giọng đọc và tìm hình (máy), chọn hình cho từng ý (Claude), dựng video (máy), kiểm tra lại từng cảnh (Claude). Mỗi bước xong sẽ báo ở đây." \
+            "Claude bắt đầu ngay."
 
   # 2) The owner comments on a video issue → Claude reads it and fixes
   fix:
@@ -66,17 +68,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with: { persist-credentials: false, sparse-checkout: scripts }
-      - name: Nhận yêu cầu sửa
-        env: { GH_TOKEN: '${{ github.token }}', GH_REPO: '${{ github.repository }}', N: '${{ github.event.issue.number }}' }
-        run: |
-          gh issue edit "$N" --add-label lore-fix --remove-label lore-done || true
-          gh issue comment "$N" --body "🤖 Đã nhận yêu cầu. Claude sẽ sửa và máy dựng lại."
-      - name: Gọi Claude
+      - name: Nhận yêu cầu sửa và gọi Claude
         env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
           CLAUDE_TASK_URL: ${{ secrets.CLAUDE_TASK_URL }}
           CLAUDE_TASK_TOKEN: ${{ secrets.CLAUDE_TASK_TOKEN }}
           N: ${{ github.event.issue.number }}
-        run: bash scripts/wake_claude.sh "Chủ kênh yêu cầu sửa phiếu 40K số $N."
+        run: |
+          gh issue edit "$N" --add-label lore-fix --remove-label lore-done || true
+          bash scripts/wake_claude.sh "Chủ kênh yêu cầu sửa phiếu 40K số $N." "$N" \
+            "🤖 Đã nhận yêu cầu." "Claude sẽ sửa và máy dựng lại."
 
   # 3) Claude pushed lore/<N>/… (or a manual run) → voice + pictures, or the video
   work:
@@ -130,8 +132,9 @@ jobs:
               FAIL=1
               gh issue edit "$N" --add-label lore-failed < /dev/null || true
               gh issue edit "$N" --remove-label lore-voice --remove-label lore-render < /dev/null || true
-              gh issue comment "$N" < /dev/null --body "🤖 Máy gặp lỗi ở bước \`$STEPS\` — xem nhật ký: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID . Claude sẽ xem và sửa." || true
-              bash scripts/wake_claude.sh "Phiếu 40K số $N bị lỗi ở bước $STEPS." < /dev/null || true
+              bash scripts/wake_claude.sh "Phiếu 40K số $N bị lỗi ở bước $STEPS." "$N" \
+                "🤖 Máy gặp lỗi ở bước \`$STEPS\` — xem nhật ký: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID ." \
+                "Claude sẽ xem và sửa." < /dev/null || true
             fi
             echo "$N" >> /tmp/handled.txt
             echo "::endgroup::"
@@ -145,6 +148,7 @@ jobs:
             grep -qx "$N" /tmp/handled.txt 2>/dev/null && continue
             gh issue edit "$N" --add-label lore-failed < /dev/null || true
             gh issue edit "$N" --remove-label lore-voice --remove-label lore-render < /dev/null || true
-            gh issue comment "$N" --body "🤖 Máy dừng giữa chừng ở bước \`$STEPS\` — xem nhật ký: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID . Claude sẽ xem và chạy lại." < /dev/null || true
-            bash scripts/wake_claude.sh "Phiếu 40K số $N: máy dừng giữa chừng ở bước $STEPS." < /dev/null || true
+            bash scripts/wake_claude.sh "Phiếu 40K số $N: máy dừng giữa chừng ở bước $STEPS." "$N" \
+              "🤖 Máy dừng giữa chừng ở bước \`$STEPS\` — xem nhật ký: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID ." \
+              "Claude sẽ xem và chạy lại." < /dev/null || true
           done < /tmp/todo.txt

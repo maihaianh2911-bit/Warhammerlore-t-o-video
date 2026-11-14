@@ -75,8 +75,11 @@ class Run:
     def comment(self, body):
         self.gh("issue", "comment", self.n, "--body", body)
 
-    def wake(self, why):
-        subprocess.run(["bash", str(ROOT / "scripts" / "wake_claude.sh"), why])
+    def wake(self, why, facts="", promise=""):
+        """Call Claude, then post `facts` on the issue as one comment. `promise` (what Claude does next) is added
+        only when Claude was called or already holds the issue; otherwise the script writes that Claude could not
+        be called and which button to press (scripts/wake_claude.sh)."""
+        subprocess.run(["bash", str(ROOT / "scripts" / "wake_claude.sh"), why, self.n, facts, promise])
 
     def link(self, path):
         return f"https://github.com/{self.repo}/blob/renders/lore/{self.n}/{path}"
@@ -231,19 +234,18 @@ def main():
         if has_picks and searched:
             # round 1 was searched again: its numbers (1/k-n.jpg) now mean other pictures, so picks.json is stale
             run.labels(add=["lore-pick"], remove=["lore-voice"])
-            run.comment("🤖 Từ khóa tìm hình đã đổi nên bộ hình cũng đổi. Claude sẽ chọn lại hình trước khi dựng.")
-            wake = f"Phiếu 40K số {number}: tìm lại hình, cần chọn lại hình."
+            wake = (f"Phiếu 40K số {number}: tìm lại hình, cần chọn lại hình.",
+                    "🤖 Từ khóa tìm hình đã đổi nên bộ hình cũng đổi. Hình phải được chọn lại trước khi dựng.",
+                    "Claude sẽ chọn lại hình.")
             steps = [step for step in steps if step != "render"]
         elif not has_picks:
             review = len(timing["review"])
             run.labels(add=["lore-pick"], remove=["lore-voice"])
-            run.comment(
-                f"🤖 Giọng đọc xong: {len(timing['lines'])} câu, {timing['duration']:.0f} giây"
-                f"{f' ({review} đoạn cần Claude nghe lại)' if review else ''}. "
-                f"{f'Đã lấy {attached} ảnh đính kèm trong phiếu. ' if attached else ''}Hình đã tìm xong. "
-                "Claude sẽ chọn hình cho từng ý."
-            )
-            wake = f"Phiếu 40K số {number}: giọng và ảnh đã sẵn sàng, chờ chọn hình."
+            wake = (f"Phiếu 40K số {number}: giọng và ảnh đã sẵn sàng, chờ chọn hình.",
+                    f"🤖 Giọng đọc xong: {len(timing['lines'])} câu, {timing['duration']:.0f} giây"
+                    f"{f' ({review} đoạn cần nghe lại)' if review else ''}. "
+                    f"{f'Đã lấy {attached} ảnh đính kèm trong phiếu. ' if attached else ''}Hình đã tìm xong.",
+                    "Claude sẽ chọn hình cho từng ý.")
         elif "render" not in steps:
             steps.append("render")
     if "search" in steps:
@@ -251,9 +253,9 @@ def main():
         if "render" not in steps:
             run.labels(add=["lore-pick"], remove=["lore-voice"])
             # as after every machine step: Claude may have stopped waiting for this round
-            wake = wake or f"Phiếu 40K số {number}: đã tìm thêm hình, chờ chọn hình."
+            wake = wake or (f"Phiếu 40K số {number}: đã tìm thêm hình, chờ chọn hình.",)
     if wake:
-        run.wake(wake)
+        run.wake(*wake)
     if "render" in steps and not has_picks and "prepare" not in steps and os.environ.get("GITHUB_EVENT_NAME") == "push":
         # own/ pictures pushed before picks.json: nothing to render yet, and nothing failed
         print("chưa có picks.json — chưa dựng; ảnh riêng sẽ được dùng khi có picks.json")
@@ -265,12 +267,12 @@ def main():
             raise SystemExit("chưa có picks.json cho phiếu này")
         minutes, seconds = divmod(round(run.render()), 60)
         run.labels(add=["lore-check"], remove=["lore-render", "lore-voice"])
-        run.comment(
-            f"🤖 Đã dựng xong bản video ({minutes} phút {seconds:02d} giây). "
-            "Claude đang kiểm tra lại từng cảnh trước khi giao.\n\n"
-            f"- Video: {run.link('video.mp4')}\n- Ảnh các cảnh: {run.link('sheet.jpg')}"
+        run.wake(
+            f"Phiếu 40K số {number}: video đã dựng, chờ kiểm tra.",
+            f"🤖 Đã dựng xong bản video ({minutes} phút {seconds:02d} giây), chưa kiểm tra từng cảnh.\n\n"
+            f"- Video: {run.link('video.mp4')}\n- Ảnh các cảnh: {run.link('sheet.jpg')}\n\n",
+            "Claude sẽ kiểm tra lại từng cảnh trước khi giao.",
         )
-        run.wake(f"Phiếu 40K số {number}: video đã dựng, chờ kiểm tra.")
 
 
 if __name__ == "__main__":

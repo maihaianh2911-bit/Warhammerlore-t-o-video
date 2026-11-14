@@ -198,8 +198,8 @@ class RunTest(unittest.TestCase):
             def comment(self, body):
                 self.calls.append("comment")
 
-            def wake(self, why):
-                self.calls.append(("wake", why))
+            def wake(self, why, facts="", promise=""):
+                self.calls.append(("wake", why, facts, promise))
 
         for steps, wanted in ((["search"], "đã tìm thêm hình"), (["prepare", "search"], "giọng và ảnh"),
                               (["prepare"], "giọng và ảnh")):
@@ -211,6 +211,9 @@ class RunTest(unittest.TestCase):
                 self.assertEqual(len(wakes), 1, runs[0].calls)
                 self.assertIn(wanted, wakes[0][1])
                 self.assertEqual(runs[0].calls[-1][0], "wake")      # only after every picture round is published
+                # the machine's own comment goes through the wake, which alone may add what Claude does next
+                self.assertNotIn("comment", runs[0].calls)
+                self.assertNotIn("Claude sẽ", wakes[0][2])
 
     def test_only_the_owners_attachments_are_collected(self):
         url = "https://github.com/user-attachments/assets/0f8fad5b-d9cb-469f-a165-70867728950e"
