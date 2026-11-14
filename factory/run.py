@@ -24,6 +24,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 ORDER = ["prepare", "search", "render"]
+STEP_LABELS = ["lore-plan", "lore-voice", "lore-pick", "lore-render", "lore-check", "lore-done"]
 BOT = ["-c", "user.name=render-bot", "-c", "user.email=render-bot@users.noreply.github.com"]
 
 
@@ -133,6 +134,11 @@ class Run:
         for label in remove:
             if label not in add:
                 self.gh_retry("issue", "edit", self.n, "--remove-label", label)
+
+    def step(self, label, also_remove=()):
+        """The issue is at this step now: every other step label goes (an issue never shows two steps), and so do
+        `also_remove`. lore-fix, lore-failed and lore-busy are not step labels and stay unless named."""
+        self.labels(add=[label], remove=[other for other in STEP_LABELS if other != label] + list(also_remove))
 
     def gh_retry(self, *arguments):
         for attempt in range(2):
@@ -280,13 +286,10 @@ class Run:
             self.render_labels()
 
     def voice_labels(self):
-        self.labels(add=["lore-voice"], remove=["lore-plan", "lore-failed"])
+        self.step("lore-voice", ["lore-failed"])
 
     def render_labels(self):
-        remove = ["lore-pick", "lore-check", "lore-done", "lore-failed"]
-        if not self.asked_since_push():
-            remove.append("lore-fix")
-        self.labels(add=["lore-render"], remove=remove)
+        self.step("lore-render", ["lore-failed"] + ([] if self.asked_since_push() else ["lore-fix"]))
 
     def asked_since_push(self):
         """Whether the owner commented after the commit that is being rendered: that request is not in this
@@ -395,14 +398,14 @@ def main():
         timing, attached, searched = run.prepare()
         if has_picks and searched:
             # round 1 was searched again: its numbers (1/k-n.jpg) now mean other pictures, so picks.json is stale
-            run.labels(add=["lore-pick"], remove=["lore-voice"])
+            run.step("lore-pick")
             why = f"Phiếu 40K số {number}: tìm lại hình, cần chọn lại hình."
             facts = "🤖 Từ khóa tìm hình đã đổi nên bộ hình cũng đổi. Hình phải được chọn lại trước khi dựng."
             promise = "Claude sẽ chọn lại hình."
             steps = [step for step in steps if step != "render"]
         elif not has_picks:
             review = len(timing["review"])
-            run.labels(add=["lore-pick"], remove=["lore-voice"])
+            run.step("lore-pick")
             steps = [step for step in steps if step != "render"]    # nothing to render before the picks
             why = f"Phiếu 40K số {number}: giọng và ảnh đã sẵn sàng, chờ chọn hình."
             facts = (f"🤖 Giọng đọc xong: {len(timing['lines'])} câu, {timing['duration']:.0f} giây"
@@ -414,7 +417,7 @@ def main():
     if "search" in steps:
         run.search()
         if "render" not in steps:
-            run.labels(add=["lore-pick"], remove=["lore-voice"])
+            run.step("lore-pick")
             # as after every machine step: Claude may have stopped waiting for this round
             why = why or f"Phiếu 40K số {number}: đã tìm thêm hình, chờ chọn hình."
     failed = getattr(run, "failed", [])     # searches that failed in this run (a site was down)
@@ -433,7 +436,7 @@ def main():
         if not has_picks:
             raise SystemExit("chưa có picks.json cho phiếu này")
         minutes, seconds = divmod(round(run.render()), 60)
-        run.labels(add=["lore-check"], remove=["lore-render", "lore-voice"])
+        run.step("lore-check")
         run.wake(
             f"Phiếu 40K số {number}: video đã dựng, chờ kiểm tra.",
             f"🤖 Đã dựng xong bản video ({minutes} phút {seconds:02d} giây), chưa kiểm tra từng cảnh.\n\n"

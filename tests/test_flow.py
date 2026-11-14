@@ -218,8 +218,8 @@ class RunTest(unittest.TestCase):
             def search(self):
                 self.calls.append("search")
 
-            def labels(self, add=(), remove=()):
-                self.calls.append(("labels", tuple(add)))
+            def step(self, label, also_remove=()):
+                self.calls.append(("step", label))
 
             def comment(self, body):
                 self.calls.append("comment")
@@ -237,6 +237,7 @@ class RunTest(unittest.TestCase):
                 self.assertEqual(len(wakes), 1, runs[0].calls)
                 self.assertIn(wanted, wakes[0][1])
                 self.assertEqual(runs[0].calls[-1][0], "wake")      # only after every picture round is published
+                self.assertEqual(runs[0].calls[-2], ("step", "lore-pick"))
                 # the machine's own comment goes through the wake, which alone may add what Claude does next
                 self.assertNotIn("comment", runs[0].calls)
                 self.assertNotIn("Claude sẽ", wakes[0][2])
@@ -329,6 +330,28 @@ class RunTest(unittest.TestCase):
         self.assertFalse(asked_since([{**after, "body": "🤖"}], "owner", pushed))     # Claude's own comment
         self.assertFalse(asked_since([{**after, "login": "github-actions[bot]"}], "owner", pushed))
         self.assertTrue(asked_since([{**after, "at": "2026-11-13T04:16:00+07:00"}], "owner", pushed))
+
+    def test_an_issue_never_shows_two_steps(self):
+        from unittest import mock
+        import factory.run as run_module
+
+        with mock.patch.dict("os.environ", {"GITHUB_REPOSITORY": "owner/repo", "GH_TOKEN": "t"}):
+            run = run_module.Run("7")
+        calls = []
+        run.gh = lambda *arguments: calls.append(arguments) or mock.Mock(returncode=0, stdout="", stderr="")
+        run.step("lore-pick")       # after an extra search on an issue that was at lore-check
+        self.assertEqual(calls[0], ("issue", "edit", "7", "--add-label", "lore-pick"))      # the new label first
+        removed = [call[-1] for call in calls[1:]]
+        self.assertEqual(sorted(removed), ["lore-check", "lore-done", "lore-plan", "lore-render", "lore-voice"])
+        self.assertNotIn("lore-fix", removed)
+        calls.clear()
+        run.asked_since_push = lambda: False
+        run.render_labels()
+        self.assertIn("lore-fix", [call[-1] for call in calls[1:]])
+        calls.clear()
+        run.asked_since_push = lambda: True
+        run.render_labels()
+        self.assertNotIn("lore-fix", [call[-1] for call in calls[1:]])
 
     def test_only_the_owners_attachments_are_collected(self):
         url = "https://github.com/user-attachments/assets/0f8fad5b-d9cb-469f-a165-70867728950e"
