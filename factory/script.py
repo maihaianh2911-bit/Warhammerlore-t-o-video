@@ -5,6 +5,8 @@ import unicodedata
 from dataclasses import dataclass
 from pathlib import Path
 
+from .edits import apply_edit
+
 
 @dataclass(frozen=True)
 class Cue:
@@ -69,12 +71,18 @@ def load_job(path: Path) -> Job:
 
 
 def load_picks(path: Path, line_count):
-    """picks.json: {"images": {name: {"src", "credit", "crop"}}, "shots": [{"at", "img" | "theme", "focus", "move" | "from", "via", "zoom", "pace", "kick"}]}."""
+    """picks.json: {"images": {name: {"src", "credit", "crop"}}, "shots": [{"at", "img" | "theme", "focus",
+    "edit", "why", "move" | "from", "via", "zoom", "pace", "kick"}]}.
+
+    A shot's "edit" names an entry of the catalogue (factory/edits.py): the returned shot has that edit's move,
+    pace, kick and zoom wherever the shot does not set them itself. "why" (the reason for the choice, for the
+    owner) is never rendered. A shot without "edit" is returned as written."""
     data = json.loads(path.read_text(encoding="utf-8-sig"))
     images = data.get("images") or {}
     shots = data.get("shots")
     if not isinstance(images, dict) or not isinstance(shots, list) or not shots:
         raise ValueError("picks.json cần images và danh sách shots.")
+    shots = list(shots)
     for name, image in images.items():
         if not isinstance(image, dict) or not clean(image.get("src")) or not clean(image.get("credit")):
             raise ValueError(f"Ảnh {name} trong picks.json cần src và credit.")
@@ -82,6 +90,9 @@ def load_picks(path: Path, line_count):
     for number, shot in enumerate(shots, start=1):
         if not isinstance(shot, dict):
             raise ValueError(f"Cảnh {number} trong picks.json sai định dạng.")
+        if not isinstance(shot.get("why", ""), str):
+            raise ValueError(f"Cảnh {number}: why là một câu ngắn giải thích vì sao chọn kiểu edit đó.")
+        shot = shots[number - 1] = apply_edit(shot, number)
         at = shot.get("at", 1 if number == 1 else None)
         if not isinstance(at, (int, float)) or isinstance(at, bool) or not 1 <= at < line_count + 1:
             raise ValueError(f"Cảnh {number}: at phải là số câu từ 1 đến {line_count}.")
@@ -98,7 +109,7 @@ def load_picks(path: Path, line_count):
             raise ValueError(f"Cảnh {number}: focus là [x, y] trong khoảng 0–1.")
         if "img" in shot and (focus is None or not ("move" in shot or "from" in shot)):
             raise ValueError(f"Cảnh {number}: mỗi ảnh cần focus (trọng tâm nhân vật) và cách đi máy do bạn chọn "
-                             "cho cảnh đó (move hoặc from).")
+                             "cho cảnh đó (edit, move hoặc from).")
         start = shot.get("from")
         if start is not None and not (isinstance(start, list) and len(start) == 3
                                       and 1 <= start[0] <= 2.3 and 0 <= start[1] <= 1 and 0 <= start[2] <= 1):
@@ -129,6 +140,10 @@ def load_picks(path: Path, line_count):
         if "to" in shot:
             raise ValueError(f"Cảnh {number}: không đặt to; cảnh luôn kết thúc ở focus (trọng tâm nhân vật).")
     return images, shots
+
+
+def script_lines(job):
+    return [job.text[first:last] for first, last in job.spans]
 
 
 def line_times(spans, starts, ends):

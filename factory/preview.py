@@ -1,6 +1,8 @@
 """Every shot of picks.json at each keyframe of its camera move (start, via…, END), framed exactly as the video frames it.
 
 Usage: python3 -m factory.preview --job lore/<N> --images <img folder> --voice <voice folder> --out preview.jpg
+Also writes the list of edits next to the sheet (<out>.md: shot, line, picture, edit, why), the same table the
+render publishes as edits.md.
 """
 import argparse
 import json
@@ -8,7 +10,8 @@ from pathlib import Path
 
 from .art import contact_sheet, grade_frame
 from .render import SIZES, load_images, shot_picture, shot_views
-from .script import line_times, load_job, load_picks, shot_frames
+from .edits import edits_table
+from .script import line_times, load_job, load_picks, script_lines, shot_frames
 
 
 def shot_seconds(job, shots, voice=None):
@@ -36,8 +39,12 @@ def preview(job_dir, images_dir, out, voice=None):
         views = shot_views(grade_frame(picture), plan, size)
         for step, view in enumerate(views):
             label = "start" if step == 0 else "END" if step == len(views) - 1 else f"via{step}"
-            tiles.append((view.resize((216, 384)), f"{index + 1} L{shot.get('at', 1)} {seconds[index]:.0f}s {name} {label}"[:34]))
+            text = f"{index + 1} L{shot.get('at', 1)} {seconds[index]:.0f}s {name} {label}"
+            if "edit" in shot and step == 0:      # the first tile of a shot names its edit, the others its picture
+                text = f"{index + 1} L{shot.get('at', 1)} {seconds[index]:.0f}s [{shot['edit']}]"
+            tiles.append((view.resize((216, 384)), text[:34]))
     contact_sheet(tiles, out, columns=6)
+    Path(out).with_suffix(".md").write_text(edits_table(shots, script_lines(job), seconds), encoding="utf-8")
     return len(shots)
 
 
@@ -52,7 +59,7 @@ def main():
         count = preview(args.job, args.images, args.out, args.voice)
     except (OSError, KeyError, ValueError) as error:
         parser.exit(1, f"Không xem trước được: {error}\n")
-    print(f"{args.out}: {count} cảnh")
+    print(f"{args.out}: {count} cảnh; cách edit từng cảnh: {args.out.with_suffix('.md')}")
 
 
 if __name__ == "__main__":

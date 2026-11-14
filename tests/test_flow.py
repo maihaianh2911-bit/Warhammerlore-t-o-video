@@ -73,6 +73,88 @@ class PicksTest(unittest.TestCase):
         self.assertEqual(line_times([(0, 2), (3, 5)], [0, 1, 2, 3, 4], [1, 2, 3, 4, 5]), [(0, 2), (3, 5)])
 
 
+class EditsTest(unittest.TestCase):
+    """The catalogue of named edits: a name fills in camera fields, what the shot writes itself wins."""
+    images = {"a": {"src": "issue/1.jpg", "credit": "Künstler — Titel"}}
+    ROOT = Path(__file__).resolve().parent.parent
+
+    def shots(self, *shots, lines=3):
+        return load_picks(write({"images": self.images, "shots": list(shots)}), lines)[1]
+
+    def test_the_catalogue_is_small_and_only_uses_what_the_renderer_has(self):
+        from factory.edits import EDITS
+        from factory.render import PACES
+        self.assertTrue(8 <= len(EDITS) <= 12)
+        for name, (label, fields, looks, when) in EDITS.items():
+            with self.subTest(name):
+                self.assertRegex(name, r"^[a-z]+(-[a-z]+)*$")
+                self.assertTrue(label and looks and when)
+                self.assertLessEqual(set(fields), {"move", "pace", "kick", "zoom"})
+                self.assertIn(fields["move"], MOVES)
+                self.assertIn(fields["pace"], PACES)
+                self.assertTrue(0 <= fields["kick"] <= 0.12)
+                self.assertTrue(1 <= fields.get("zoom", 1) <= 1.5)       # the owner rejected 1.5–2× as too big
+                self.shots({"img": "a", "focus": [0.5, 0.3], "edit": name})      # passes every check of picks.json
+        self.assertEqual(len({json.dumps(fields, sort_keys=True) for _, fields, _, _ in EDITS.values()}), len(EDITS))
+
+    def test_an_edit_fills_in_the_camera_and_the_shot_overrides_it(self):
+        from factory.edits import EDITS
+        shot, = self.shots({"img": "a", "focus": [0.5, 0.3], "edit": "de-doa", "why": "lời đe dọa của Tyberos"})
+        self.assertEqual({key: shot[key] for key in EDITS["de-doa"][1]}, EDITS["de-doa"][1])
+        self.assertEqual((shot["edit"], shot["why"]), ("de-doa", "lời đe dọa của Tyberos"))
+        shot, = self.shots({"img": "a", "focus": [0.5, 0.3], "edit": "de-doa", "zoom": 1.2, "kick": 0.1,
+                            "from": [1.0, 0.5, 0.9]})
+        self.assertEqual((shot["zoom"], shot["kick"], shot["pace"], shot["from"]), (1.2, 0.1, "surge", [1.0, 0.5, 0.9]))
+        shot, = self.shots({"theme": "rift", "edit": "giu-yen"})          # a generated background may carry one too
+        self.assertEqual(shot["pace"], "even")
+
+    def test_an_unknown_edit_lists_the_valid_names(self):
+        from factory.edits import EDITS
+        for bad in ("zoom-crazy", "", 3, None):
+            with self.subTest(bad), self.assertRaises(ValueError) as caught:
+                self.shots({"img": "a", "focus": [0.5, 0.3], "edit": bad})
+            for name in EDITS:
+                self.assertIn(name, str(caught.exception))
+            self.assertIn("Cảnh 1", str(caught.exception))
+        with self.assertRaisesRegex(ValueError, "why"):
+            self.shots({"img": "a", "focus": [0.5, 0.3], "move": "push", "why": 5})
+
+    def test_picks_without_edits_are_untouched(self):
+        """lore/<N>/picks.json written before the catalogue load exactly as written: same shots, same video."""
+        found = sorted(self.ROOT.glob("lore/*/picks.json"))
+        self.assertTrue(found)
+        for path in found:
+            raw = json.loads(path.read_text(encoding="utf-8-sig"))
+            lines = len(load_job(path.parent / "script.json").spans)
+            with self.subTest(path.parent.name):
+                if not any("edit" in shot for shot in raw["shots"]):
+                    self.assertEqual(load_picks(path, lines), (raw["images"], raw["shots"]))
+
+    def test_a_named_edit_plans_the_same_camera_as_its_fields_written_out(self):
+        from PIL import Image
+        from factory.edits import EDITS
+        from factory.render import shot_picture
+        pictures = {"a": Image.new("RGB", (1600, 1000))}
+        for name, (_, fields, _, _) in EDITS.items():
+            named, = self.shots({"img": "a", "focus": [0.3, 0.4], "edit": name})
+            plain = {"img": "a", "focus": [0.3, 0.4], **fields}
+            with self.subTest(name):
+                self.assertEqual(shot_picture(named, 0, self.images, pictures, (720, 1280), 6.0)[1],
+                                 shot_picture(plain, 0, self.images, pictures, (720, 1280), 6.0)[1])
+
+    def test_the_list_of_edits_names_shot_line_picture_edit_and_reason(self):
+        from factory.edits import edits_table
+        shots = self.shots({"img": "a", "focus": [0.5, 0.3], "edit": "toan-canh", "why": "hạm đội xuất hiện"},
+                           {"at": 2.5, "img": "a", "focus": [0.5, 0.3], "move": "pull"},
+                           {"at": 3, "theme": "rift"})
+        table = edits_table(shots, ["Eine Flotte | kam.", "Niemand rief sie.", "Ende."], [4.2, 3.0, 2.0])
+        rows = table.splitlines()
+        self.assertIn("| 1 · 4s | 1. Eine Flotte / kam. | a | toan-canh (toàn cảnh) | hạm đội xuất hiện |", rows)
+        self.assertIn("| 2 · 3s | 2.5. Niemand rief sie. | a | tự chọn | — |", rows)
+        self.assertIn("| 3 · 2s | 3. Ende. | nền rift | tự chọn | — |", rows)
+        self.assertIn("lao-toi", rows[2])                                   # the owner sees the names to ask for
+
+
 class MotionTest(unittest.TestCase):
     def test_every_move_ends_centred_on_the_subject(self):
         from PIL import Image

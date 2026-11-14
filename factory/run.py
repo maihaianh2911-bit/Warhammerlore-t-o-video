@@ -5,7 +5,8 @@
            ArtStation, Warhammer 40k Wiki, Wikimedia Commons)
            → renders/lore/<N>/voice/, img/issue/, img/1/
   search   every lore/<N>/search-<r>.json whose round is not on renders yet → renders/lore/<N>/img/<r>/
-  render   video from script.json + picks.json → renders/lore/<N>/video.mp4, subtitles.srt, credits.md, sheet.jpg
+  render   video from script.json + picks.json → renders/lore/<N>/video.mp4, subtitles.srt, credits.md, edits.md,
+           sheet.jpg
 After prepare the issue waits for Claude (lore-pick) unless picks.json exists, then render runs too.
 `python3 -m factory.run todo` reads changed file names on stdin and prints "<N> <steps>" lines;
 `python3 -m factory.run matrix` turns those lines into the JSON list of the workflow's job matrix;
@@ -363,7 +364,7 @@ class Run:
         shutil.rmtree(out, ignore_errors=True)
         self.module("render", "--job", self.job, "--voice", self.work / "voice",
                     "--images", self.work / "img", "--out", out)
-        names = ["video.mp4", "sheet.jpg", "cover.jpg", "subtitles.srt", "credits.md", "scenes.json"]
+        names = ["video.mp4", "sheet.jpg", "cover.jpg", "subtitles.srt", "credits.md", "edits.md", "scenes.json"]
         for name in names:
             shutil.copy(out / name, self.work / name)
         if (self.work / "video.mp4").stat().st_size > 95 * 1024 * 1024:

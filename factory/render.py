@@ -9,8 +9,10 @@ from pathlib import Path
 from PIL import Image
 
 from .art import ART_ROOT, atmosphere, contact_sheet, grade_frame, open_picture
+from .edits import edits_table
 from .script import (
-    MOVES, caption_chunks, line_times, load_job, load_picks, make_cues, opening_frames, shot_frames, write_subtitles,
+    MOVES, caption_chunks, line_times, load_job, load_picks, make_cues, opening_frames, script_lines, shot_frames,
+    write_subtitles,
 )
 from .voice import audio_duration
 
@@ -204,7 +206,10 @@ def write_sheet(video, scenes, scratch, path):
         ffmpeg(scratch, "-ss", f"{moment:.2f}", "-i", str(video), "-frames:v", "1", "sheet.png")
         with Image.open(scratch / "sheet.png") as frame:
             tile = frame.convert("RGB").resize((216, 384))
-        tiles.append((tile, f"{number}  {scene['picture']}  {scene['start']:.0f}s"[:34]))
+        label = f"{number}  {scene['picture']}  {scene['start']:.0f}s"
+        if scene.get("edit"):
+            label = f"{number} [{scene['edit']}] {scene['picture']}"
+        tiles.append((tile, label[:34]))
     contact_sheet(tiles, path, columns=6)
 
 
@@ -285,12 +290,15 @@ def render(job_dir, voice_dir, images_dir, out, size_name="full"):
                 "text": " ".join(job.text[a:b] for (a, b), (begin, _) in zip(job.spans, times)
                                  if first <= round(begin * FPS) < last),
                 "credits": shot_credits(shot, images),
+                **({"edit": shot["edit"]} if "edit" in shot else {}),
             })
 
         encode_video(all_frames(stills(), size), scratch / audio.name, frames, size, scratch, stage / "video.mp4")
         ffmpeg(scratch, "-i", str(stage / "video.mp4"), "-frames:v", "1", "-q:v", "2", str(stage / "cover.jpg"))
         write_sheet(stage / "video.mp4", scenes, scratch, stage / "sheet.jpg")
         write_credits(scenes, stage / "credits.md")
+        (stage / "edits.md").write_text(
+            edits_table(shots, script_lines(job), [(last - first) / FPS for first, last in ranges]), encoding="utf-8")
         (stage / "scenes.json").write_text(
             json.dumps({"title": job.title, "duration": round(duration, 3), "scenes": scenes},
                        ensure_ascii=False, indent=2) + "\n",
