@@ -141,12 +141,29 @@ class Run:
     def link(self, path):
         return f"https://github.com/{self.repo}/blob/renders/lore/{self.n}/{path}"
 
+    def renders_exists(self):
+        """Whether the renders branch exists. "Could not ask" is an error, never "no": a run that wrongly sees no
+        earlier files would pay for the voice a second time."""
+        for attempt in range(3):
+            code = subprocess.run(["git", "ls-remote", "--exit-code", "--heads", self.url, "renders"], cwd=ROOT,
+                                  capture_output=True).returncode
+            if code in (0, 2):      # 2: the remote answered and has no such branch
+                return code == 0
+            time.sleep(5 * (attempt + 1))
+        raise SystemExit("không đọc được nhánh renders trên GitHub (lỗi mạng) — chạy lại bước này")
+
     def fetch_renders(self):
         """Current renders/lore/<N>/ → work folder (empty when nothing was published yet)."""
         self.work.mkdir(parents=True, exist_ok=True)
-        fetch = ["git", "fetch", "-q", "--depth", "1", self.url, "+refs/heads/renders:refs/remotes/origin/renders"]
-        if subprocess.run(fetch, cwd=ROOT).returncode:
+        if not self.renders_exists():
             return
+        fetch = ["git", "fetch", "-q", "--depth", "1", self.url, "+refs/heads/renders:refs/remotes/origin/renders"]
+        for attempt in range(3):
+            if subprocess.run(fetch, cwd=ROOT).returncode == 0:
+                break
+            time.sleep(5 * (attempt + 1))
+        else:
+            raise SystemExit("không tải được nhánh renders (lỗi mạng) — chạy lại bước này")
         listing = subprocess.run(["git", "ls-tree", "-r", "--name-only", "origin/renders", f"lore/{self.n}/"],
                                  cwd=ROOT, capture_output=True, text=True).stdout
         if listing.strip():
@@ -171,7 +188,10 @@ class Run:
                 subprocess.run(["git", "worktree", "remove", "--force", str(tree)], cwd=ROOT)
                 shutil.rmtree(tree, ignore_errors=True)
             subprocess.run(["git", "worktree", "prune"], cwd=ROOT)
-            if subprocess.run(fetch, cwd=ROOT).returncode == 0:
+            if self.renders_exists():
+                if subprocess.run(fetch, cwd=ROOT).returncode:
+                    time.sleep(5 * (attempt + 1))
+                    continue
                 self.sh("git", "worktree", "add", "-q", "--detach", str(tree), "origin/renders")
             else:   # new repo: the renders branch does not exist yet → start it empty
                 self.sh("git", "worktree", "add", "-q", "--detach", str(tree))
@@ -252,13 +272,29 @@ class Run:
     def render_labels(self):
         self.labels(add=["lore-render"], remove=["lore-pick", "lore-check", "lore-done", "lore-fix", "lore-failed"])
 
+    def narrate(self, job, voice):
+        """The voice, in this process so that every paid stage can be published at once: the VN11 job id as soon
+        as the text is accepted, the audio as soon as it is downloaded. A run that breaks after that (Whisper,
+        the network, a timeout) leaves them on renders and the next run continues without paying again."""
+        from .narrate import narrate
+
+        def keep():
+            if voice.is_dir() and any(voice.iterdir()):
+                self.publish(["voice"], "giọng đọc (đang làm)")
+
+        try:
+            timing, reused = narrate(job, voice, voice, checkpoint=keep)
+        except (OSError, ValueError, RuntimeError) as error:
+            raise SystemExit(f"Không tạo được giọng đọc: {error}") from None
+        print(f"{'Dùng lại' if reused else 'Đã tạo'} giọng đọc {timing['duration']:.1f} giây, khớp {timing['match']:.0%}.")
+
     def prepare(self):
         from .script import load_job
 
         job = load_job(self.job / "script.json")
         self.voice_labels()
         voice = self.work / "voice"
-        self.module("narrate", "--job", self.job, "--out", voice, "--previous", voice)
+        self.narrate(job, voice)
         self.publish(["voice"], "giọng đọc")   # saved first: a failed picture search must not cost a second reading
         paths = []
         attached, changed = self.attachments()
@@ -377,5 +413,16 @@ def main():
         )
 
 
+def report(error):
+    """The reason of a stop, for the workflow's comment on the issue (lore.yml, step "Báo lỗi")."""
+    folder = os.environ.get("RUNNER_TEMP")
+    if folder and isinstance(error.code, str) and error.code != __doc__:
+        (Path(folder) / "lore-error.txt").write_text(error.code[:700], encoding="utf-8")
+
+
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except SystemExit as stop:
+        report(stop)
+        raise

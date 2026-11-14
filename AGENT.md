@@ -241,7 +241,12 @@ GitHub 14 ngày kể từ lần hoạt động cuối của phiếu rồi tự x
   mean other pictures: you are woken at `lore-pick` and choose every picture again (`own/` pictures stay, they
   are on `main`). Say so in your 🤖 comment first ("video cũ đã bị dọn sau 14 ngày, phải đọc lại giọng — tốn
   thêm tiền VN11"); then make the change as usual.
-- `lore-failed`: read the failed run's log (link in the issue; `gh api repos/…/actions/runs/<id>/jobs`, then
+- A paid reading is never thrown away: when a run breaks after VN11 accepted the text, `renders/lore/<N>/voice/`
+  keeps `pending.json` (the VN11 job) and, once downloaded, `take.mp3`. Re-running `prepare` with the same
+  script continues from there and costs nothing. "Giọng đọc khớp …%" in the failure comment means Whisper did
+  not recognise the script in the reading: listen to `take.mp3`; only a changed `script.json` is read (and
+  paid) again.
+- `lore-failed`: read the failed run's log (the machine's comment gives the reason when it knows it; link in the issue; `gh api repos/…/actions/runs/<id>/jobs`, then
   `gh api repos/…/actions/jobs/<job>/logs`), fix the cause (your JSON, or `factory/*` tested with
   `python3 tests/smoke.py`), re-run
   `gh api -X POST repos/maihaianh2911-bit/Warhammerlore-t-o-video/actions/workflows/lore.yml/dispatches -f ref=main -f 'inputs[issue]=<N>' -f 'inputs[steps]=render'`

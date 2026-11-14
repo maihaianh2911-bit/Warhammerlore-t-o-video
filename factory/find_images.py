@@ -173,7 +173,8 @@ def seen_hashes():
 def earlier_results(out, queries):
     """{k: index entry} of the queries a previous run in this folder searched without an error."""
     try:
-        old = json.load(open(f'{out}/index.json', encoding='utf-8'))
+        with open(f'{out}/index.json', encoding='utf-8') as f:
+            old = json.load(f)
     except (OSError, ValueError):
         return {}
     if [e.get('query') for e in old] != list(queries):
@@ -248,7 +249,8 @@ def main():
         index.append({'k': k, 'query': q, 'results': results, **({'error': error} if error else {})})
         print(f'{k}. {q}: {len(results)} kept' + (f' — LỖI: {error}' if error else ''))
         time.sleep(2)
-    json.dump(index, open(f'{out}/index.json', 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+    with open(f'{out}/index.json', 'w', encoding='utf-8') as f:
+        json.dump(index, f, ensure_ascii=False, indent=1)
     print(f"dropped: {dropped['small']} too small, {dropped['duplicate']} duplicates")
 
 

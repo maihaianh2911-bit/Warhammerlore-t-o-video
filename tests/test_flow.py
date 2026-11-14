@@ -1,3 +1,4 @@
+import contextlib
 import json
 import tempfile
 import unittest
@@ -275,7 +276,8 @@ class RunTest(unittest.TestCase):
             with mock.patch.object(find, "search", search), mock.patch.object(find, "get", pictures.__getitem__), \
                     mock.patch.object(find.time, "sleep"), mock.patch.object(sys, "argv", ["find", str(out), *queries]), \
                     mock.patch.dict("os.environ", {"FIND_SEEN": ""}):
-                find.main()
+                with contextlib.redirect_stdout(io.StringIO()):
+                    find.main()
             return json.loads((out / "index.json").read_text(encoding="utf-8"))
 
         index = run()

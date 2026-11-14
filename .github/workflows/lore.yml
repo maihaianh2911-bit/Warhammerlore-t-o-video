@@ -166,6 +166,8 @@ jobs:
         run: |
           gh issue edit "$N" --add-label lore-failed || true
           gh issue edit "$N" --remove-label lore-voice --remove-label lore-render || true
+          # the reason factory.run gave, when it stopped by itself (for example a voice that does not match)
+          REASON=$(head -c 700 "$RUNNER_TEMP/lore-error.txt" 2>/dev/null || true)
           bash scripts/wake_claude.sh "Phiếu 40K số $N bị lỗi ở bước $STEPS." "$N" \
-            "🤖 Máy gặp lỗi ở bước \`$STEPS\` — xem nhật ký: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID ." \
+            "🤖 Máy gặp lỗi ở bước \`$STEPS\`${REASON:+: $REASON} — xem nhật ký: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID ." \
             "Claude sẽ xem và sửa." || true

@@ -4,6 +4,7 @@ import re
 import sys
 import time
 import uuid
+from http.client import HTTPException
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode, urlsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener, urlopen
@@ -16,6 +17,10 @@ VOICE_ID = re.compile(r"[A-Za-z0-9_-]{3,80}")
 POLL_SECONDS = 4
 TRANSIENT = {429, 500, 502, 503, 504}
 MAX_AUDIO_BYTES = 25 * 1024 * 1024
+
+
+class JobLost(RuntimeError):
+    """VN11 no longer has this reading (it failed, or the job id is unknown): polling again cannot help."""
 
 
 class NoRedirect(HTTPRedirectHandler):
@@ -102,17 +107,17 @@ def poll_job(job, key):
         time.sleep(POLL_SECONDS)
         try:
             status, data = request_json(path, key)
-        except (URLError, TimeoutError):
+        except (OSError, ValueError, HTTPException):   # no answer, a reply cut short or not JSON: ask again
             continue
         if status in TRANSIENT:
             continue
         if status != 200 or not isinstance(data, dict):
-            raise RuntimeError(f"VN11 không trả trạng thái giọng (HTTP {status}).")
+            raise JobLost(f"VN11 không trả trạng thái giọng (HTTP {status}).")
         state = data.get("status")
         if state == "completed":
             return data.get("download_url")
         if state == "failed":
-            raise RuntimeError("VN11 báo lượt tạo giọng thất bại.")
+            raise JobLost("VN11 báo lượt tạo giọng thất bại.")
     raise RuntimeError("VN11 chưa hoàn thành sau 15 phút. Kiểm tra lượt tạo trên VN11 trước khi chạy lại.")
 
 
@@ -124,7 +129,7 @@ def save_audio(url, path):
             if urlsplit(response.url).scheme != "https":
                 raise RuntimeError("Liên kết tệp giọng phải dùng HTTPS.")
             audio = response.read(MAX_AUDIO_BYTES + 1)
-    except (URLError, TimeoutError):
+    except (OSError, HTTPException):
         raise RuntimeError("Không tải được tệp giọng từ VN11.") from None
     if not audio or len(audio) > MAX_AUDIO_BYTES:
         raise RuntimeError("Kích thước tệp giọng VN11 ngoài giới hạn.")
