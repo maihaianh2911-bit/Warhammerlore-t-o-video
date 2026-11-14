@@ -12,6 +12,7 @@ After prepare the issue waits for Claude (lore-pick) unless picks.json exists, t
 `python3 -m factory.run mark <N> <step> ...` only moves the issue's step label (run at once, before the work job).
 Needs GH_TOKEN, GITHUB_REPOSITORY; prepare needs VN11_API_KEY.
 """
+import datetime
 import json
 import os
 import re
@@ -84,6 +85,18 @@ def failed_queries(index, queries):
     if [entry.get("query") for entry in entries] != list(queries):
         return []
     return [entry["query"] for entry in entries if entry.get("error")]
+
+
+def asked_since(comments, owner, pushed_at):
+    """True when the owner wrote a comment of their own (not a 🤖 one) after `pushed_at`.
+    comments: [{"login", "at", "body"}] with ISO times, as the workflow's fix job sees them."""
+    def moment(text):
+        return datetime.datetime.fromisoformat(text.replace("Z", "+00:00"))
+
+    since = moment(pushed_at)
+    return any((entry.get("login") or "").casefold() == owner.casefold()
+               and not (entry.get("body") or "").startswith("🤖") and moment(entry["at"]) > since
+               for entry in comments)
 
 
 def search_note(failed):
@@ -270,7 +283,24 @@ class Run:
         self.labels(add=["lore-voice"], remove=["lore-plan", "lore-failed"])
 
     def render_labels(self):
-        self.labels(add=["lore-render"], remove=["lore-pick", "lore-check", "lore-done", "lore-fix", "lore-failed"])
+        remove = ["lore-pick", "lore-check", "lore-done", "lore-failed"]
+        if not self.asked_since_push():
+            remove.append("lore-fix")
+        self.labels(add=["lore-render"], remove=remove)
+
+    def asked_since_push(self):
+        """Whether the owner commented after the commit that is being rendered: that request is not in this
+        render, so lore-fix stays and Claude reads it after the render. Unknown counts as yes."""
+        pushed = subprocess.run(["git", "log", "-1", "--format=%cI", "HEAD"], cwd=ROOT, capture_output=True, text=True)
+        comments = self.gh("api", "--paginate", f"repos/{self.repo}/issues/{self.n}/comments?per_page=100", "--jq",
+                           '.[] | {login: .user.login, at: .created_at, body: .body[0:1]} | tojson')
+        if pushed.returncode or comments.returncode:
+            return True
+        try:
+            entries = [json.loads(line) for line in comments.stdout.splitlines() if line.strip()]
+            return asked_since(entries, self.repo.split("/")[0], pushed.stdout.strip())
+        except (ValueError, TypeError, KeyError):
+            return True
 
     def narrate(self, job, voice):
         """The voice, in this process so that every paid stage can be published at once: the VN11 job id as soon

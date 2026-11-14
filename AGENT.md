@@ -226,6 +226,8 @@ GitHub 14 ngày kể từ lần hoạt động cuối của phiếu rồi tự x
 - `lore-fix`: the request = owner comments after your last `🤖` comment. Wording → `script.json`; pictures →
   `picks.json` (newly attached pictures: push `lore/<N>/search-<r>.json` with `{"queries": []}` to have the
   machine collect them, or re-run `prepare`). Push, one-line 🤖 comment, remove `lore-fix`.
+  A render removes `lore-fix`, except when the owner commented after the push it renders: then the issue comes
+  back as `lore-check` + `lore-fix` — check the shots, then handle the request.
   A comment that needs no change (thanks, a question you answer): answer in a 🤖 comment, remove `lore-fix` and,
   when the video had been delivered, add `lore-done` back (the workflow removed it when the comment came). Never
   leave the issue with no step label: with only `lore` nobody looks at it again.

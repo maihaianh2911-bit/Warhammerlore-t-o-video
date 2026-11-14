@@ -319,6 +319,17 @@ class RunTest(unittest.TestCase):
                 find.get("https://example.invalid/x")
         self.assertEqual(opened.call_count, 1)
 
+    def test_a_request_made_after_the_push_keeps_its_label(self):
+        from factory.run import asked_since
+        pushed = "2026-11-12T21:15:40+00:00"
+        before = {"login": "Owner", "at": "2026-11-12T21:10:00Z", "body": "đ"}
+        after = {"login": "Owner", "at": "2026-11-12T21:16:00Z", "body": "c"}
+        self.assertFalse(asked_since([before], "owner", pushed))              # already in the push being rendered
+        self.assertTrue(asked_since([before, after], "owner", pushed))
+        self.assertFalse(asked_since([{**after, "body": "🤖"}], "owner", pushed))     # Claude's own comment
+        self.assertFalse(asked_since([{**after, "login": "github-actions[bot]"}], "owner", pushed))
+        self.assertTrue(asked_since([{**after, "at": "2026-11-13T04:16:00+07:00"}], "owner", pushed))
+
     def test_only_the_owners_attachments_are_collected(self):
         url = "https://github.com/user-attachments/assets/0f8fad5b-d9cb-469f-a165-70867728950e"
         issue = {"user": {"login": "Owner"}, "body": f"![a]({url}) và https://evil.example/x.png"}
