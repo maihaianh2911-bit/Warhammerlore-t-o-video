@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 
 from factory.attachments import attachment_urls, owner_texts
-from factory.run import todo
+from factory.run import catch_up, matrix, todo
 from factory.render import along, camera_view, centred, default_move, eased
 from factory.script import (MAX_NARRATION_CHARS, MOVES, caption_chunks, caption_spans, chunk_events, line_times, load_job,
                             load_picks, make_cues, sentence_end, shot_frames)
@@ -172,6 +172,31 @@ class RunTest(unittest.TestCase):
         files = ["lore/7/picks.json", "lore/7/script.json", "lore/8/search-2.json", "lore/8/own/a.jpg",
                  "lore/9/notes.txt", "factory/run.py"]
         self.assertEqual(todo(files), ["7 prepare render", "8 search render"])
+
+    def test_one_job_per_issue(self):
+        self.assertEqual(matrix(["7 prepare render", "", "8 search", "x render", "9 rm -rf"]),
+                         [{"n": "7", "steps": "prepare render"}, {"n": "8", "steps": "search"}])
+        self.assertEqual(matrix([]), [])
+
+    def test_a_run_does_what_a_replaced_run_left_undone(self):
+        job, work = Path(tempfile.mkdtemp()), Path(tempfile.mkdtemp())
+        script = {"title": "T", "paragraphs": [["Eins.", "Zwei."]]}
+        (job / "script.json").write_text(json.dumps(script), encoding="utf-8")
+        self.assertEqual(catch_up(job, work, ["render"]), ["prepare", "render"])          # nothing was read yet
+        (work / "voice").mkdir()
+        (work / "voice" / "timing.json").write_text(json.dumps({"text": "Eins. Zwei."}), encoding="utf-8")
+        self.assertEqual(catch_up(job, work, ["render"]), ["render"])                     # the voice is this script
+        (work / "voice" / "timing.json").write_text(json.dumps({"text": "Eins. Drei."}), encoding="utf-8")
+        self.assertEqual(catch_up(job, work, ["render"]), ["prepare", "render"])          # the script was fixed since
+        self.assertEqual(catch_up(job, work, ["prepare"]), ["prepare"])
+        (work / "voice" / "timing.json").write_text(json.dumps({"text": "Eins. Zwei."}), encoding="utf-8")
+        (job / "search-2.json").write_text('{"queries": ["gallery:Badab"]}', encoding="utf-8")
+        self.assertEqual(catch_up(job, work, ["render"]), ["search", "render"])           # round 2 never ran
+        (work / "img" / "2").mkdir(parents=True)
+        (work / "img" / "2" / "index.json").write_text("[]", encoding="utf-8")
+        self.assertEqual(catch_up(job, work, ["render"]), ["render"])
+        (job / "script.json").write_text("{broken", encoding="utf-8")
+        self.assertEqual(catch_up(job, work, ["render"]), ["render"])                     # reported by the step itself
 
     def test_claude_is_woken_once_the_pictures_are_there(self):
         from unittest import mock

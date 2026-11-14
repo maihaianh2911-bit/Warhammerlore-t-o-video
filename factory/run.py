@@ -7,7 +7,9 @@
   search   every lore/<N>/search-<r>.json whose round is not on renders yet → renders/lore/<N>/img/<r>/
   render   video from script.json + picks.json → renders/lore/<N>/video.mp4, subtitles.srt, credits.md, sheet.jpg
 After prepare the issue waits for Claude (lore-pick) unless picks.json exists, then render runs too.
-`python3 -m factory.run todo` reads changed file names on stdin and prints "<N> <steps>" lines.
+`python3 -m factory.run todo` reads changed file names on stdin and prints "<N> <steps>" lines;
+`python3 -m factory.run matrix` turns those lines into the JSON list of the workflow's job matrix;
+`python3 -m factory.run mark <N> <step> ...` only moves the issue's step label (run at once, before the work job).
 Needs GH_TOKEN, GITHUB_REPOSITORY; prepare needs VN11_API_KEY.
 """
 import json
@@ -37,6 +39,39 @@ def todo(files):
         if step and step not in jobs.setdefault(number, []):
             jobs[number].append(step)
     return [f"{number} {' '.join(sorted(steps, key=ORDER.index))}" for number, steps in jobs.items() if steps]
+
+
+def matrix(lines):
+    """"<N> <steps>" lines → [{"n": "<N>", "steps": "<steps>"}], one workflow job per issue."""
+    jobs = [line.split() for line in lines if line.split()]
+    return [{"n": words[0], "steps": " ".join(words[1:])} for words in jobs
+            if words[0].isdigit() and words[1:] and all(step in ORDER for step in words[1:])]
+
+
+def catch_up(job, work, steps):
+    """Steps a run must also do because the run that should have done them never started.
+
+    Runs of one issue wait for each other, and GitHub keeps only the newest waiting run: when Claude pushes a
+    fixed script, then a search round, then the picks while a step is still running, only the last push runs.
+    So a push run also reads the voice when the script on main is not the one that was read, and searches every
+    round that has no result yet. Both are skipped by the steps themselves when there is nothing to do.
+    """
+    steps = list(steps)
+    timing = work / "voice" / "timing.json"
+    if "prepare" not in steps and (job / "script.json").is_file():
+        try:
+            from .script import load_job
+            text = load_job(job / "script.json").text
+            read = json.loads(timing.read_text(encoding="utf-8")).get("text") if timing.is_file() else None
+            if read != text:
+                steps.append("prepare")
+        except (OSError, ValueError):
+            pass    # a broken script.json is reported by the step that needs it
+    if "search" not in steps and any(
+            not (work / "img" / path.stem[len("search-"):] / "index.json").is_file()
+            for path in job.glob("search-*.json")):
+        steps.append("search")
+    return sorted(steps, key=ORDER.index)
 
 
 class Run:
@@ -168,11 +203,25 @@ class Run:
         marker.write_text(json.dumps(urls), encoding="utf-8")
         return count, True
 
+    def mark(self, steps):
+        """The label of the step that is about to run, set as soon as the push is seen: the work job itself may
+        wait for an earlier run of this issue and needs ~40 s for its tools."""
+        if "prepare" in steps:
+            self.voice_labels()
+        elif "render" in steps and (self.job / "picks.json").is_file():
+            self.render_labels()
+
+    def voice_labels(self):
+        self.labels(add=["lore-voice"], remove=["lore-plan", "lore-failed"])
+
+    def render_labels(self):
+        self.labels(add=["lore-render"], remove=["lore-pick", "lore-check", "lore-done", "lore-fix", "lore-failed"])
+
     def prepare(self):
         from .script import load_job
 
         job = load_job(self.job / "script.json")
-        self.labels(add=["lore-voice"], remove=["lore-plan", "lore-failed"])
+        self.voice_labels()
         voice = self.work / "voice"
         self.module("narrate", "--job", self.job, "--out", voice, "--previous", voice)
         self.publish(["voice"], "giọng đọc")   # saved first: a failed picture search must not cost a second reading
@@ -204,7 +253,7 @@ class Run:
             self.publish(done, "tìm thêm ảnh")
 
     def render(self):
-        self.labels(add=["lore-render"], remove=["lore-pick", "lore-check", "lore-done", "lore-fix", "lore-failed"])
+        self.render_labels()
         out = ROOT / "out" / f"render-{self.n}"
         shutil.rmtree(out, ignore_errors=True)
         self.module("render", "--job", self.job, "--voice", self.work / "voice",
@@ -222,11 +271,20 @@ def main():
     if sys.argv[1:] == ["todo"]:
         print("\n".join(todo(line.strip() for line in sys.stdin.read().splitlines() if line.strip())))
         return
-    number, steps = sys.argv[1], sys.argv[2:]
+    if sys.argv[1:] == ["matrix"]:
+        print(json.dumps(matrix(sys.stdin.read().splitlines())))
+        return
+    only_mark = sys.argv[1:2] == ["mark"]
+    number, steps = (sys.argv[2:3] or [""])[0] if only_mark else sys.argv[1], sys.argv[3 if only_mark else 2:]
     if not number.isdigit() or not steps or any(step not in ORDER for step in steps):
         raise SystemExit(__doc__)
     run = Run(number)
+    if only_mark:
+        run.mark(steps)
+        return
     run.fetch_renders()
+    if os.environ.get("GITHUB_EVENT_NAME") == "push":
+        steps = catch_up(run.job, run.work, steps)
     has_picks = (run.job / "picks.json").is_file()
     wake = None     # one call to Claude once the pictures of this run are all there (prepare and search together)
     if "prepare" in steps:
@@ -241,6 +299,7 @@ def main():
         elif not has_picks:
             review = len(timing["review"])
             run.labels(add=["lore-pick"], remove=["lore-voice"])
+            steps = [step for step in steps if step != "render"]    # nothing to render before the picks
             wake = (f"Phiếu 40K số {number}: giọng và ảnh đã sẵn sàng, chờ chọn hình.",
                     f"🤖 Giọng đọc xong: {len(timing['lines'])} câu, {timing['duration']:.0f} giây"
                     f"{f' ({review} đoạn cần nghe lại)' if review else ''}. "

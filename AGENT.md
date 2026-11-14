@@ -34,6 +34,15 @@ gh api "repos/$R/issues?state=open&labels=lore&per_page=50" --jq '[.[] | select(
   never force-push. A failure that needs a workflow change: say so in a 🤖 comment and leave `lore-failed`.
 - **Claim** one issue at a time: skip it when `lore-busy` was added less than 2 hours ago (issue events); else add
   `lore-busy`, do **one step**, remove `lore-busy`. Do not push `picks.json` while the issue is `lore-voice`.
+  **After a push, keep `lore-busy` until the workflow has moved the step label** (`lore-plan` → `lore-voice`,
+  `lore-pick` → `lore-render`; the job `plan` of "Video 40K" does it about 20 s after the push — read the issue's
+  labels, and when it has not moved after 3 minutes look at the run): until then the issue still looks as if it
+  waited for Claude, and another run of the task would do your step a second time (and pay for a second voice).
+- Runs of one issue wait for each other. When several pushes for one issue wait at the same time, GitHub runs
+  only the newest; that run also reads a changed script and searches the rounds `search-<r>.json` nobody
+  searched yet, so nothing is lost — but push one step at a time and wait for its result.
+- The machine does not call Claude for an issue whose `lore-busy` is younger than 2 hours, and it writes on the
+  issue when Claude could not be called (the owner then presses "Gọi Claude ngay").
 - **In a chat** (the owner pasted a script, see `CLAUDE.md`): opening the issue, and every machine step after it,
   wakes the Claude task, which would take the same step as you. So add `lore-busy` right after creating the issue,
   before anything else, and keep it while you wait for the machine. Each time you pick up the next step, claim it
@@ -104,7 +113,8 @@ Read the issue form (Kịch bản, Hình riêng, Ghi chú) and the owner's comme
 - Once round 1 exists, do not change `queries` (the machine would search again and every `1/k-n.jpg` would
   mean another picture): add searches with `search-<r>.json` (§2.2). If it happens anyway, the machine does
   not render; it sets `lore-pick` and you choose the pictures again.
-Commit `[lore #<N>] kịch bản`, push, remove `lore-busy`. (Voice ~5–10 min; you are woken at `lore-pick`.)
+Commit `[lore #<N>] kịch bản`, push, wait until the label is `lore-voice`, then remove `lore-busy`. (Voice
+~5–10 min; you are woken at `lore-pick`.)
 
 ## 2. `lore-pick` → `lore/<N>/picks.json`
 1. `voice/check.md` lists words Whisper heard differently from the script. Lore names are usually just misheard
@@ -195,8 +205,9 @@ Commit `[lore #<N>] kịch bản`, push, remove `lore-busy`. (Voice ~5–10 min;
    as the video frames it. Check that END sits on the character, that the path shows what the line talks about,
    and that the distance suits the length (a long way in 2 s is a whip, a short way in 10 s is a freeze). Fix any shot that cuts a
    face, misses its subject or shows a border, and run it again until all are right.
-7. Commit `picks.json` together with any `script.json` fixes in **one** push as `[lore #<N>] chọn hình`, remove
-   `lore-busy`. (The render takes ~5–10 min; you are woken at `lore-check`.)
+7. Commit `picks.json` together with any `script.json` fixes in **one** push as `[lore #<N>] chọn hình`, wait
+   until the label is `lore-render` (`lore-voice` when the script changed), then remove `lore-busy`. (The render
+   takes ~5–10 min; you are woken at `lore-check`.)
 
 ## 3. `lore-check` → done
 Open `sheet.jpg` (one tile per shot, mid-shot, with captions) and `voice/check.md` once more. Push a corrected
