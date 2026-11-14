@@ -215,7 +215,8 @@ Open `sheet.jpg` (one tile per shot, mid-shot, with captions) and `voice/check.m
 Otherwise remove `lore-check`, add `lore-done` and comment (🤖, short, Vietnamese): video link
 `https://github.com/maihaianh2911-bit/Warhammerlore-t-o-video/blob/renders/lore/<N>/video.mp4`, its length,
 links to `subtitles.srt` and `credits.md` (to paste into the video description), one line on the pictures used
-and which beats still use a generated background, "bình luận nếu muốn sửa".
+and which beats still use a generated background, "bình luận nếu muốn sửa", and the expiry: "Video được giữ trên
+GitHub 14 ngày kể từ lần hoạt động cuối của phiếu rồi tự xóa — hãy tải về sớm."
 
 ## 4. `lore-fix` and `lore-failed`
 - `lore-fix`: the request = owner comments after your last `🤖` comment. Wording → `script.json`; pictures →
@@ -225,11 +226,13 @@ and which beats still use a generated background, "bình luận nếu muốn s�
   when the video had been delivered, add `lore-done` back (the workflow removed it when the comment came). Never
   leave the issue with no step label: with only `lore` nobody looks at it again.
 - **An old issue:** "Dọn video cũ" (`renders-cleanup.yml`, weekly) deletes `renders/lore/<N>/` — voice, every
-  picture round, video — of issues with no activity for 14 days. When `git ls-tree origin/renders lore/<N>/` is
+  picture round, video — of issues with no activity for 14 days (an open issue that is not `lore-done` is
+  kept). When `git ls-tree origin/renders lore/<N>/` is
   empty, a change request needs everything made again: re-run
   `gh api -X POST repos/maihaianh2911-bit/Warhammerlore-t-o-video/actions/workflows/lore.yml/dispatches -f ref=main -f 'inputs[issue]=<N>' -f 'inputs[steps]=prepare search'`.
-  (A wording change: push the fixed `script.json` instead, which runs `prepare`, and once that run is done run
-  the same call with `inputs[steps]=search` for the rounds `search-<r>.json`.)
+  (A wording change: push the fixed `script.json` instead, which runs `prepare` and the rounds
+  `search-<r>.json` that have no result. Any push for such an issue does the same: the machine reads the voice
+  again when the one on `renders` is gone or is not the script on `main`.)
   The voice is read again (VN11 credit is paid again) and the searches are run again, so their numbers may now
   mean other pictures: you are woken at `lore-pick` and choose every picture again (`own/` pictures stay, they
   are on `main`). Say so in your 🤖 comment first ("video cũ đã bị dọn sau 14 ngày, phải đọc lại giọng — tốn
