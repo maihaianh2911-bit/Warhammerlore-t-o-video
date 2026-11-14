@@ -7,7 +7,7 @@ Dây chuyền làm **video lore Warhammer 40K tiếng Đức** khổ dọc (1080
 1. **Issues → New issue → Video lore Warhammer 40K.** Đặt tên video sau `[40K]`, dán kịch bản tiếng Việt đã duyệt → **Create**. Không cần chuẩn bị hình.
 2. Không cần làm gì thêm. Claude dịch sang tiếng Đức và chia câu → máy tạo giọng đọc, nghe lại để căn phụ đề, gom hình → Claude xem và chọn hình cho từng ý, xem trước khung hình → máy dựng video → Claude kiểm tra lại từng cảnh. Mỗi bước báo trong phiếu.
 3. Bình luận cuối có link **video**, **phụ đề** (SRT) và **nguồn hình** (dán vào mô tả video).
-4. Muốn sửa: viết **một bình luận** gom hết yêu cầu, ví dụ "cảnh 3 đổi hình, câu 5 đọc sai tên". Không bắt đầu bình luận bằng 🤖 (đó là dấu của Claude).
+4. Muốn sửa: viết **một bình luận** gom hết yêu cầu, ví dụ "cảnh 3 đổi hình, câu 5 đọc sai tên". Mỗi cảnh có một **kiểu edit** có tên (bảng trong bình luận cuối; video mẫu được phân tích ở [`00-video-mau/HUONG-DAN-EDIT.md`](00-video-mau/HUONG-DAN-EDIT.md)); muốn đổi thì viết "cảnh 5 đổi sang kiểu lao-toi". Không bắt đầu bình luận bằng 🤖 (đó là dấu của Claude).
 
 Chỉ phiếu do chủ repo mở mới chạy. Kịch bản chủ repo gửi được xem là đã duyệt: Claude dịch sát, không cắt, không thêm. Phiếu trong repo Public có thể được người khác đọc.
 
@@ -39,7 +39,7 @@ Bạn không phải tìm hình. Máy và Claude tự tìm:
 
 ## File kết quả
 
-Nhánh **`renders`**, thư mục `lore/<số phiếu>/`: `video.mp4`, `subtitles.srt`, `credits.md` (nguồn hình), `sheet.jpg` (ảnh các cảnh), `cover.jpg`, `voice/narration.mp3`, `voice/check.md` (đoạn cần nghe lại). Video của phiếu không hoạt động quá 14 ngày được dọn tự động, nên hãy tải về sớm.
+Nhánh **`renders`**, thư mục `lore/<số phiếu>/`: `video.mp4`, `subtitles.srt`, `credits.md` (nguồn hình), `edits.md` (cách edit từng cảnh và vì sao), `sheet.jpg` (ảnh các cảnh), `cover.jpg`, `voice/narration.mp3`, `voice/check.md` (đoạn cần nghe lại). Video của phiếu không hoạt động quá 14 ngày được dọn tự động, nên hãy tải về sớm.
 
 ## Cấu hình
 

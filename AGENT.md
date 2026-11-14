@@ -6,7 +6,7 @@ evenly and always ends on the picture's main character (learned from the owner's
 `00-video-mau/`), soft quick cuts, a gold title over the first two seconds,
 and short captions that follow the German `ww40k` voice word by word (VN11 `clone_611`).
 Machine steps run in `.github/workflows/lore.yml` → `factory/run.py`; files land on the `renders` branch in
-`lore/<N>/` (`voice/`, `img/<round>/`, `video.mp4`, `sheet.jpg`, `subtitles.srt`, `credits.md`).
+`lore/<N>/` (`voice/`, `img/<round>/`, `video.mp4`, `sheet.jpg`, `subtitles.srt`, `credits.md`, `edits.md`).
 
 Steps (labels): `lore-plan` → you write `lore/<N>/script.json` → `lore-voice` (machine: voice, voice check,
 pictures) → `lore-pick` → you write `lore/<N>/picks.json` → `lore-render` (machine) → `lore-check` → you check
@@ -151,14 +151,15 @@ Commit `[lore #<N>] kịch bản`, push, wait until the label is `lore-voice`, t
 {"images": {"tyberos": {"src": "1/1-1.jpg", "credit": "Tyberos the Red Wake — Games Workshop, Warhammer 40k Wiki"},
             "fleet": {"src": "art/carcharodons-fleet.jpg", "credit": "…", "crop": [0.1, 0.0, 0.9, 1.0]},
             "nebula": {"src": "1/9-3.jpg", "credit": "Carina Nebula — NASA/ESA, public domain (Wikimedia Commons)"}},
- "shots": [{"img": "fleet", "focus": [0.7, 0.4], "from": [1.0, 0.3, 0.5], "zoom": 1.15, "pace": "even", "kick": 0},
-           {"at": 2, "img": "nebula", "focus": [0.5, 0.5], "move": "pull", "pace": "even"},
-           {"at": 3.5, "img": "tyberos", "focus": [0.5, 0.22], "from": [1.3, 0.35, 0.75],
-            "via": [[0.55, 1.25, 0.45, 0.55]], "zoom": 1.4, "pace": "surge", "kick": 0.08},
+ "shots": [{"img": "fleet", "focus": [0.7, 0.4], "edit": "toan-canh", "why": "hạm đội hiện ra từ bóng tối"},
+           {"at": 2, "img": "nebula", "focus": [0.5, 0.5], "edit": "lui-ra", "why": "không ai gọi họ tới, lùi ra khoảng không"},
+           {"at": 3.5, "img": "tyberos", "focus": [0.5, 0.22], "edit": "qua-vat", "from": [1.3, 0.35, 0.75],
+            "via": [[0.55, 1.25, 0.45, 0.55]], "zoom": 1.4, "why": "thủ lĩnh Tyberos: từ móng vuốt lên mũ giáp"},
            {"at": 5, "theme": "rift"}]}
 ```
-   (Shot 1, "a fleet came out of the dark": wide and steady, drifting to the flagship. Shot 3, "their leader was
-   Tyberos": starts on his claws, passes the shark emblem, surges up to the helmet.)
+   (Shot 1, "a fleet came out of the dark": the whole scene, a slow advance on the flagship. Shot 3, "their
+   leader was Tyberos": `qua-vat` fitted to the picture — starts on his claws, passes the shark emblem, ends on
+   the helmet.)
 
    - `images`: `src` = `issue/<n>.jpg`, `art/<file>`, `<round>/<file>` or `own/<file>` (a file you saved in
      `lore/<N>/own/`). `credit` (always): subject — artist when known, source (40K Gallery: `<title> — <artist when the index has one>, 40K
@@ -168,37 +169,51 @@ Commit `[lore #<N>] kịch bản`, push, wait until the label is `lore-voice`, t
    - `shots` in order. The first starts with line 1; `at` = line number where the next cuts in (13.5 = the middle
      of line 13). Each shot has `img` or `theme` (generated background: `orbit`, `archive`, `rift`, `decay`,
      `inferno`).
-   - Camera — **your decision for every shot, never a routine** (owner, 12/11: "the edit must fit the scene, use
-     your own thinking"). A shot is a path between keyframes, as in a video editor. Only one thing is fixed:
-     **the shot ends centred on `focus`** [x, y] (0–1 across the picture after `crop`), the main character of the
-     picture — the face, or the chest of a full figure; for a picture without a character, its main subject.
-     Everything else you choose after looking at the picture and reading the line it carries:
-     - Where the eye should start, and what it should discover on the way. A line that names a weapon, a wound,
-       an emblem, an enemy in the background: start there (`from`) or pass over it (`via`), then arrive at the
-       face. A line that sets a place or a host: start wide, let the scene be read, close in late. A line about
-       who someone is: stay near the face and barely move.
-     - How far to go. A picture whose setting matters to the line stays wide (end around 1.1–1.25×); a
-       confession, a threat, a death goes closer (1.3–1.5×). Never so close that the scene is lost (the owner
-       rejected 1.5–2× as "too big") and never so little that the picture looks frozen (3% per second "looked
-       static") — but the right amount differs from shot to shot, and a still moment may be nearly still.
-     - How it moves. `pace`: `settle` leaves briskly and eases onto the subject (most narration); `even` is a
-       steady drift (calm exposition, long establishing shots); `surge` starts quietly and gathers speed into the
-       subject (a reveal, a charge, the last word of a threat). `kick` 0–0.12 is the small extra push a cut lands
-       with: 0 for quiet lines, 0.03 usual, 0.06–0.1 when the line hits (a blow, a name revealed, a betrayal).
-     - One direction per shot (owner, 12/11, on a shot that swept right across both wings and then back left to
-       the face: "very unpleasant to watch"). The camera may curve through `via`, but it never doubles back on
-       itself, sideways or up and down; the renderer refuses a path that does. To show two things and then the
-       face, choose a start from which they lie on the way (wing tip → shoulder → face), or use two shots.
-     - Direction follows the picture: travel along the way a figure looks, charges or points, up a towering
-       figure or spire, down from a banner or a sky to the one beneath it, across a battle line.
-     - Rhythm across the video: do not repeat one move shot after shot; let a run of quiet shots be followed by
-       a strong one where the script turns, and give the last shot the move that fits the closing line.
-     How to write it: `from` [zoom, x, y] = your starting view (zoom 1 = the widest view the picture allows;
-     x, y = the point of the picture it looks at); `via` [[t, zoom, x, y], …] = views to pass through at share
-     t (0–1) of the shot; `zoom` = the end zoom on `focus`. Shorthands for a simple move, sized to the shot's
-     length: `"move": "push"` (widest view → subject), `"pull"` (close on the subject → wider, still centred),
-     `"rise"` / `"fall"` (from below / above), `"from-left"` / `"from-right"`, `"glide"`. Every picture shot needs
-     `focus` and either `move` or `from`; there is no default, because there is no move that fits every scene.
+   - **The edit of every shot — read the line, then choose from the catalogue** (owner, 12/11: "the edit must
+     fit the scene, use your own thinking"; 14/11: Claude reads each line and picks a fitting edit from a named
+     list). `"edit": "<name>"` sets the camera; `"why"` is your reason in a few Vietnamese words (never shown in
+     the video; the owner reads it in `edits.md`). The catalogue is built on the owner's sample, analysed shot
+     by shot in `00-video-mau/HUONG-DAN-EDIT.md` (read it once); the code is `factory/edits.py`.
+
+     | `edit` | What the viewer sees (sample) | Use it when the line… | Sets |
+     |---|---|---|---|
+     | `ap-mat` | slow, even push onto the face (0:18–0:24) | names a character, lets them speak, says who someone is (identity) | push · even · kick 0.03 · zoom 1.3 |
+     | `de-doa` | very close on the face, gathering speed (0:24–0:31) | is a threat, a confession, a death, a chilling fact | push · surge · kick 0 · zoom 1.45 |
+     | `toan-canh` | the whole scene, then a very slow advance, setting still visible (0:06–0:18, 0:39–0:51) | sets a place, a host, a fleet, a meeting of two figures | push · even · kick 0 · zoom 1.18 |
+     | `qua-vat` | starts on the object, travels up to the face (0:31–0:37) | names a weapon, an emblem, armour, a wound — put `from` on that object | rise · settle · kick 0.03 |
+     | `lao-toi` | sweeps sideways with the charge, accelerating into the subject (not in the sample) | is a charge, an ambush, a reveal | glide · surge · kick 0.08 |
+     | `va-dap` | the cut lands with a hard kick, then settles (not in the sample) | has an impact: a blow, an explosion, a betrayal, a name just revealed | push · settle · kick 0.12 · zoom 1.35 |
+     | `ngang-len` | climbs evenly from the feet to the head (not in the sample) | is about a towering figure, a statue, a spire, an upright ship | rise · even · kick 0.03 |
+     | `luot-ngang` | glides evenly along the line to the subject (not in the sample) | tells a battle, a battle line, a column, a fleet abreast | glide · even · kick 0 |
+     | `giu-yen` | almost still, a slight drift (0:00–0:06) | shows a document, a sigil, a map; lore exposition the viewer must read in the picture | push · even · kick 0 · zoom 1.1 |
+     | `lui-ra` | starts close, draws back to show the surroundings (not in the sample) | jumps in time ("centuries later"), shows an aftermath, closes the video | pull · even · kick 0 |
+
+     Rules, in this order:
+     1. **Read the line first, choose by its meaning** — never by habit, never the same edit because the last
+        video used it. Write the reason in `why`.
+     2. **Vary neighbours**: no edit three times in a row; after a run of quiet shots (`giu-yen`, `toan-canh`,
+        `ap-mat`) the line where the script turns gets a strong one (`va-dap`, `lao-toi`, `de-doa`). The sample
+        itself is almost only slow pushes: the five edits marked "not in the sample" are for the lines that
+        need them, at most about a third of the shots.
+     3. **Move along the direction of the picture**: the way a figure looks, charges or points, up a tower,
+        along a battle line. `glide` comes from the side with more picture; when that is against the picture's
+        direction, write `"move": "from-left"` or `"from-right"` yourself.
+     4. **One direction per shot** (owner, 12/11, on a shot that swept across both wings and back to the face:
+        "very unpleasant to watch"): the renderer refuses a path that doubles back. To show two things and then
+        the face, start where they lie on the way, or use two shots.
+     5. **The shot ends centred on `focus`** [x, y] (0–1 across the picture after `crop`): the face, or the
+        chest of a full figure; without a character, the main subject. Every picture shot needs `focus`.
+     6. **Not too close, not frozen**: the owner rejected 1.5–2× as "too big" and 3% a second as "static".
+        An edit's `zoom` suits a picture whose subject fills a good part of it; for a small figure in a large
+        picture set `crop` on the image or a higher `zoom` (up to 1.5) in the shot.
+
+     A field written in the shot wins over the edit, so an edit can be fitted to its picture: `zoom` = the end
+     zoom on `focus`; `from` [zoom, x, y] = the starting view (zoom 1 = the widest view the picture allows;
+     x, y = the point it looks at); `via` [[t, zoom, x, y], …] = views passed at share t (0–1) of the shot;
+     `move` (`push`, `pull`, `rise`, `fall`, `from-left`, `from-right`, `glide`), `pace` (`settle`, `even`,
+     `surge`), `kick` (0–0.12). A shot may still be written with these fields alone and no `edit` (it is then
+     listed as "tự chọn"), but only when no edit of the catalogue fits; an unknown `edit` is refused with the
+     list of names.
    - The title sits at 13–22% of the height for the first two seconds; captions sit at 61–67%. The shot ends with `focus` in the
      middle of the frame, between the two; a face right at the top edge of a picture ends as high as the picture
      allows.
@@ -206,7 +221,9 @@ Commit `[lore #<N>] kịch bản`, push, wait until the label is `lore-voice`, t
    `pip install -q pillow` if missing, then
    `python3 -m factory.preview --job lore/<N> --images /tmp/r/lore/<N>/img --voice /tmp/r/lore/<N>/voice --out /tmp/preview.jpg`
    and open the sheet: every shot at each of its keyframes (start, via…, END) with its length in seconds, exactly
-   as the video frames it. Check that END sits on the character, that the path shows what the line talks about,
+   as the video frames it; the first tile of a shot shows its edit in brackets. Next to it, `/tmp/preview.md`
+   lists shot, line, picture, edit and `why`: read it top to bottom as the owner will — does each edit fit its
+   line, do neighbours differ? Check that END sits on the character, that the path shows what the line talks about,
    and that the distance suits the length (a long way in 2 s is a whip, a short way in 10 s is a freeze). Fix any shot that cuts a
    face, misses its subject or shows a border, and run it again until all are right.
 7. Commit `picks.json` together with any `script.json` fixes in **one** push as `[lore #<N>] chọn hình`, wait
@@ -219,12 +236,15 @@ Open `sheet.jpg` (one tile per shot, mid-shot, with captions) and `voice/check.m
 Otherwise remove `lore-check`, add `lore-done` and comment (🤖, short, Vietnamese): video link
 `https://github.com/maihaianh2911-bit/Warhammerlore-t-o-video/blob/renders/lore/<N>/video.mp4`, its length,
 links to `subtitles.srt` and `credits.md` (to paste into the video description), one line on the pictures used
-and which beats still use a generated background, "bình luận nếu muốn sửa", and the expiry: "Video được giữ trên
+and which beats still use a generated background, the table of `edits.md` pasted as it is (shot, line, picture,
+edit, why — `renders/lore/<N>/edits.md`) under the sentence "Muốn đổi cách edit: bình luận ví dụ «cảnh 5 đổi
+sang kiểu lao-toi»", "bình luận nếu muốn sửa", and the expiry: "Video được giữ trên
 GitHub 14 ngày kể từ lần hoạt động cuối của phiếu rồi tự xóa — hãy tải về sớm."
 
 ## 4. `lore-fix` and `lore-failed`
 - `lore-fix`: the request = owner comments after your last `🤖` comment. Wording → `script.json`; pictures →
-  `picks.json` (newly attached pictures: push `lore/<N>/search-<r>.json` with `{"queries": []}` to have the
+  `picks.json`; "cảnh 5 đổi sang kiểu X" → that shot's `edit` (drop fields of the old edit that no longer fit,
+  preview again) (newly attached pictures: push `lore/<N>/search-<r>.json` with `{"queries": []}` to have the
   machine collect them, or re-run `prepare`). Push, one-line 🤖 comment, remove `lore-fix`.
   A render removes `lore-fix`, except when the owner commented after the push it renders: then the issue comes
   back as `lore-check` + `lore-fix` — check the shots, then handle the request.
