@@ -151,6 +151,14 @@ jobs:
       STEPS: ${{ matrix.job.steps }}
     steps:
       - uses: actions/checkout@v4
+      - name: Bộ nhớ đệm công cụ
+        # pip downloads and the Whisper model: saves about a minute per run; a miss only means downloading again
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.cache/huggingface
+          key: lore-tools-${{ runner.os }}-${{ hashFiles('requirements*.txt') }}
       - name: Cài công cụ
         run: |
           sudo apt-get update -qq
