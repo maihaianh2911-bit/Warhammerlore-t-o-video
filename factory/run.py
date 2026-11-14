@@ -74,8 +74,30 @@ def catch_up(job, work, steps):
     return sorted(steps, key=ORDER.index)
 
 
+def failed_queries(index, queries):
+    """Queries of a search round whose search failed (index.json entries with "error"); [] when the index is not
+    of these queries."""
+    try:
+        entries = json.loads(Path(index).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return []
+    if [entry.get("query") for entry in entries] != list(queries):
+        return []
+    return [entry["query"] for entry in entries if entry.get("error")]
+
+
+def search_note(failed):
+    """What the issue comment says about the picture search."""
+    if not failed:
+        return "Hình đã tìm xong."
+    names = ", ".join(failed[:6]) + ("…" if len(failed) > 6 else "")
+    return (f"Tìm hình chưa xong: {len(failed)} từ khóa bị lỗi mạng ({names}). "
+            "Các từ khóa này sẽ được tìm lại khi chạy lại bước prepare hoặc search.")
+
+
 class Run:
     def __init__(self, number):
+        self.failed = []    # picture searches of this run that failed (a site was down): tried again next run
         self.n = number
         self.job = ROOT / "lore" / number
         self.work = ROOT / "out" / f"lore-{number}"          # mirror of renders/lore/<N>/ for this run
@@ -175,15 +197,28 @@ class Run:
         raise SystemExit("không đẩy được lên nhánh renders")
 
     def find_images(self, folder, queries, earlier=()):
-        """One search round; skipped when the same queries were already searched."""
+        """One search round. Returns None when the same queries were already searched, "new" for a fresh round
+        (every number may mean another picture), "retried" when only the queries that failed last time were
+        searched again (the other pictures keep their numbers).
+
+        The done-marker queries.json is written only when no query failed, so the next prepare/search run tries
+        the failed ones again; they are listed in self.failed for the comment on the issue.
+        """
         marker = folder / "queries.json"
         if marker.is_file() and json.loads(marker.read_text(encoding="utf-8")) == queries:
-            return False
-        shutil.rmtree(folder, ignore_errors=True)
+            return None
+        index = folder / "index.json"
+        kind = "retried" if failed_queries(index, queries) else "new"
+        if kind == "new":
+            shutil.rmtree(folder, ignore_errors=True)
         seen = ":".join(str(path) for path in earlier)
         self.module("find_images", folder, *queries, env={**os.environ, "FIND_SEEN": seen})
-        marker.write_text(json.dumps(queries, ensure_ascii=False), encoding="utf-8")
-        return True
+        failed = failed_queries(index, queries)
+        if failed:
+            self.failed += failed
+        else:
+            marker.write_text(json.dumps(queries, ensure_ascii=False), encoding="utf-8")
+        return kind
 
     def attachments(self):
         from .attachments import attachment_urls, download, owner_texts
@@ -229,12 +264,13 @@ class Run:
         attached, changed = self.attachments()
         if changed:
             paths.append("img/issue")
-        searched = bool(job.queries) and self.find_images(self.work / "img" / "1", list(job.queries))
+        searched = self.find_images(self.work / "img" / "1", list(job.queries)) if job.queries else None
         if searched:
             paths.append("img/1")
         if paths:
             self.publish(paths, "ảnh")
-        return json.loads((voice / "timing.json").read_text(encoding="utf-8")), attached, searched
+        # only a fresh round changes what 1/k-n.jpg means; a retry of failed queries keeps the other numbers
+        return json.loads((voice / "timing.json").read_text(encoding="utf-8")), attached, searched == "new"
 
     def search(self):
         done = []
@@ -286,25 +322,27 @@ def main():
     if os.environ.get("GITHUB_EVENT_NAME") == "push":
         steps = catch_up(run.job, run.work, steps)
     has_picks = (run.job / "picks.json").is_file()
-    wake = None     # one call to Claude once the pictures of this run are all there (prepare and search together)
+    # one call to Claude, and one comment, once the pictures of this run are all there (prepare and search together)
+    why = facts = promise = ""
+    pictures = False    # the comment says how the picture search went
     if "prepare" in steps:
         timing, attached, searched = run.prepare()
         if has_picks and searched:
             # round 1 was searched again: its numbers (1/k-n.jpg) now mean other pictures, so picks.json is stale
             run.labels(add=["lore-pick"], remove=["lore-voice"])
-            wake = (f"Phiếu 40K số {number}: tìm lại hình, cần chọn lại hình.",
-                    "🤖 Từ khóa tìm hình đã đổi nên bộ hình cũng đổi. Hình phải được chọn lại trước khi dựng.",
-                    "Claude sẽ chọn lại hình.")
+            why = f"Phiếu 40K số {number}: tìm lại hình, cần chọn lại hình."
+            facts = "🤖 Từ khóa tìm hình đã đổi nên bộ hình cũng đổi. Hình phải được chọn lại trước khi dựng."
+            promise = "Claude sẽ chọn lại hình."
             steps = [step for step in steps if step != "render"]
         elif not has_picks:
             review = len(timing["review"])
             run.labels(add=["lore-pick"], remove=["lore-voice"])
             steps = [step for step in steps if step != "render"]    # nothing to render before the picks
-            wake = (f"Phiếu 40K số {number}: giọng và ảnh đã sẵn sàng, chờ chọn hình.",
-                    f"🤖 Giọng đọc xong: {len(timing['lines'])} câu, {timing['duration']:.0f} giây"
-                    f"{f' ({review} đoạn cần nghe lại)' if review else ''}. "
-                    f"{f'Đã lấy {attached} ảnh đính kèm trong phiếu. ' if attached else ''}Hình đã tìm xong.",
-                    "Claude sẽ chọn hình cho từng ý.")
+            why = f"Phiếu 40K số {number}: giọng và ảnh đã sẵn sàng, chờ chọn hình."
+            facts = (f"🤖 Giọng đọc xong: {len(timing['lines'])} câu, {timing['duration']:.0f} giây"
+                     f"{f' ({review} đoạn cần nghe lại)' if review else ''}."
+                     f"{f' Đã lấy {attached} ảnh đính kèm trong phiếu.' if attached else ''}")
+            promise, pictures = "Claude sẽ chọn hình cho từng ý.", True
         elif "render" not in steps:
             steps.append("render")
     if "search" in steps:
@@ -312,9 +350,13 @@ def main():
         if "render" not in steps:
             run.labels(add=["lore-pick"], remove=["lore-voice"])
             # as after every machine step: Claude may have stopped waiting for this round
-            wake = wake or (f"Phiếu 40K số {number}: đã tìm thêm hình, chờ chọn hình.",)
-    if wake:
-        run.wake(*wake)
+            why = why or f"Phiếu 40K số {number}: đã tìm thêm hình, chờ chọn hình."
+    failed = getattr(run, "failed", [])     # searches that failed in this run (a site was down)
+    if why:
+        if pictures or failed:
+            facts = f"{facts or '🤖'} {search_note(failed)}"
+            why += f" {len(failed)} từ khóa tìm hình bị lỗi (\"error\" trong index.json)." if failed else ""
+        run.wake(why, facts, promise)
     if "render" in steps and not has_picks and "prepare" not in steps and os.environ.get("GITHUB_EVENT_NAME") == "push":
         # own/ pictures pushed before picks.json: nothing to render yet, and nothing failed
         print("chưa có picks.json — chưa dựng; ảnh riêng sẽ được dùng khi có picks.json")
@@ -329,7 +371,8 @@ def main():
         run.wake(
             f"Phiếu 40K số {number}: video đã dựng, chờ kiểm tra.",
             f"🤖 Đã dựng xong bản video ({minutes} phút {seconds:02d} giây), chưa kiểm tra từng cảnh.\n\n"
-            f"- Video: {run.link('video.mp4')}\n- Ảnh các cảnh: {run.link('sheet.jpg')}\n\n",
+            f"- Video: {run.link('video.mp4')}\n- Ảnh các cảnh: {run.link('sheet.jpg')}\n\n"
+            f"{search_note(failed) if failed else ''}",
             "Claude sẽ kiểm tra lại từng cảnh trước khi giao.",
         )
 

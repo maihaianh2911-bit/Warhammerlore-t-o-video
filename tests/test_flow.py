@@ -240,6 +240,83 @@ class RunTest(unittest.TestCase):
                 self.assertNotIn("comment", runs[0].calls)
                 self.assertNotIn("Claude sẽ", wakes[0][2])
 
+    def test_a_failed_picture_search_is_recorded_and_only_it_is_tried_again(self):
+        import io
+        import sys
+        from unittest import mock
+        from PIL import Image
+        import factory.find_images as find
+        from factory.run import failed_queries, search_note
+
+        def picture(seed):
+            import random
+            rng = random.Random(seed)       # coarse random blocks: three clearly different pictures
+            small = Image.new("L", (9, 9))
+            small.putdata([rng.randrange(256) for _ in range(81)])
+            image = small.resize((600, 600), Image.BICUBIC).convert("RGB")
+            data = io.BytesIO()
+            image.save(data, "JPEG")
+            return data.getvalue()
+
+        pictures = {f"https://example.invalid/{seed}.jpg": picture(seed) for seed in (2, 5, 11)}
+        down = {"badab"}
+
+        def search(query, n=12):
+            if query in down:
+                raise TimeoutError("timed out")
+            seeds = {"sharks": (2, 5), "badab": (11,)}[query]
+            return [{"title": str(seed), "page": "p", "thumb": f"https://example.invalid/{seed}.jpg", "width": None,
+                     "height": None, "source": "wiki", "license": "© GW"} for seed in seeds]
+
+        out = Path(tempfile.mkdtemp()) / "1"
+        queries = ["sharks", "badab"]
+
+        def run():
+            with mock.patch.object(find, "search", search), mock.patch.object(find, "get", pictures.__getitem__), \
+                    mock.patch.object(find.time, "sleep"), mock.patch.object(sys, "argv", ["find", str(out), *queries]), \
+                    mock.patch.dict("os.environ", {"FIND_SEEN": ""}):
+                find.main()
+            return json.loads((out / "index.json").read_text(encoding="utf-8"))
+
+        index = run()
+        self.assertEqual([len(entry["results"]) for entry in index], [2, 0])
+        self.assertIn("TimeoutError", index[1]["error"])
+        self.assertNotIn("error", index[0])
+        self.assertEqual(failed_queries(out / "index.json", queries), ["badab"])
+        self.assertEqual(failed_queries(out / "index.json", ["other"]), [])
+        self.assertIn("badab", search_note(["badab"]))
+        self.assertNotIn("Hình đã tìm xong", search_note(["badab"]))
+        first = (out / "1-1.jpg").stat().st_mtime_ns
+
+        down.clear()
+        with mock.patch.dict(pictures, {"https://example.invalid/2.jpg": b"not a picture any more"}):
+            index = run()       # "sharks" is not searched again: its pictures and numbers stay
+        self.assertEqual([len(entry["results"]) for entry in index], [2, 1])
+        self.assertEqual((out / "1-1.jpg").stat().st_mtime_ns, first)
+        self.assertTrue((out / "2-1.jpg").is_file())
+        self.assertEqual(failed_queries(out / "index.json", queries), [])
+
+    def test_a_dropped_connection_is_tried_again(self):
+        from unittest import mock
+        from urllib.error import HTTPError, URLError
+        import factory.find_images as find
+
+        class Reply:
+            def __enter__(self): return self
+            def __exit__(self, *rest): return False
+            def read(self): return b"ok"
+
+        for errors in ([URLError("reset"), TimeoutError("slow")], [HTTPError("u", 502, "bad", {}, None)]):
+            with mock.patch.object(find.urllib.request, "urlopen", side_effect=[*errors, Reply()]) as opened, \
+                    mock.patch.object(find.time, "sleep"):
+                self.assertEqual(find.get("https://example.invalid/x"), b"ok")
+            self.assertEqual(opened.call_count, len(errors) + 1)
+        with mock.patch.object(find.urllib.request, "urlopen", side_effect=HTTPError("u", 404, "no", {}, None)) as opened, \
+                mock.patch.object(find.time, "sleep"):
+            with self.assertRaises(HTTPError):
+                find.get("https://example.invalid/x")
+        self.assertEqual(opened.call_count, 1)
+
     def test_only_the_owners_attachments_are_collected(self):
         url = "https://github.com/user-attachments/assets/0f8fad5b-d9cb-469f-a165-70867728950e"
         issue = {"user": {"login": "Owner"}, "body": f"![a]({url}) và https://evil.example/x.png"}

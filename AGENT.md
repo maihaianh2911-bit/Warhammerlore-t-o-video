@@ -126,6 +126,10 @@ Commit `[lore #<N>] kịch bản`, push, wait until the label is `lore-voice`, t
    - `img/<r>/sheet_<k>.jpg` + `index.json`: search results of round r (`<r>/<k>-<n>.jpg`; tiles: number, size,
      `©<artist>` = ArtStation, `©GW` = wiki artwork, or the Commons licence; the index has the title, artist and
      page for the credit).
+   - A query with `"error"` in `index.json` was not searched (the site was down; the machine's comment says
+     "Tìm hình chưa xong"). Its pictures are missing, not absent: run the step again — `prepare` for round 1,
+     `search` for a later round (the dispatch call of §4; the voice is not read again) — and only the failed
+     queries are searched; the pictures already found keep their numbers.
    - No fitting picture for a beat → more queries in `lore/<N>/search-<r>.json` `{"queries": […]}` (r = 2, 3…),
      push, poll the renders branch for `lore/<N>/img/<r>/index.json` (every 30 s, ≤ 10 min).
    - Still nothing → search the web yourself (web search for the subject's artwork), download the picture, look

@@ -13,8 +13,11 @@ Each query is searched in one place:
 Wiki artwork is copyrighted by Games Workshop and the artists (the owner accepted that); its index entry has the
 file page for the credit. Files under 400 px and duplicates of the same picture (also across earlier rounds
 listed in FIND_SEEN) are dropped. Writes <out_dir>/<k>-<n>.jpg, <out_dir>/index.json and <out_dir>/sheet_<k>.jpg.
+A query whose search failed (site down, timeout) gets "error" in its index.json entry. Run again with the same
+queries and the same <out_dir>: only those queries are searched again, the pictures of the others keep their
+numbers.
 """
-import io, json, os, re, sys, time, urllib.error, urllib.parse, urllib.request
+import http.client, io, json, os, re, sys, time, urllib.error, urllib.parse, urllib.request
 from PIL import Image
 
 from .art import contact_sheet
@@ -28,13 +31,18 @@ OK = re.compile(r'^(public domain|pd|cc0|cc[- ]by(-sa)?[- ]?\d|cc[- ]by(-sa)?$)'
 
 
 def get(url, tries=4):
+    """A busy site (429, 5xx), a timeout or a dropped connection is tried again; other HTTP errors are final."""
     for i in range(tries):
         try:
             with urllib.request.urlopen(urllib.request.Request(url, headers={'User-Agent': UA}), timeout=60) as r:
                 return r.read()
         except urllib.error.HTTPError as e:
-            if e.code in (429, 503) and i < tries - 1:
+            if e.code in (429, 500, 502, 503, 504) and i < tries - 1:
                 time.sleep(10 * (i + 1)); continue
+            raise
+        except (OSError, http.client.HTTPException):   # URLError, timeouts, resets, a reply cut short
+            if i < tries - 1:
+                time.sleep(5 * (i + 1)); continue
             raise
 
 
@@ -162,11 +170,32 @@ def seen_hashes():
     return hs
 
 
+def earlier_results(out, queries):
+    """{k: index entry} of the queries a previous run in this folder searched without an error."""
+    try:
+        old = json.load(open(f'{out}/index.json', encoding='utf-8'))
+    except (OSError, ValueError):
+        return {}
+    if [e.get('query') for e in old] != list(queries):
+        return {}
+    return {e['k']: e for e in old if not e.get('error')
+            and all(os.path.isfile(f"{out}/{r.get('file')}") for r in e.get('results') or [])}
+
+
 def main():
     out, queries = sys.argv[1], sys.argv[2:]
     os.makedirs(out, exist_ok=True)
     index, kept_hashes, dropped = [], seen_hashes(), {'small': 0, 'duplicate': 0}
+    done = earlier_results(out, queries)
     for k, q in enumerate(queries, 1):
+        if k in done:    # searched before: its pictures keep their numbers
+            for r in done[k]['results']:
+                try: kept_hashes.append(dhash(Image.open(f"{out}/{r['file']}")))
+                except Exception: pass
+            index.append(done[k])
+            print(f'{k}. {q}: giữ kết quả lần trước ({len(done[k]["results"])})')
+            continue
+        error, failed = None, 0
         lim = MIN_SIDE_CAT if 'incategory:' in q.lower() else MIN_SIDE
         art = q.strip().lower().startswith(('artstation:', 'gallery:'))
         keep = 16 if art or q.strip().lower().startswith('page:') else KEEP
@@ -175,7 +204,7 @@ def main():
             hits = search(q)
         except Exception as e:   # one bad query (timeout, reset, a site error) must not lose the others or the voice
             print(f'[{k}] {q}: lỗi tìm ảnh, bỏ qua — {type(e).__name__}: {e}', flush=True)
-            hits = []
+            hits, error = [], f'{type(e).__name__}: {e}'[:200]
         found = [r for r in hits if r.get('width') is None or min(r.get('width') or 0, r.get('height') or 0) >= lim]
         dropped['small'] += len(hits) - len(found)
         kept = []   # [(result, image, hash)] in search order; a duplicate inside this query keeps the bigger file
@@ -185,7 +214,7 @@ def main():
             try:
                 im = Image.open(io.BytesIO(get(r['thumb']))).convert('RGB')
             except Exception as e:
-                r['error'] = str(e)[:120]; continue
+                r['error'] = str(e)[:120]; failed += 1; continue
             finally:
                 time.sleep(1)
             if r.get('width') is None:
@@ -214,8 +243,10 @@ def main():
         for f in files:
             tile = Image.open(f).convert('RGB'); tile.thumbnail((360, 360)); tiles.append((tile, labels[f]))
         contact_sheet(tiles, f'{out}/sheet_{k}.jpg')
-        index.append({'k': k, 'query': q, 'results': results})
-        print(f'{k}. {q}: {len(results)} kept')
+        if not results and failed and not error:   # the search answered but no picture could be downloaded
+            error = f'không tải được ảnh nào ({failed} ảnh lỗi)'
+        index.append({'k': k, 'query': q, 'results': results, **({'error': error} if error else {})})
+        print(f'{k}. {q}: {len(results)} kept' + (f' — LỖI: {error}' if error else ''))
         time.sleep(2)
     json.dump(index, open(f'{out}/index.json', 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
     print(f"dropped: {dropped['small']} too small, {dropped['duplicate']} duplicates")
