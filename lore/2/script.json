@@ -1,0 +1,37 @@
+{
+  "title": "Die Anführer der Armee Nurgles",
+  "paragraphs": [
+    ["Welche Anführer hat die Armee Nurgles, des Gottes der Seuchen?"],
+    ["In Warhammer ist Nurgle der Gott von Seuche und Fäulnis, und das sind seine Anführer."],
+    ["Die einhörnigen Plaguebearer werden von den Heralds angeführt, Nurgles Boten.",
+     "Wer sich lange gegen Nurgles Fäule wehrt, wird nach dem Tod zu einem größeren, zäheren Dämon."],
+    ["Die meisten sind Poxbringer, die Truppenführer.",
+     "Belohnt Nurgle sie, wächst ihr Horn zu einem fauligen Geweih wie eine Krone.",
+     "Wo sie gehen, breitet sich Seuchennebel aus, und mit rostigen Klingen schlagen sie Feldherren.",
+     "Als Stellvertreter des Great Unclean One murren sie ständig: Der Chef redet nur, sie machen die Arbeit."],
+    ["Daneben gibt es den Spoilpox Scrivener, den Prüfer.",
+     "Die Plaguebearer zählen im Kampf Krankheiten und verzählen sich oft, also prüft er nach.",
+     "Er schimpft pausenlos und beißt jeden, der ihm zu nahe kommt.",
+     "Seine Feder stammt von einem Dämon Tzeentchs, Nurgles Rivalen.",
+     "Wer sich zu oft verzählt, kommt in sein Buch, fängt sich das Lachfieber Chortling Murrain und wird zum Sloppity Bilepiper, dem Narren des Heeres."],
+    ["Er tanzt mit einem Narrenstab und spielt einen Dudelsack aus Gedärmen.",
+     "Lachen die großen Dämonen, platzen ihre Bäuche, und sie kämpfen wilder.",
+     "Sterbliche lachen sich an dieser Seuche zu Tode.",
+     "Doch jeder Narr läuft ab: Wird er unlustig, wird er selbst zu einem neuen Dudelsack verdreht."],
+    ["Zwei Heralds tragen eigene Namen.",
+     "Epidemius ist Nurgles Buchhalter, getragen von Nurglings auf einer fauligen Sänfte.",
+     "Er notiert die Stärke jeder Seuche, und Nurgle segnet die Truppen um ihn.",
+     "Wer ihn beim Schreiben stört, wird mit Klauen und Zähnen zerfetzt."],
+    ["Der zweite ist Horticulous Slimux, Nurgles mürrischer Gärtner seit Anbeginn der Zeit.",
+     "Er reitet die Dämonenschnecke Mulch, gefolgt von den Beasts of Nurgle.",
+     "Er sät Dämonenpflanzen mit Mäulern und schneidet Feinden mit seiner Schere die Köpfe ab.",
+     "Die Nurglings hasst er und verfüttert sie heimlich an Mulch, deshalb beißt Mulch so giftig."]
+  ],
+  "queries": [
+    "artstation:Nurgle", "gallery:Nurgle", "artstation:Plaguebearer", "gallery:Plaguebearer",
+    "artstation:Herald of Nurgle", "artstation:Poxbringer", "artstation:Great Unclean One", "gallery:Great Unclean One",
+    "gallery:Spoilpox", "artstation:Spoilpox Scrivener", "gallery:Bilepiper", "artstation:Sloppity Bilepiper",
+    "artstation:Epidemius", "page:Epidemius", "gallery:Horticulous", "artstation:Horticulous Slimux",
+    "gallery:Beast of Nurgle", "gallery:Nurgling"
+  ]
+}
