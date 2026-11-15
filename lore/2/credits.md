@@ -1,0 +1,24 @@
+# Nguồn hình
+
+- Nurgle — sveiny, ArtStation
+- Maggotkin of Nurgle — johan_g, ArtStation
+- Plaguebearer 4 — 40K Gallery https://40k.gallery/plaguebearer-4/
+- Plaguebearer 3 — 40K Gallery https://40k.gallery/plaguebearer-3/
+- Plaguebearer 5 — Helge C. Balzer, 40K Gallery https://40k.gallery/plaguebearer-5/
+- Plaguebearer 10 — 40K Gallery https://40k.gallery/plaguebearer-10/
+- For Whom The Bell Tolls — abisvau, ArtStation
+- Great Unclean One 18 — 40K Gallery https://40k.gallery/great-unclean-one-18/
+- Spoilpox Scrivener — Games Workshop, 40K Gallery https://40k.gallery/spoilpox-scrivener/
+- Total War: Warhammer III – Nurgle Faction — alexeykruglov, ArtStation
+- Tzeentch VS Nurgle Battle Scene — thomaselliott, ArtStation
+- Sloppity Bilepiper — Games Workshop, 40K Gallery https://40k.gallery/sloppity-bilepiper/
+- Sloppity Bilepiper 2 — 40K Gallery https://40k.gallery/sloppity-bilepiper-2/
+- Great Unclean One 9 — 40K Gallery https://40k.gallery/great-unclean-one-9/
+- Battle Sister vs Nurgle — 40K Gallery https://40k.gallery/battle-sister-vs-nurgle/
+- Court of Nurgle — 40K Gallery https://40k.gallery/court-of-nurgle/
+- Epidemius — Games Workshop, Warhammer 40k Wiki
+- Total War: Warhammer III – Nurgle Army — alexeykruglov, ArtStation
+- Nurgling Shower — Cubicle 7 / Games Workshop, 40K Gallery https://40k.gallery/nurgling-shower/
+- Horticulous Slimux — Games Workshop, 40K Gallery https://40k.gallery/horticulous-slimux/
+- Beasts of Nurgle — ajmanzanedo, ArtStation
+- Nurglings — ziggysd, ArtStation

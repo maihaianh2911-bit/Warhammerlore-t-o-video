@@ -1,0 +1,128 @@
+[
+ {
+  "k": 1,
+  "query": "gallery:Mantis Warrior",
+  "results": [
+   {
+    "title": "mantis warrior",
+    "page": "https://40k.gallery/mantis-warrior/",
+    "thumb": "https://artwork.40k.gallery/wp-content/uploads/2022/12/Mantis-Warrior.jpg",
+    "width": 1290,
+    "height": 1194,
+    "source": "40K Gallery",
+    "artist": "",
+    "license": "© 40K Gallery",
+    "file": "1-1.jpg"
+   },
+   {
+    "title": "mantis warrior 2",
+    "page": "https://40k.gallery/mantis-warrior-2/",
+    "thumb": "https://artwork.40k.gallery/wp-content/uploads/2024/12/Mantis-Warrior.jpg",
+    "width": 1453,
+    "height": 1920,
+    "source": "40K Gallery",
+    "artist": "",
+    "license": "© 40K Gallery",
+    "file": "1-2.jpg"
+   },
+   {
+    "title": "mantis warrior 3",
+    "page": "https://40k.gallery/mantis-warrior-3/",
+    "thumb": "https://artwork.40k.gallery/wp-content/uploads/2026/08/Mantis-Warrior.jpg",
+    "width": 1537,
+    "height": 1920,
+    "source": "40K Gallery",
+    "artist": "",
+    "license": "© 40K Gallery",
+    "file": "1-3.jpg"
+   },
+   {
+    "title": "mantis warrior chaplain",
+    "page": "https://40k.gallery/mantis-warrior-chaplain/",
+    "thumb": "https://artwork.40k.gallery/wp-content/uploads/2025/11/Mantis-Warrior-Chaplain.jpg",
+    "width": 1476,
+    "height": 1920,
+    "source": "40K Gallery",
+    "artist": "",
+    "license": "© 40K Gallery",
+    "file": "1-4.jpg"
+   }
+  ]
+ },
+ {
+  "k": 2,
+  "query": "page:Mantis Warriors",
+  "results": [
+   {
+    "title": "File:MantisWarriorsRhinoCentiusCampaign.jpg",
+    "page": "https://warhammer40k.fandom.com/wiki/File:MantisWarriorsRhinoCentiusCampaign.jpg",
+    "thumb": "https://static.wikia.nocookie.net/warhammer40k/images/7/75/MantisWarriorsRhinoCentiusCampaign.jpg/revision/latest/scale-to-width-down/2000?cb=20201202005933",
+    "width": 3840,
+    "height": 2160,
+    "source": "Warhammer 40k Wiki (Fandom)",
+    "license": "© GW",
+    "file": "2-1.jpg"
+   },
+   {
+    "title": "File:Mantis Warriors Thunderhawk Transporter.jpg",
+    "page": "https://warhammer40k.fandom.com/wiki/File:Mantis_Warriors_Thunderhawk_Transporter.jpg",
+    "thumb": "https://static.wikia.nocookie.net/warhammer40k/images/d/d3/Mantis_Warriors_Thunderhawk_Transporter.jpg/revision/latest?cb=20120201005542",
+    "width": 1533,
+    "height": 552,
+    "source": "Warhammer 40k Wiki (Fandom)",
+    "license": "© GW",
+    "file": "2-2.jpg"
+   },
+   {
+    "title": "File:MantisWarriorsOriginalColourSchemeBadabWar.jpg",
+    "page": "https://warhammer40k.fandom.com/wiki/File:MantisWarriorsOriginalColourSchemeBadabWar.jpg",
+    "thumb": "https://static.wikia.nocookie.net/warhammer40k/images/1/1f/MantisWarriorsOriginalColourSchemeBadabWar.jpg/revision/latest?cb=20201202005732",
+    "width": 1436,
+    "height": 2160,
+    "source": "Warhammer 40k Wiki (Fandom)",
+    "license": "© GW",
+    "file": "2-3.jpg"
+   },
+   {
+    "title": "File:MantisWarriorsTranquilityCampaignSniperUnit.jpg",
+    "page": "https://warhammer40k.fandom.com/wiki/File:MantisWarriorsTranquilityCampaignSniperUnit.jpg",
+    "thumb": "https://static.wikia.nocookie.net/warhammer40k/images/0/08/MantisWarriorsTranquilityCampaignSniperUnit.jpg/revision/latest?cb=20201202005816",
+    "width": 1129,
+    "height": 1662,
+    "source": "Warhammer 40k Wiki (Fandom)",
+    "license": "© GW",
+    "file": "2-4.jpg"
+   },
+   {
+    "title": "File:Mantis Warriors Rhino.jpg",
+    "page": "https://warhammer40k.fandom.com/wiki/File:Mantis_Warriors_Rhino.jpg",
+    "thumb": "https://static.wikia.nocookie.net/warhammer40k/images/7/76/Mantis_Warriors_Rhino.jpg/revision/latest?cb=20120201005337",
+    "width": 902,
+    "height": 509,
+    "source": "Warhammer 40k Wiki (Fandom)",
+    "license": "© GW",
+    "file": "2-5.jpg"
+   },
+   {
+    "title": "File:Mantis Warriors Dreadnought.jpg",
+    "page": "https://warhammer40k.fandom.com/wiki/File:Mantis_Warriors_Dreadnought.jpg",
+    "thumb": "https://static.wikia.nocookie.net/warhammer40k/images/4/4e/Mantis_Warriors_Dreadnought.jpg/revision/latest?cb=20120201005159",
+    "width": 500,
+    "height": 535,
+    "source": "Warhammer 40k Wiki (Fandom)",
+    "license": "© GW",
+    "file": "2-6.jpg"
+   },
+   {
+    "title": "File:Brother Mark VII.JPG",
+    "page": "https://warhammer40k.fandom.com/wiki/File:Brother_Mark_VII.JPG",
+    "thumb": "https://static.wikia.nocookie.net/warhammer40k/images/4/47/Brother_Mark_VII.JPG/revision/latest?cb=20110221174407",
+    "width": 400,
+    "height": 607,
+    "source": "Warhammer 40k Wiki (Fandom)",
+    "license": "© GW",
+    "file": "2-7.jpg"
+   }
+  ]
+ }
+]
