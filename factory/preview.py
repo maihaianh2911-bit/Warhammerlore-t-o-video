@@ -11,19 +11,20 @@ from pathlib import Path
 from .art import contact_sheet, grade_frame
 from .render import SIZES, load_images, shot_picture, shot_views
 from .edits import edits_table
-from .script import line_times, load_job, load_picks, script_lines, shot_frames
+from .script import faster, line_times, load_job, load_picks, load_style, script_lines, shot_frames
 
 
-def shot_seconds(job, shots, voice=None):
+def shot_seconds(job, shots, voice=None, tempo=1.0):
     """Length of every shot: from the voice timing when there is one, else about 15 characters a second."""
     if voice and (voice / "timing.json").is_file():
         timing = json.loads((voice / "timing.json").read_text(encoding="utf-8"))
         if timing.get("text") == job.text:
-            frames = round(timing["duration"] * 30)
-            ranges = shot_frames(shots, line_times(job.spans, timing["starts"], timing["ends"]), frames, 30)
+            duration, starts, ends = faster(timing, tempo)
+            frames = round(duration * 30)
+            ranges = shot_frames(shots, line_times(job.spans, starts, ends), frames, 30)
             return [(last - first) / 30 for first, last in ranges]
     starts = [job.spans[int(shot.get("at", 1)) - 1][0] for shot in shots] + [len(job.text)]
-    return [max(1.0, (after - before) / 15) for before, after in zip(starts, starts[1:])]
+    return [max(1.0, (after - before) / 15 / tempo) for before, after in zip(starts, starts[1:])]
 
 
 def preview(job_dir, images_dir, out, voice=None):
@@ -31,7 +32,7 @@ def preview(job_dir, images_dir, out, voice=None):
     images, shots = load_picks(job_dir / "picks.json", len(job.spans))
     pictures = load_images(images, job_dir, images_dir)
     size = SIZES["preview"]
-    seconds = shot_seconds(job, shots, voice)
+    seconds = shot_seconds(job, shots, voice, load_style(job_dir / "picks.json")["tempo"])
     tiles = []
     for index, shot in enumerate(shots):
         picture, plan = shot_picture(shot, index, images, pictures, size, seconds[index])

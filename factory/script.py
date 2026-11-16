@@ -142,6 +142,25 @@ def load_picks(path: Path, line_count):
     return images, shots
 
 
+def load_style(path):
+    """Whole-video options of picks.json: "tempo" (voice speed 1–1.3, default 1: the voice as read) and "fx"
+    (true: drifting camera, whip into each cut, flash on hard cuts, film grain, music bed and whooshes)."""
+    data = json.loads(path.read_text(encoding="utf-8-sig"))
+    tempo = data.get("tempo", 1.0)
+    if not isinstance(tempo, (int, float)) or isinstance(tempo, bool) or not 1.0 <= tempo <= 1.3:
+        raise ValueError("tempo trong picks.json là tốc độ giọng từ 1 đến 1.3.")
+    fx = data.get("fx", False)
+    if not isinstance(fx, bool):
+        raise ValueError("fx trong picks.json là true hoặc false.")
+    return {"tempo": float(tempo), "fx": fx}
+
+
+def faster(timing, tempo):
+    """Voice timing at another speed: (duration, starts, ends)."""
+    return (timing["duration"] / tempo, [value / tempo for value in timing["starts"]],
+            [value / tempo for value in timing["ends"]])
+
+
 def script_lines(job):
     return [job.text[first:last] for first, last in job.spans]
 

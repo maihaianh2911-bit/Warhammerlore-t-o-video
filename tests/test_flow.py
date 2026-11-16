@@ -7,8 +7,8 @@ from pathlib import Path
 from factory.attachments import attachment_urls, owner_texts
 from factory.run import catch_up, matrix, todo
 from factory.render import along, camera_view, centred, default_move, eased
-from factory.script import (MAX_NARRATION_CHARS, MOVES, caption_chunks, caption_spans, chunk_events, line_times, load_job,
-                            load_picks, make_cues, sentence_end, shot_frames)
+from factory.script import (MAX_NARRATION_CHARS, MOVES, caption_chunks, caption_spans, chunk_events, faster, line_times,
+                            load_job, load_picks, load_style, make_cues, sentence_end, shot_frames)
 
 
 def write(data):
@@ -33,6 +33,33 @@ class JobTest(unittest.TestCase):
         # the voice may last 600 s and ww40k reads ~15.6 characters a second: a longer script must fail before the
         # paid reading, not after it
         self.assertLessEqual(MAX_NARRATION_CHARS, 600 * 15)
+
+
+class StyleTest(unittest.TestCase):
+    def test_defaults_keep_the_old_look(self):
+        self.assertEqual(load_style(write({"images": {}, "shots": []})), {"tempo": 1.0, "fx": False})
+
+    def test_tempo_and_fx(self):
+        self.assertEqual(load_style(write({"tempo": 1.15, "fx": True})), {"tempo": 1.15, "fx": True})
+        for bad in ({"tempo": 0.9}, {"tempo": 1.5}, {"tempo": True}, {"fx": "yes"}):
+            with self.assertRaises(ValueError):
+                load_style(write(bad))
+
+    def test_a_faster_voice_moves_every_word_earlier(self):
+        duration, starts, ends = faster({"duration": 12.0, "starts": [0.0, 6.0], "ends": [3.0, 12.0]}, 1.2)
+        self.assertEqual((duration, starts, ends), (10.0, [0.0, 5.0], [2.5, 10.0]))
+
+
+class SoundTest(unittest.TestCase):
+    def test_soundtrack_has_the_video_length(self):
+        import wave
+        from factory.sound import soundtrack
+        folder = Path(tempfile.mkdtemp())
+        soundtrack(3.0, [(1.0, False), (2.0, True)], folder / "m.wav", folder / "h.wav")
+        for name in ("m.wav", "h.wav"):
+            with wave.open(str(folder / name)) as track:
+                self.assertEqual((track.getnchannels(), track.getframerate()), (2, 48000))
+                self.assertAlmostEqual(track.getnframes() / 48000, 3.0, places=2)
 
 
 class PicksTest(unittest.TestCase):

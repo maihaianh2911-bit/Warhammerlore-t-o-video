@@ -74,8 +74,16 @@ gh api "repos/$R/issues?state=open&labels=lore&per_page=50" --jq '[.[] | select(
 - Pictures must be beautiful (owner, 12/11, on the first test: "why did you pick such ugly pictures?"). That test
   used small, dated wiki scans. Choose modern, sharp, well-painted artwork, at least ~1400 px on the short side,
   in one consistent look across the video; an older or smaller picture only when nothing else shows the subject.
-- Motion follows the reference video in `00-video-mau/` (owner, 12/11): only its way of moving pictures. The
-  lettering is ours and may be made better than the reference.
+- **Our own style, not the reference (owner, 16/11, on video 5: "ugly pictures, boring motion, the voice a bit
+  slow — can you do better if you don't follow the reference?").** Every new video uses it; it replaces the
+  reference's pacing below. In `picks.json`: `"tempo": 1.15` (the voice played 15 % faster, pitch kept; no new
+  VN11 reading; the video is then the voice length ÷ 1.15, and that is the length the 60-second rule counts) and `"fx": true` (a slightly handheld, breathing camera; each shot rushes forward into the cut;
+  a warm flash on hard cuts, `kick` ≥ 0.06; light film grain; a dark music bed made by code, ducked under the
+  voice; a whoosh at every cut and a deep impact on the hard ones). Cut faster: 2–5 s a shot, about 14–18 pictures
+  a minute, split a long line across two or three pictures (`at` 7.45), and give most cuts a `kick` (0.06–0.1
+  where the line hits). Pictures: modern ArtStation and 40K Gallery paintings first; search a second round
+  (`search-2.json`) before settling for a small wiki scan, a miniature photo or a plain figure on a white ground.
+- The lettering is ours and may be made better than the reference.
 - Quality is not traded for usage: look at the pictures yourself and preview before rendering.
 
 ## 1. `lore-plan` → `lore/<N>/script.json`
@@ -148,14 +156,15 @@ Commit `[lore #<N>] kịch bản`, push, wait until the label is `lore-voice`, t
    plain white-background diagrams unless the line is about that vehicle or armour; no gore close-ups.
 4. What each line needs: a named character, faction or ship → artwork of exactly that subject; a place or event →
    artwork of it, else a fitting mood picture; feelings and ideas → a picture whose mood matches.
-   Pacing as in the reference: a picture stays while the narration is about its subject and changes when the
-   subject or the speaker changes — 3–12 s each, about 8–10 pictures a minute. A strong picture may return with
+   Pacing (our own style, see the owner's decisions): a picture changes when the subject or the speaker changes,
+   and a long line gets two or three pictures — 2–5 s each, about 14–18 pictures a minute. A strong picture may return with
    another `focus` (the reference shows its key scene twice). Open on the most striking portrait or scene and
    close on a picture that carries the last line. Any shape of artwork works: the camera travels over the whole
    picture, so a wide battle scene is swept across and a tall figure is climbed. One clear subject per picture.
 5. Format:
 ```json
-{"images": {"tyberos": {"src": "1/1-1.jpg", "credit": "Tyberos the Red Wake — Games Workshop, Warhammer 40k Wiki"},
+{"tempo": 1.15, "fx": true,
+ "images": {"tyberos": {"src": "1/1-1.jpg", "credit": "Tyberos the Red Wake — Games Workshop, Warhammer 40k Wiki"},
             "fleet": {"src": "art/carcharodons-fleet.jpg", "credit": "…", "crop": [0.1, 0.0, 0.9, 1.0]},
             "nebula": {"src": "1/9-3.jpg", "credit": "Carina Nebula — NASA/ESA, public domain (Wikimedia Commons)"}},
  "shots": [{"img": "fleet", "focus": [0.7, 0.4], "edit": "toan-canh", "why": "hạm đội hiện ra từ bóng tối"},

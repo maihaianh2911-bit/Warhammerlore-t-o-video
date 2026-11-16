@@ -64,6 +64,14 @@ with tempfile.TemporaryDirectory() as temporary:
     probe = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v", "-show_entries", "stream=width,height",
                             "-of", "csv=p=0", str(root / "out" / "video.mp4")], capture_output=True, text=True, check=True)
     assert probe.stdout.strip() == "720,1280", probe.stdout
+    # the livelier style: faster voice, moving camera, music and whooshes
+    (job_dir / "picks.json").write_text(json.dumps({**PICKS, "tempo": 1.2, "fx": True}), encoding="utf-8")
+    assert preview(job_dir, images, root / "preview-fx.jpg", voice) == 4
+    length, count = render(job_dir, voice, images, root / "fx", "preview")
+    assert count == 4 and abs(length - duration / 1.2) < 0.2, (count, length)
+    probe = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0",
+                            str(root / "fx" / "video.mp4")], capture_output=True, text=True, check=True)
+    assert abs(float(probe.stdout) - duration / 1.2) < 0.2, probe.stdout
     if len(sys.argv) > 1:   # keep the sheets to look at
         for name in ("preview.jpg", "out/sheet.jpg", "out/credits.md", "out/subtitles.srt"):
             (Path(sys.argv[1]) / Path(name).name).write_bytes((root / name).read_bytes())

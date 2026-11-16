@@ -11,8 +11,8 @@ from PIL import Image
 from .art import ART_ROOT, atmosphere, contact_sheet, grade_frame, open_picture
 from .edits import edits_table
 from .script import (
-    MOVES, caption_chunks, line_times, load_job, load_picks, make_cues, opening_frames, script_lines, shot_frames,
-    write_subtitles,
+    MOVES, caption_chunks, faster, line_times, load_job, load_picks, load_style, make_cues, opening_frames,
+    script_lines, shot_frames, write_subtitles,
 )
 from .voice import audio_duration
 
@@ -34,6 +34,13 @@ def ffmpeg(scratch, *arguments, **options):
 
 
 BLEND_FRAMES = 4            # a cut is softened over a few frames
+# "fx" (picks.json): a living camera instead of a still tripod
+DRIFT = 0.0035              # handheld sway, as a share of the picture
+WHIP_FRAMES = 6             # the last frames of a shot rush forward into the cut
+WHIP = 0.16
+FLASH_FRAMES = 3            # a hard cut (kick ≥ 0.06) lands with a short warm flash
+FLASH = 0.35
+STRONG = 0.06
 
 
 def view_share(shape, zoom):
@@ -104,21 +111,40 @@ def along(keys, progress):
 def camera_view(image, position, size):
     """The frame at one camera position (zoom, x, y); fractional crops keep slow moves free of jitter."""
     shape = (*image.size, size[0] / size[1])
-    zoom, x, y = centred(position[0], position[1:], shape)
+    zoom, x, y = centred(max(1.0, position[0]), position[1:], shape)     # never wider than the picture
     wide, tall = view_share(shape, zoom)
     width, height = image.size
     left, top = (x - wide / 2) * width, (y - tall / 2) * height
     return image.resize(size, Image.Resampling.BICUBIC, box=(left, top, left + wide * width, top + tall * height))
 
 
+def handheld(seconds):
+    """Small, slow, never-repeating sway (x, y, zoom factor) at a moment of the video."""
+    dx = math.sin(2 * math.pi * 0.23 * seconds) + 0.6 * math.sin(2 * math.pi * 0.51 * seconds + 1.3)
+    dy = math.sin(2 * math.pi * 0.19 * seconds + 2.1) + 0.6 * math.sin(2 * math.pi * 0.43 * seconds + 0.4)
+    return DRIFT * dx / 1.6, DRIFT * dy / 1.6, 1 + 0.006 * math.sin(2 * math.pi * 0.11 * seconds)
+
+
 def shot_frames_rgb(image, plan, count, size, previous=None):
     """Frames of one shot, blended out of the last frame of the shot before."""
+    fx = plan.get("fx", False)
+    flash = Image.new("RGB", size, (255, 236, 200)) if fx and previous is not None and plan["kick"] >= STRONG else None
     for index in range(count):
         zoom, x, y = along(plan["keys"], eased(index / max(1, count - 1), plan["pace"]))
         landing = max(0.0, 1 - index / (KICK_SECONDS * FPS))
-        frame = camera_view(image, (zoom * (1 + plan["kick"] * landing ** 3), x, y), size)
-        if previous is not None and index < BLEND_FRAMES:
-            frame = Image.blend(previous, frame, (index + 1) / (BLEND_FRAMES + 1))
+        zoom *= 1 + plan["kick"] * landing ** 3
+        if fx:
+            dx, dy, breath = handheld((plan["first"] + index) / FPS)
+            x, y, zoom = x + dx / zoom, y + dy / zoom, zoom * breath
+            left = count - 1 - index
+            if plan.get("whip") and left < WHIP_FRAMES:
+                zoom *= 1 + WHIP * ((WHIP_FRAMES - left) / WHIP_FRAMES) ** 2
+        frame = camera_view(image, (zoom, x, y), size)
+        if flash is not None and index < FLASH_FRAMES:
+            frame = Image.blend(frame, flash, FLASH * (1 - index / FLASH_FRAMES))
+        blend = 3 if fx else BLEND_FRAMES
+        if previous is not None and index < blend:
+            frame = Image.blend(previous, frame, (index + 1) / (blend + 1))
         yield frame
 
 
@@ -213,24 +239,39 @@ def write_sheet(video, scenes, scratch, path):
     contact_sheet(tiles, path, columns=6)
 
 
-def encode_video(frames_rgb, audio, frames, size, scratch, destination):
-    """Frames from Python, subtitles, voice and a quiet bed, in one pass."""
+def encode_video(frames_rgb, audio, frames, size, scratch, destination, tempo=1.0, sound=None):
+    """Frames from Python, subtitles, voice and a bed, in one pass. sound: (music.wav, hits.wav) made by
+    factory.sound; the music is ducked under the voice, the hits are not. Without it, a quiet hum."""
     duration = frames / FPS
-    ambient = (
-        "aevalsrc=0.012*sin(2*PI*46*t)+0.006*sin(2*PI*69*t)*(0.6+0.4*sin(2*PI*0.17*t))"
-        f":s=48000:d={duration:.6f}"
-    )
     fade = min(0.8, duration / 3)
-    mix = (
-        f"[0:v]vignette=angle=PI/5.5,ass=subtitles.ass:fontsdir={FONTS},format=yuv420p[video];"
-        "[1:a]loudnorm=I=-17:TP=-2:LRA=7,aresample=48000,apad[voice];"
-        f"[2:a]afade=d={fade},afade=t=out:st={duration - fade}:d={fade}[bed];"
-        "[voice][bed]amix=inputs=2:normalize=0,alimiter=limit=0.88:level=0[audio]"
-    )
+    speed = f"atempo={tempo:.4f}," if tempo != 1.0 else ""
+    if sound:
+        inputs = ["-i", sound[0].name, "-i", sound[1].name]
+        mix = (
+            f"[0:v]vignette=angle=PI/5.5,noise=alls=5:allf=t,ass=subtitles.ass:fontsdir={FONTS},"
+            "format=yuv420p[video];"
+            f"[1:a]{speed}loudnorm=I=-16:TP=-2:LRA=7,aresample=48000,aformat=channel_layouts=stereo,apad,"
+            "asplit=2[voice][key];"
+            # the music sits about 14 dB under the voice and comes back up in the pauses
+            f"[2:a]volume=1.0,afade=d=1.5,afade=t=out:st={max(0, duration - 2.5)}:d=2.5[music];"
+            "[music][key]sidechaincompress=threshold=0.08:ratio=2.5:attack=30:release=600[bed];"
+            "[3:a]volume=0.7[hits];"
+            "[voice][bed][hits]amix=inputs=3:normalize=0,alimiter=limit=0.9:level=0[audio]"
+        )
+    else:
+        inputs = ["-f", "lavfi", "-i", (
+            "aevalsrc=0.012*sin(2*PI*46*t)+0.006*sin(2*PI*69*t)*(0.6+0.4*sin(2*PI*0.17*t))"
+            f":s=48000:d={duration:.6f}")]
+        mix = (
+            f"[0:v]vignette=angle=PI/5.5,ass=subtitles.ass:fontsdir={FONTS},format=yuv420p[video];"
+            f"[1:a]{speed}loudnorm=I=-17:TP=-2:LRA=7,aresample=48000,apad[voice];"
+            f"[2:a]afade=d={fade},afade=t=out:st={duration - fade}:d={fade}[bed];"
+            "[voice][bed]amix=inputs=2:normalize=0,alimiter=limit=0.88:level=0[audio]"
+        )
     process = subprocess.Popen(
         ["ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
          "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{size[0]}x{size[1]}", "-r", str(FPS), "-i", "-",
-         "-i", audio.name, "-f", "lavfi", "-i", ambient,
+         "-i", audio.name, *inputs,
          "-filter_complex", mix, "-map", "[video]", "-map", "[audio]",
          "-frames:v", str(frames), "-t", f"{duration:.6f}", "-c:v", "libx264",
          "-preset", "medium", "-crf", "21", "-c:a", "aac", "-b:a", "160k",
@@ -253,6 +294,7 @@ def render(job_dir, voice_dir, images_dir, out, size_name="full"):
     if timing["text"] != job.text:
         raise ValueError("Giọng đọc đã lưu không khớp script.json. Chạy lại bước prepare.")
     images, shots = load_picks(job_dir / "picks.json", len(job.spans))
+    style = load_style(job_dir / "picks.json")
     audio = voice_dir / timing["audio"]
     out = out.resolve()
     if out.exists():
@@ -264,9 +306,9 @@ def render(job_dir, voice_dir, images_dir, out, size_name="full"):
         stage = scratch / "result"
         stage.mkdir()
         shutil.copyfile(audio, scratch / audio.name)
-        duration = audio_duration(audio)
+        duration = audio_duration(audio) / style["tempo"]
         frames = math.ceil(duration * FPS)
-        starts, ends = timing["starts"], timing["ends"]
+        _, starts, ends = faster(timing, style["tempo"])
         breaks = [last for _, last in job.spans]      # every script line closes a caption
         cues = make_cues(job.text, starts, ends, duration, breaks)
         times = line_times(job.spans, starts, ends)
@@ -280,7 +322,16 @@ def render(job_dir, voice_dir, images_dir, out, size_name="full"):
         def stills():
             for index, (shot, (first, last)) in enumerate(zip(shots, ranges)):
                 picture, plan = shot_picture(shot, index, images, pictures, size, (last - first) / FPS)
+                plan.update(fx=style["fx"], first=first, whip=index < len(shots) - 1)
                 yield grade_frame(picture), plan, last - first
+
+        sound = None
+        if style["fx"]:
+            from .sound import soundtrack
+            cuts = [(first / FPS, shot.get("kick", KICK) >= STRONG)
+                    for shot, (first, _) in list(zip(shots, ranges))[1:]]
+            sound = (scratch / "music.wav", scratch / "hits.wav")
+            soundtrack(duration, cuts, *sound)
 
         for shot, (first, last) in zip(shots, ranges):
             scenes.append({
@@ -293,7 +344,8 @@ def render(job_dir, voice_dir, images_dir, out, size_name="full"):
                 **({"edit": shot["edit"]} if "edit" in shot else {}),
             })
 
-        encode_video(all_frames(stills(), size), scratch / audio.name, frames, size, scratch, stage / "video.mp4")
+        encode_video(all_frames(stills(), size), scratch / audio.name, frames, size, scratch, stage / "video.mp4",
+                     style["tempo"], sound)
         ffmpeg(scratch, "-i", str(stage / "video.mp4"), "-frames:v", "1", "-q:v", "2", str(stage / "cover.jpg"))
         write_sheet(stage / "video.mp4", scenes, scratch, stage / "sheet.jpg")
         write_credits(scenes, stage / "credits.md")
