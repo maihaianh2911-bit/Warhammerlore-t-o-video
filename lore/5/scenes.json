@@ -1,10 +1,10 @@
 {
   "title": "Können die Custodes den Imperator verraten?",
-  "duration": 131.376,
+  "duration": 114.24,
   "scenes": [
     {
       "start": 0.0,
-      "end": 3.633,
+      "end": 3.133,
       "picture": "hero",
       "text": "Kann die treueste Leibgarde des Imperators ihn verraten?",
       "credits": [
@@ -12,17 +12,26 @@
       ]
     },
     {
-      "start": 3.633,
-      "end": 9.567,
-      "picture": "gate",
+      "start": 3.133,
+      "end": 5.467,
+      "picture": "flex",
       "text": "In Warhammer 40.000 sind die Custodes die persönliche Leibgarde des Imperators.",
       "credits": [
-        "Guarding the Gate, Custodes — 40K Gallery https://40k.gallery/guarding-the-gate-custodes-orientalism/"
+        "Warhammer 40K – Custodian Flex — dagahaz, ArtStation"
       ]
     },
     {
-      "start": 9.567,
-      "end": 18.367,
+      "start": 5.467,
+      "end": 8.3,
+      "picture": "shield",
+      "text": "",
+      "credits": [
+        "Custodian 13 — 40K Gallery https://40k.gallery/custodian-13/"
+      ]
+    },
+    {
+      "start": 8.3,
+      "end": 11.9,
       "picture": "master",
       "text": "Es heißt, er habe jeden Einzelnen selbst erschaffen lassen und ihren Geist so geformt, dass ihre Treue tiefer sitzt als Fleisch und Blut.",
       "credits": [
@@ -30,35 +39,53 @@
       ]
     },
     {
-      "start": 18.367,
-      "end": 24.333,
-      "picture": "valdor",
-      "text": "Über seine Garde sagte er einst: An ihrer Treue zu mir darf es nicht den geringsten Zweifel geben.",
-      "credits": [
-        "Constantin Valdor — 40K Gallery https://40k.gallery/constantine-valdor/"
-      ]
-    },
-    {
-      "start": 24.333,
-      "end": 28.933,
+      "start": 11.9,
+      "end": 15.967,
       "picture": "captain",
-      "text": "Alle glauben, das Chaos könne die Custodes nicht berühren. Doch das stimmt nicht.",
+      "text": "",
       "credits": [
         "Shield-Captain, Adeptus Custodes — blocsanchez, ArtStation"
       ]
     },
     {
-      "start": 28.933,
-      "end": 35.0,
-      "picture": "horus",
-      "text": "Horus, der Sohn des Imperators, schloss sich den Chaosgöttern an und griff Terra an.",
+      "start": 15.967,
+      "end": 21.133,
+      "picture": "valdor",
+      "text": "Über seine Garde sagte er einst: An ihrer Treue zu mir darf es nicht den geringsten Zweifel geben.",
       "credits": [
-        "Horus Lupercal – Horus Heresy Fanart — helgesonart, ArtStation"
+        "Constantin Valdor — yourcommissar, ArtStation"
       ]
     },
     {
-      "start": 35.0,
-      "end": 38.2,
+      "start": 21.133,
+      "end": 24.3,
+      "picture": "victor",
+      "text": "Alle glauben, das Chaos könne die Custodes nicht berühren.",
+      "credits": [
+        "Adeptus Custodes — ifrit_01, ArtStation"
+      ]
+    },
+    {
+      "start": 24.3,
+      "end": 27.3,
+      "picture": "horus",
+      "text": "Doch das stimmt nicht. Horus, der Sohn des Imperators, schloss sich den Chaosgöttern an und griff Terra an.",
+      "credits": [
+        "Horus Lupercal — adrian4rt, ArtStation"
+      ]
+    },
+    {
+      "start": 27.3,
+      "end": 30.433,
+      "picture": "angel",
+      "text": "",
+      "credits": [
+        "Horus Heresy – The Angel's Last Flight — kheljay, ArtStation"
+      ]
+    },
+    {
+      "start": 30.433,
+      "end": 32.967,
       "picture": "teleport",
       "text": "Am Ende der Belagerung teleportierte sich der Imperator auf Horus' Flaggschiff, die Vengeful Spirit.",
       "credits": [
@@ -66,8 +93,8 @@
       ]
     },
     {
-      "start": 38.2,
-      "end": 41.267,
+      "start": 32.967,
+      "end": 35.9,
       "picture": "ship",
       "text": "",
       "credits": [
@@ -75,35 +102,44 @@
       ]
     },
     {
-      "start": 41.267,
-      "end": 45.467,
-      "picture": "escort",
+      "start": 35.9,
+      "end": 39.533,
+      "picture": "company",
       "text": "Eine Kompanie Custodes unter Caecaltus Dusk folgte ihm.",
       "credits": [
-        "Emperor of Mankind and Adeptus Custodes — attilaru, ArtStation"
+        "Custodes Shield Captain Caville — 40K Gallery https://40k.gallery/custodes-shield-captain-caville/"
       ]
     },
     {
-      "start": 45.467,
-      "end": 48.533,
-      "picture": "lastson",
+      "start": 39.533,
+      "end": 42.2,
+      "picture": "eyebattle",
       "text": "Doch Horus trennte sie mit Absicht von ihm.",
       "credits": [
-        "The Last Son of Horus — doodlok, ArtStation"
+        "Vengeful Spirit — eddygonzlezdvila, ArtStation"
       ]
     },
     {
-      "start": 48.533,
-      "end": 55.633,
-      "picture": "evil",
+      "start": 42.2,
+      "end": 47.267,
+      "picture": "duel2",
       "text": "In diesem Moment pflanzte Horus mit der Macht des Chaos einen Gedanken in die Köpfe der Custodes: Der Imperator sei ein Wahnsinniger, ein machtbesessenes Monster, und müsse durch ihre Hand sterben, um die Menschheit zu retten.",
       "credits": [
-        "Evil Horus — 40K Gallery https://40k.gallery/evil-horus/"
+        "Horus vs the Emperor — edsong, ArtStation"
       ]
     },
     {
-      "start": 55.633,
-      "end": 62.1,
+      "start": 47.267,
+      "end": 50.633,
+      "picture": "emperor",
+      "text": "",
+      "credits": [
+        "The Emperor of Mankind — emeraldforger, ArtStation"
+      ]
+    },
+    {
+      "start": 50.633,
+      "end": 54.0,
       "picture": "shadow",
       "text": "",
       "credits": [
@@ -111,17 +147,17 @@
       ]
     },
     {
-      "start": 62.1,
-      "end": 66.567,
-      "picture": "helm",
+      "start": 54.0,
+      "end": 57.867,
+      "picture": "brood",
       "text": "Sie glaubten es nicht. Sie wussten, dass es nicht ihr eigener Gedanke war.",
       "credits": [
-        "Adeptus Custodes 3 — 40K Gallery https://40k.gallery/adeptus-custodes-3/"
+        "Custodian 8 — 40K Gallery https://40k.gallery/custodian-8/"
       ]
     },
     {
-      "start": 66.567,
-      "end": 68.7,
+      "start": 57.867,
+      "end": 59.733,
       "picture": "ruinface",
       "text": "Blut lief ihnen aus den Augen.",
       "credits": [
@@ -129,8 +165,8 @@
       ]
     },
     {
-      "start": 68.7,
-      "end": 77.067,
+      "start": 59.733,
+      "end": 63.367,
       "picture": "fight",
       "text": "Einige brachen zusammen, doch viele wehrten sich innerlich, wussten genau, was sie taten, und hoben trotzdem die Waffen gegen den Imperator.",
       "credits": [
@@ -138,17 +174,26 @@
       ]
     },
     {
-      "start": 77.067,
-      "end": 83.967,
-      "picture": "emperor",
-      "text": "Er musste neununddreißig von ihnen töten, um sich zu verteidigen, bevor er Horus' Bann brechen konnte.",
+      "start": 63.367,
+      "end": 67.0,
+      "picture": "sengki",
+      "text": "",
       "credits": [
-        "The Emperor of Mankind — emeraldforger, ArtStation"
+        "Warhammer 40K – Adeptus Custodes — sengki, ArtStation"
       ]
     },
     {
-      "start": 83.967,
-      "end": 87.267,
+      "start": 67.0,
+      "end": 73.0,
+      "picture": "guises",
+      "text": "Er musste neununddreißig von ihnen töten, um sich zu verteidigen, bevor er Horus' Bann brechen konnte.",
+      "credits": [
+        "Guises of the Emperor — Games Workshop, Warhammer 40k Wiki"
+      ]
+    },
+    {
+      "start": 73.0,
+      "end": 75.9,
       "picture": "redblade",
       "text": "Die Custodes können also vom Chaos beherrscht werden.",
       "credits": [
@@ -156,35 +201,35 @@
       ]
     },
     {
-      "start": 87.267,
-      "end": 94.133,
-      "picture": "codex",
+      "start": 75.9,
+      "end": 81.867,
+      "picture": "skull",
       "text": "Ein altes Regelbuch erlaubte sogar abtrünnige Custodes, doch eine echte Geschichte dazu gab es nie.",
       "credits": [
-        "Adeptus Custodes Codex — 40K Gallery https://40k.gallery/adeptus-custodes-codex/"
+        "Custodes 3 — 40K Gallery https://40k.gallery/custodes-3/"
       ]
     },
     {
-      "start": 94.133,
-      "end": 100.367,
-      "picture": "lone",
+      "start": 81.867,
+      "end": 87.267,
+      "picture": "gate",
       "text": "Und in der Hintergrundgeschichte kenne ich keinen Custodes mit Namen, der freiwillig zum Chaos überlief.",
       "credits": [
-        "Adeptus Custodes — 40K Gallery https://40k.gallery/adeptus-custodes/"
+        "Guarding the Gate, Custodes — 40K Gallery https://40k.gallery/guarding-the-gate-custodes-orientalism/"
       ]
     },
     {
-      "start": 100.367,
-      "end": 105.833,
-      "picture": "victor",
+      "start": 87.267,
+      "end": 92.033,
+      "picture": "spear",
       "text": "Für mich heißt das: Selbst Horus konnte ihre Treue nicht brechen, nur ihre Körper zwingen.",
       "credits": [
-        "Adeptus Custodes — ifrit_01, ArtStation"
+        "Adeptus Custodes 4 — 40K Gallery https://40k.gallery/adeptus-custodes-4/"
       ]
     },
     {
-      "start": 105.833,
-      "end": 109.8,
+      "start": 92.033,
+      "end": 95.467,
       "picture": "leader",
       "text": "Unter den Überlebenden war ihr Anführer Caecaltus Dusk.",
       "credits": [
@@ -192,26 +237,35 @@
       ]
     },
     {
-      "start": 109.8,
-      "end": 117.367,
-      "picture": "brood",
+      "start": 95.467,
+      "end": 98.733,
+      "picture": "throne",
       "text": "Der Imperator reinigte ihn von der Verderbnis, doch die Schande, den eigenen Herrn angegriffen zu haben, verging nie.",
+      "credits": [
+        "The Golden Throne, Siege of Terra — Games Workshop, Warhammer 40k Wiki"
+      ]
+    },
+    {
+      "start": 98.733,
+      "end": 102.067,
+      "picture": "brood",
+      "text": "",
       "credits": [
         "Custodian 8 — 40K Gallery https://40k.gallery/custodian-8/"
       ]
     },
     {
-      "start": 117.367,
-      "end": 121.533,
-      "picture": "duel",
+      "start": 102.067,
+      "end": 105.333,
+      "picture": "battle",
       "text": "Später, als Horus den Imperator schwer verwundete, stellte sich Dusk allein zwischen die beiden und wich nicht zurück, bis er ausgelöscht wurde.",
       "credits": [
-        "Horus vs the Emperor — Adrian Smith — 40K Gallery https://40k.gallery/horus-vs-the-emperor/"
+        "The Emperor vs Horus, Battle of Terra — Games Workshop, Warhammer 40k Wiki"
       ]
     },
     {
-      "start": 121.533,
-      "end": 126.167,
+      "start": 105.333,
+      "end": 109.733,
       "picture": "stand",
       "text": "",
       "credits": [
@@ -219,12 +273,12 @@
       ]
     },
     {
-      "start": 126.167,
-      "end": 131.4,
-      "picture": "spear",
+      "start": 109.733,
+      "end": 114.267,
+      "picture": "trajann",
       "text": "Und ihr? Ist das Schwert gegen den Imperator eine Schande, oder sind sie unschuldig?",
       "credits": [
-        "Adeptus Custodes 4 — 40K Gallery https://40k.gallery/adeptus-custodes-4/"
+        "General Trajann Valoris — anarchicfox, ArtStation"
       ]
     }
   ]
