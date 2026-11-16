@@ -1,0 +1,27 @@
+# Nguồn hình
+
+- Adeptus Custodes — konstantinvoid, ArtStation
+- Guarding the Gate, Custodes — 40K Gallery https://40k.gallery/guarding-the-gate-custodes-orientalism/
+- Master of Mankind — ginjima, ArtStation
+- Constantin Valdor — 40K Gallery https://40k.gallery/constantine-valdor/
+- Shield-Captain, Adeptus Custodes — blocsanchez, ArtStation
+- Horus Lupercal – Horus Heresy Fanart — helgesonart, ArtStation
+- Emperor Teleporting — Richard Bagnall — 40K Gallery https://40k.gallery/emperor-teleporting/
+- Vengeful Spirit 2 — 40K Gallery https://40k.gallery/vengeful-spirit-2/
+- Emperor of Mankind and Adeptus Custodes — attilaru, ArtStation
+- The Last Son of Horus — doodlok, ArtStation
+- Evil Horus — 40K Gallery https://40k.gallery/evil-horus/
+- Custodes Shadowkeeper — 40K Gallery https://40k.gallery/custodes-shadowkeeper/
+- Adeptus Custodes 3 — 40K Gallery https://40k.gallery/adeptus-custodes-3/
+- Adeptus Custodes 11 — 40K Gallery https://40k.gallery/adeptus-custodes-11/
+- Adeptus Custodes — z-bozi, ArtStation
+- The Emperor of Mankind — emeraldforger, ArtStation
+- Shadowkeeper Custodes — 40K Gallery https://40k.gallery/shadowkeeper-custodes/
+- Adeptus Custodes Codex — 40K Gallery https://40k.gallery/adeptus-custodes-codex/
+- Adeptus Custodes — 40K Gallery https://40k.gallery/adeptus-custodes/
+- Adeptus Custodes — ifrit_01, ArtStation
+- Adeptus Custodes 12 — 40K Gallery https://40k.gallery/adeptus-custodes-12/
+- Custodian 8 — 40K Gallery https://40k.gallery/custodian-8/
+- Horus vs the Emperor — Adrian Smith — 40K Gallery https://40k.gallery/horus-vs-the-emperor/
+- Custodian 5 — 40K Gallery https://40k.gallery/custodian-5/
+- Adeptus Custodes 4 — 40K Gallery https://40k.gallery/adeptus-custodes-4/
