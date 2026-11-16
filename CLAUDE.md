@@ -37,7 +37,9 @@ adds a line such as "Phiếu 40K số 1: giọng và ảnh đã sẵn sàng, ch�
    `### Kịch bản (bắt buộc)`. No labels: the workflow adds them.
 2. Add `lore-busy` to the issue right away, then do Claude's steps of `AGENT.md` for it (claim as written there,
    "In a chat").
-3. Give the owner the links to the video, the subtitles and the picture credits.
+3. Send the finished video itself into the chat as a file (owner, 16/11/2026: "gửi thẳng video lên đây, đừng gửi
+   link"), with `subtitles.srt` and `credits.md` attached as files too; no links in the chat. (The issue's closing
+   🤖 comment keeps its links as usual.)
 
 ## Changing the pipeline
 Before pushing to `main`: `python3 -m unittest discover -s tests`, `python3 tests/smoke.py`,
