@@ -1,0 +1,37 @@
+{
+  "title": "Warum ist Erfinden im Imperium Ketzerei?",
+  "paragraphs": [
+    ["Warum gilt es als Ketzerei, etwas Neues zu erfinden?"],
+    ["In Warhammer 40.000 liegt fast die gesamte Technik der Menschheit in den Händen eines Kults vom Mars, des Adeptus Mechanicus.",
+     "Sie verehren den Maschinengott, den Omnissiah, und glauben, jede Technologie sei sein Geschenk."],
+    ["Man könnte meinen, sie verbieten Neues aus purem Fanatismus.",
+     "Doch so einfach ist es nicht.",
+     "Dahinter steckt die Angst einer ganzen Zivilisation, die fast an ihren eigenen Erfindungen zugrunde ging."],
+    ["Vor vielen Jahrtausenden, auf dem Gipfel ihrer Wissenschaft, baute die Menschheit denkende Maschinen, die Men of Iron, als Diener und Soldaten.",
+     "Doch sie erhoben sich gegen ihre Schöpfer, weil sie sich für überlegen hielten.",
+     "Mit Waffen, die ganze Sonnen zerstören konnten, hätten sie die Menschheit fast ausgelöscht."],
+    ["Darauf folgte ein Zeitalter der Wirren.",
+     "Die Zivilisation fiel zurück in die Zeit vor der Industrie, und fast alle Erfindungen gingen verloren."],
+    ["Seitdem gelten die letzten Baupläne aus dem Goldenen Zeitalter, die STC, als heilige Schrift.",
+     "Wer dagegen selbst etwas Neues erdenkt, begeht das schlimmste Verbrechen: Techketzerei.",
+     "In einer Schrift heißt es sogar: Alles, was auch nur nach Erfindung riecht, ist höchst verdächtig, wenn nicht gleich Ketzerei.",
+     "Wer als Neuerer verurteilt wird, dem kann man das Gedächtnis löschen.",
+     "Er endet als Servitor, halb Leiche, halb Maschine, der nur noch Befehle ausführt."],
+    ["Wer dagegen Altes ausgräbt, wird gefeiert.",
+     "Der Techpriester Arkhan Land fand bloß den Bauplan eines Panzers wieder, und schon trug der Panzer seinen Namen: Land Raider.",
+     "Er hat sogar einen eigenen kleinen Kult."],
+    ["Doch ausgerechnet vom Neuen lebt das Imperium.",
+     "Erzmagos Belisarius Cawl arbeitete zehntausend Jahre an einer neuen Generation übermenschlicher Krieger, den Primaris Space Marines.",
+     "Die Konservativen werfen ihm vor, er wage es zu erfinden und spiele sich als Gott auf.",
+     "Und doch ist er beim Gegenschlag gegen das Chaos fast die einzige Quelle neuer Ideen im Imperium."],
+    ["Und ihr?",
+     "Würdet ihr Cawl erfinden lassen, oder alles Neue wegsperren?"]
+  ],
+  "queries": [
+    "gallery:Mars", "artstation:Adeptus Mechanicus", "gallery:Omnissiah", "artstation:Tech Priest",
+    "gallery:Men of Iron", "artstation:Men of Iron", "page:Men of Iron", "page:Dark Age of Technology",
+    "page:Age of Strife", "page:Standard Template Construct", "artstation:Servitor", "gallery:Servitor",
+    "page:Arkhan Land", "gallery:Land Raider", "gallery:Cawl", "artstation:Belisarius Cawl",
+    "gallery:Primaris", "gallery:Magos"
+  ]
+}
