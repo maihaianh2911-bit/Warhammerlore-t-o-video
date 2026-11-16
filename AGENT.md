@@ -13,7 +13,8 @@ evenly and always ends on the picture's main character (learned from the owner's
 `00-video-mau/`), soft quick cuts, a gold title over the first two seconds,
 and short captions that follow the German `ww40k` voice word by word (VN11 `clone_611`).
 Machine steps run in `.github/workflows/lore.yml` → `factory/run.py`; files land on the `renders` branch in
-`lore/<N>/` (`voice/`, `img/<round>/`, `video.mp4`, `sheet.jpg`, `subtitles.srt`, `credits.md`, `edits.md`).
+`lore/<N>/` (`voice/`, `img/<round>/`, `video.mp4`, `sheet.jpg`, `subtitles.srt`, `credits.md`, `edits.md`,
+`caption.txt`).
 
 Steps (labels): `lore-plan` → you write `lore/<N>/script.json` → `lore-voice` (machine: voice, voice check,
 pictures) → `lore-pick` → you write `lore/<N>/picks.json` → `lore-render` (machine) → `lore-check` → you check
@@ -84,6 +85,8 @@ gh api "repos/$R/issues?state=open&labels=lore&per_page=50" --jq '[.[] | select(
   where the line hits). Pictures: modern ArtStation and 40K Gallery paintings first; search a second round
   (`search-2.json`) before settling for a small wiki scan, a miniature photo or a plain figure on a white ground.
 - The lettering is ours and may be made better than the reference.
+- **Every video comes with its posting caption (owner, 16/11/2026)**: `caption.txt` beside `video.mp4` on
+  `renders`, so the owner downloads both together. You write it at the picks step (§2.7).
 - Quality is not traded for usage: look at the pictures yourself and preview before rendering.
 
 ## 1. `lore-plan` → `lore/<N>/script.json`
@@ -242,7 +245,21 @@ Commit `[lore #<N>] kịch bản`, push, wait until the label is `lore-voice`, t
    line, do neighbours differ? Check that END sits on the character, that the path shows what the line talks about,
    and that the distance suits the length (a long way in 2 s is a whip, a short way in 10 s is a freeze). Fix any shot that cuts a
    face, misses its subject or shows a border, and run it again until all are right.
-7. Commit `picks.json` together with any `script.json` fixes in **one** push as `[lore #<N>] chọn hình`, wait
+7. **Posting caption** `lore/<N>/caption.txt` (UTF-8, at most 2000 characters), in **German** like everything
+   the viewer sees (iron rule 1), every claim taken from `script.json` — no invented lore:
+   ```
+   <hook title, at most 80 characters, true to the script>
+   <2–4 short sentences: what the video tells, ending on a question or the twist>
+
+   #Warhammer40k #40kLore #Warhammer #shorts #<faction> #<character>      (5–8 hashtags, one line)
+
+   Bildquellen: <the sources and artists of credits.md, shortened: "Games Workshop, 40K Gallery, ArtStation (a, b, c)">
+   ```
+   Check it with `python3 -m factory.caption lore/<N>/caption.txt` (format, length, no Vietnamese or Japanese
+   letters). The render publishes it beside the video; a wrong caption never stops the video, the render comment
+   says what is wrong. Later changes: push `caption.txt` alone — the machine only copies it to `renders` and
+   comments the link (no voice, search or render).
+8. Commit `picks.json` and `caption.txt` together with any `script.json` fixes in **one** push as `[lore #<N>] chọn hình`, wait
    until the label is `lore-render` (`lore-voice` when the script changed), then remove `lore-busy`. (The render
    takes ~5–10 min; you are woken at `lore-check`.)
 
@@ -251,7 +268,8 @@ Open `sheet.jpg` (one tile per shot, mid-shot, with captions) and `voice/check.m
 `picks.json` only for a real fault (a cut face, the wrong subject, a blurred picture, captions over a face).
 Otherwise remove `lore-check`, add `lore-done` and comment (🤖, short, Vietnamese): video link
 `https://github.com/maihaianh2911-bit/Warhammerlore-t-o-video/blob/renders/lore/<N>/video.mp4`, its length,
-links to `subtitles.srt` and `credits.md` (to paste into the video description), one line on the pictures used
+links to `subtitles.srt`, `caption.txt` (the text to post with the video) and `credits.md` (the full picture
+list), one line on the pictures used
 and which beats still use a generated background, the table of `edits.md` pasted as it is (shot, line, picture,
 edit, why — `renders/lore/<N>/edits.md`) under the sentence "Muốn đổi cách edit: bình luận ví dụ «cảnh 5 đổi
 sang kiểu lao-toi»", "bình luận nếu muốn sửa", and the expiry: "Video được giữ trên
@@ -259,7 +277,7 @@ GitHub 14 ngày kể từ lần hoạt động cuối của phiếu rồi tự x
 
 ## 4. `lore-fix` and `lore-failed`
 - `lore-fix`: the request = owner comments after your last `🤖` comment. Wording → `script.json`; pictures →
-  `picks.json`; "cảnh 5 đổi sang kiểu X" → that shot's `edit` (drop fields of the old edit that no longer fit,
+  `picks.json`; the posting text → `caption.txt` alone (no new render); "cảnh 5 đổi sang kiểu X" → that shot's `edit` (drop fields of the old edit that no longer fit,
   preview again) (newly attached pictures: push `lore/<N>/search-<r>.json` with `{"queries": []}` to have the
   machine collect them, or re-run `prepare`). Push, one-line 🤖 comment, remove `lore-fix`.
   A render removes `lore-fix`, except when the owner commented after the push it renders: then the issue comes

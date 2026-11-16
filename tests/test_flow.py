@@ -100,6 +100,47 @@ class PicksTest(unittest.TestCase):
         self.assertEqual(line_times([(0, 2), (3, 5)], [0, 1, 2, 3, 4], [1, 2, 3, 4, 5]), [(0, 2), (3, 5)])
 
 
+class PostingCaptionTest(unittest.TestCase):
+    GOOD = ("Die Weltraumhaie: Warum selbst Verbündete sie fürchten\n"
+            "Im Badab-Krieg tauchten die Carcharodons aus dem Nichts auf. "
+            "Sie vernichteten die Mantis Warriors fast vollständig. Danach verschwanden sie wieder in der Leere.\n"
+            "\n"
+            "#Warhammer40k #40kLore #Warhammer #shorts #Carcharodons #SpaceMarines\n"
+            "\n"
+            "Bildquellen: Games Workshop, 40K Gallery, ArtStation (sveiny, johan_g)\n")
+
+    def test_a_good_caption_passes(self):
+        from factory.caption import problems
+        self.assertEqual(problems(self.GOOD), [])
+        self.assertEqual(problems(self.GOOD.replace("\n", "\r\n")), [])
+
+    def test_every_rule_is_checked(self):
+        from factory.caption import problems
+        title = self.GOOD.split("\n")[0]
+        cases = {
+            "tối đa 2000": self.GOOD.replace("Danach", "Danach " + "sehr " * 400),
+            "tiêu đề dài": self.GOOD.replace(title, title + " und warum das wichtig ist für alle Brüder"),
+            "tiếng Đức": self.GOOD.replace("Badab-Krieg", "Chiến tranh Badab"),
+            "3 đoạn": self.GOOD.replace("\n\nBildquellen", "\nBildquellen"),
+            "2–4 câu": self.GOOD.replace(" Sie vernichteten die Mantis Warriors fast vollständig. Danach verschwanden"
+                                         " sie wieder in der Leere.", ""),
+            "5–8 hashtag": self.GOOD.replace(" #Carcharodons #SpaceMarines", ""),
+            "chỉ gồm hashtag": self.GOOD.replace("#shorts", "shorts"),
+            "lặp": self.GOOD.replace("#shorts", "#warhammer40k"),
+            "Bildquellen": self.GOOD.replace("Bildquellen:", "Bilder:"),
+        }
+        for message, text in cases.items():
+            with self.subTest(message):
+                self.assertTrue(any(message in problem for problem in problems(text)), problems(text))
+        self.assertFalse(any("câu" in problem for problem in problems(self.GOOD.replace("Badab-Krieg", "41. Jahrtausend"))))
+
+    def test_every_published_caption_passes(self):
+        from factory.caption import problems
+        for path in sorted(Path(__file__).resolve().parent.parent.glob("lore/*/caption.txt")):
+            with self.subTest(path.parent.name):
+                self.assertEqual(problems(path.read_text(encoding="utf-8")), [])
+
+
 class EditsTest(unittest.TestCase):
     """The catalogue of named edits: a name fills in camera fields, what the shot writes itself wins."""
     images = {"a": {"src": "issue/1.jpg", "credit": "Künstler — Titel"}}
@@ -282,6 +323,72 @@ class RunTest(unittest.TestCase):
         files = ["lore/7/picks.json", "lore/7/script.json", "lore/8/search-2.json", "lore/8/own/a.jpg",
                  "lore/9/notes.txt", "factory/run.py"]
         self.assertEqual(todo(files), ["7 prepare render", "8 search render"])
+
+    def test_a_changed_caption_only_publishes_the_caption(self):
+        self.assertEqual(todo(["lore/7/caption.txt"]), ["7 caption"])
+        self.assertEqual(todo(["lore/7/caption.txt", "lore/7/picks.json"]), ["7 render caption"])
+        self.assertEqual(matrix(["7 caption"]), [{"n": "7", "steps": "caption"}])
+        from unittest import mock
+        import factory.run as run_module
+
+        class FakeRun:
+            def __init__(self, number):
+                self.calls, self.n = [], number
+                runs.append(self)
+
+            def __getattr__(self, name):        # anything but the caption step is a failure here
+                raise AssertionError(f"caption-only run called {name}")
+
+            def caption(self):
+                self.calls.append("caption")
+                return True
+
+            def link(self, path):
+                return f"https://example.invalid/{path}"
+
+            def comment(self, body):
+                self.calls.append(("comment", body))
+
+        runs = []
+        with mock.patch.object(run_module, "Run", FakeRun), mock.patch("sys.argv", ["run", "7", "caption"]), \
+                mock.patch.dict("os.environ", {"GITHUB_EVENT_NAME": "push"}):
+            run_module.main()
+        self.assertEqual(runs[0].calls[0], "caption")
+        self.assertTrue(runs[0].calls[1][1].startswith("🤖") and "caption.txt" in runs[0].calls[1][1])
+
+    def test_the_render_publishes_a_good_caption_beside_the_video(self):
+        from unittest import mock
+        import factory.run as run_module
+
+        with mock.patch.dict("os.environ", {"GITHUB_REPOSITORY": "owner/repo", "GH_TOKEN": "t"}):
+            run = run_module.Run("7")
+        run.job, run.work = Path(tempfile.mkdtemp()), Path(tempfile.mkdtemp())
+        out = Path(tempfile.mkdtemp()) / "render-7"
+        published = []
+
+        def module(name, *arguments, **options):
+            out.mkdir(parents=True)
+            for item in ("video.mp4", "sheet.jpg", "cover.jpg", "subtitles.srt", "credits.md", "edits.md"):
+                (out / item).write_bytes(b"x")
+            (out / "scenes.json").write_text('{"duration": 61.0}', encoding="utf-8")
+
+        run.module, run.render_labels = module, lambda: None
+        run.publish = lambda paths, message: published.append(list(paths))
+        with mock.patch.object(run_module, "ROOT", out.parent.parent):
+            (out.parent.parent / "out").mkdir(exist_ok=True)
+            out = out.parent.parent / "out" / "render-7"
+            self.assertEqual(run.render(), 61.0)                                   # no caption.txt: as before
+            self.assertNotIn("caption.txt", published[-1])
+            (run.job / "caption.txt").write_text(PostingCaptionTest.GOOD, encoding="utf-8")
+            run.render()
+            self.assertIn("caption.txt", published[-1])
+            self.assertEqual((run.work / "caption.txt").read_text(encoding="utf-8"), PostingCaptionTest.GOOD)
+            self.assertEqual(run.caption_note, "")
+            (run.job / "caption.txt").write_text("Tiêu đề tiếng Việt", encoding="utf-8")
+            run.render()                                                           # a wrong caption never stops the video
+            self.assertIn("video.mp4", published[-1])
+            self.assertNotIn("caption.txt", published[-1])
+            self.assertIn("caption.txt sai định dạng", run.caption_note)
 
     def test_one_job_per_issue(self):
         self.assertEqual(matrix(["7 prepare render", "", "8 search", "x render", "9 rm -rf"]),

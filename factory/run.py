@@ -6,7 +6,9 @@
            → renders/lore/<N>/voice/, img/issue/, img/1/
   search   every lore/<N>/search-<r>.json whose round is not on renders yet → renders/lore/<N>/img/<r>/
   render   video from script.json + picks.json → renders/lore/<N>/video.mp4, subtitles.srt, credits.md, edits.md,
-           sheet.jpg
+           sheet.jpg, and caption.txt when lore/<N>/caption.txt exists
+  caption  only lore/<N>/caption.txt (the posting caption) → renders/lore/<N>/caption.txt; no voice, search or
+           render, no label change; a comment links it when the video is already there
 After prepare the issue waits for Claude (lore-pick) unless picks.json exists, then render runs too.
 `python3 -m factory.run todo` reads changed file names on stdin and prints "<N> <steps>" lines;
 `python3 -m factory.run matrix` turns those lines into the JSON list of the workflow's job matrix;
@@ -24,7 +26,7 @@ import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-ORDER = ["prepare", "search", "render"]
+ORDER = ["prepare", "search", "render", "caption"]
 STEP_LABELS = ["lore-plan", "lore-voice", "lore-pick", "lore-render", "lore-check", "lore-done"]
 BOT = ["-c", "user.name=render-bot", "-c", "user.email=render-bot@users.noreply.github.com"]
 
@@ -38,7 +40,8 @@ def todo(files):
             continue
         number, rest = match.groups()
         step = ("prepare" if rest == "script.json" else "search" if re.fullmatch(r"search-\w+\.json", rest)
-                else "render" if rest == "picks.json" or rest.startswith("own/") else None)
+                else "render" if rest == "picks.json" or rest.startswith("own/")
+                else "caption" if rest == "caption.txt" else None)
         if step and step not in jobs.setdefault(number, []):
             jobs[number].append(step)
     return [f"{number} {' '.join(sorted(steps, key=ORDER.index))}" for number, steps in jobs.items() if steps]
@@ -358,6 +361,32 @@ class Run:
         if done:
             self.publish(done, "tìm thêm ảnh")
 
+    def caption_problems(self):
+        """None when there is no lore/<N>/caption.txt, else the list of its format problems ([] = fine)."""
+        from .caption import problems
+
+        path = self.job / "caption.txt"
+        if not path.is_file():
+            return None
+        try:
+            return problems(path.read_text(encoding="utf-8"))
+        except UnicodeDecodeError:
+            return ["không phải UTF-8"]
+
+    def caption(self):
+        """Publish lore/<N>/caption.txt beside the video; True when the video is already on renders."""
+        found = self.caption_problems()
+        if found is None:
+            raise SystemExit("không có lore/{}/caption.txt".format(self.n))
+        if found:
+            raise SystemExit("caption.txt sai định dạng: " + "; ".join(found))
+        self.work.mkdir(parents=True, exist_ok=True)
+        shutil.copy(self.job / "caption.txt", self.work / "caption.txt")
+        self.publish(["caption.txt"], "caption")
+        listing = subprocess.run(["git", "ls-tree", "--name-only", "origin/renders", f"lore/{self.n}/video.mp4"],
+                                 cwd=ROOT, capture_output=True, text=True).stdout
+        return bool(listing.strip())
+
     def render(self):
         self.render_labels()
         out = ROOT / "out" / f"render-{self.n}"
@@ -367,6 +396,13 @@ class Run:
         names = ["video.mp4", "sheet.jpg", "cover.jpg", "subtitles.srt", "credits.md", "edits.md", "scenes.json"]
         for name in names:
             shutil.copy(out / name, self.work / name)
+        self.caption_note = ""
+        found = self.caption_problems()
+        if found == []:
+            shutil.copy(self.job / "caption.txt", self.work / "caption.txt")
+            names.append("caption.txt")
+        elif found:      # a wrong caption never holds back the video
+            self.caption_note = "⚠️ caption.txt sai định dạng nên chưa đăng: " + "; ".join(found) + "."
         if (self.work / "video.mp4").stat().st_size > 95 * 1024 * 1024:
             raise SystemExit("video.mp4 lớn hơn 95 MB, không đưa lên nhánh renders được")
         self.publish(names, "video")
@@ -387,6 +423,11 @@ def main():
     run = Run(number)
     if only_mark:
         run.mark(steps)
+        return
+    if steps == ["caption"]:
+        # only the posting caption changed: never the voice, a search or a render
+        if run.caption():
+            run.comment(f"🤖 Đã cập nhật caption để đăng video: {run.link('caption.txt')}")
         return
     run.fetch_renders()
     if os.environ.get("GITHUB_EVENT_NAME") == "push":
@@ -437,14 +478,20 @@ def main():
         if not has_picks:
             raise SystemExit("chưa có picks.json cho phiếu này")
         minutes, seconds = divmod(round(run.render()), 60)
+        caption = (run.job / "caption.txt").is_file() and not run.caption_note
         run.step("lore-check")
         run.wake(
             f"Phiếu 40K số {number}: video đã dựng, chờ kiểm tra.",
             f"🤖 Đã dựng xong bản video ({minutes} phút {seconds:02d} giây), chưa kiểm tra từng cảnh.\n\n"
-            f"- Video: {run.link('video.mp4')}\n- Ảnh các cảnh: {run.link('sheet.jpg')}\n\n"
-            f"{search_note(failed) if failed else ''}",
+            f"- Video: {run.link('video.mp4')}\n- Phụ đề: {run.link('subtitles.srt')}\n"
+            + (f"- Caption để đăng: {run.link('caption.txt')}\n" if caption else "")
+            + f"- Ảnh các cảnh: {run.link('sheet.jpg')}\n\n"
+            + (f"{run.caption_note}\n\n" if run.caption_note else "")
+            + (search_note(failed) if failed else ""),
             "Claude sẽ kiểm tra lại từng cảnh trước khi giao.",
         )
+    elif "caption" in steps and run.caption_problems() == []:
+        run.caption()     # no render in this run (the picks are not there yet): the caption waits beside the voice
 
 
 def report(error):

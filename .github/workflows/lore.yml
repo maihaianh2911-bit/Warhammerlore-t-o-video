@@ -20,7 +20,7 @@ on:
         description: Số phiếu
         required: true
       steps:
-        description: 'Bước: prepare (giọng + ảnh), search (tìm thêm ảnh), render (dựng) — cách nhau bằng dấu cách'
+        description: 'Bước: prepare (giọng + ảnh), search (tìm thêm ảnh), render (dựng), caption (chỉ đăng caption.txt) — cách nhau bằng dấu cách'
         default: render
 
 permissions:
@@ -103,8 +103,8 @@ jobs:
         run: |
           if [ "$GITHUB_EVENT_NAME" = workflow_dispatch ]; then
             case "$IN_ISSUE" in ''|*[!0-9]*) echo "::error::số phiếu không hợp lệ"; exit 1;; esac
-            S=""; for s in $IN_STEPS; do case "$s" in prepare|search|render) S="$S $s";; esac; done
-            [ -n "$S" ] || { echo "::error::không có bước hợp lệ (prepare, search, render)"; exit 1; }
+            S=""; for s in $IN_STEPS; do case "$s" in prepare|search|render|caption) S="$S $s";; esac; done
+            [ -n "$S" ] || { echo "::error::không có bước hợp lệ (prepare, search, render, caption)"; exit 1; }
             echo "$IN_ISSUE$S" > /tmp/todo.txt
           else
             # files changed by this push (only the last commit's when the old head cannot be fetched)

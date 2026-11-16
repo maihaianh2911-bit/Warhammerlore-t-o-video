@@ -39,7 +39,7 @@ Bạn không phải tìm hình. Máy và Claude tự tìm:
 
 ## File kết quả
 
-Nhánh **`renders`**, thư mục `lore/<số phiếu>/`: `video.mp4`, `subtitles.srt`, `credits.md` (nguồn hình), `edits.md` (cách edit từng cảnh và vì sao), `sheet.jpg` (ảnh các cảnh), `cover.jpg`, `voice/narration.mp3`, `voice/check.md` (đoạn cần nghe lại). Video của phiếu không hoạt động quá 14 ngày được dọn tự động, nên hãy tải về sớm.
+Nhánh **`renders`**, thư mục `lore/<số phiếu>/`: `video.mp4`, `subtitles.srt`, `caption.txt` (chữ để đăng kèm video, tiếng Đức, có hashtag), `credits.md` (nguồn hình), `edits.md` (cách edit từng cảnh và vì sao), `sheet.jpg` (ảnh các cảnh), `cover.jpg`, `voice/narration.mp3`, `voice/check.md` (đoạn cần nghe lại). Video của phiếu không hoạt động quá 14 ngày được dọn tự động, nên hãy tải về sớm.
 
 ## Cấu hình
 
