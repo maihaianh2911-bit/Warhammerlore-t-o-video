@@ -1,0 +1,27 @@
+# Nguồn hình
+
+- Dark Heresy Artworks IV — phoebe_herring, ArtStation
+- Mars Forge World — 40K Gallery https://40k.gallery/mars-forge-world/
+- Praise the Omnissiah — 40K Gallery https://40k.gallery/praise-the-omnissiah/
+- For the Omnissiah — 40K Gallery https://40k.gallery/for-the-omnissiah/
+- Foreboding Ruins — 40K Gallery https://40k.gallery/foreboding-ruins/
+- Men of Iron — 40K Gallery https://40k.gallery/men-of-iron/
+- Men of Iron 2 — 40K Gallery https://40k.gallery/men-of-iron-2/
+- Era Indomitus: The Doom of Nakaris — 40K Gallery https://40k.gallery/era-indomitus-the-doom-of-nakaris/
+- Ruins of Jardlan 2 — 40K Gallery https://40k.gallery/ruins-of-jardlan-2/
+- Dark Heresy Artworks VI — phoebe_herring, ArtStation
+- STC core, House Van Saar — Games Workshop, Warhammer 40k Wiki
+- Dark Heresy artworks — phoebe_herring, ArtStation
+- Cenobyte Servitor — 40K Gallery https://40k.gallery/cenobyte-servitor/
+- Servitor — maciej_mikolajczyk, ArtStation
+- Combat Servitor — 40K Gallery https://40k.gallery/combat-servitor/
+- The Omnissiah Touch — 40K Gallery https://40k.gallery/the-omnissiah-touch/
+- Magos Arkhan Land — Games Workshop, Warhammer 40k Wiki
+- Land Raider 2 — 40K Gallery https://40k.gallery/land-raider-2/
+- Dark Heresy Artworks II — phoebe_herring, ArtStation
+- Great Shipyard of Mars — 40K Gallery https://40k.gallery/great-shipyard-of-mars/
+- Belisarius Cawl 2 — 40K Gallery https://40k.gallery/belisarius-cawl-2/
+- Primaris 3 — 40K Gallery https://40k.gallery/primaris-3/
+- Belisarius Cawl — 40K Gallery https://40k.gallery/belisarius-cawl/
+- Roboute Guilliman, Indomitus Crusade — 40K Gallery https://40k.gallery/roboute-guilliman-indomitus-crusade/
+- Belisarius Cawl 4 — 40K Gallery https://40k.gallery/belisarius-cawl-4/
