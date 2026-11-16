@@ -1,5 +1,18 @@
 # Warhammerlore-t-o-video — notes for Claude
 
+## Iron rules (owner, 16/11/2026) — they come before everything else in this file
+1. **The video is in the channel's language: German (tiếng Đức).** The voice is the saved German `ww40k` voice, and the script lines, subtitles and
+   on-screen text are in German (tiếng Đức). A script that arrives in another language is translated faithfully into German (tiếng Đức)
+   first. Never a voice or text of another language: check the language of `lines` and the voice before the voice
+   step, and again on the finished video. A video in the wrong language is not delivered: fix it and render again.
+2. **No video under 60 seconds.** Before the voice step, estimate the length from the script (use the seconds per
+   line of this channel's earlier videos); after the voice step, read the real length of the speech (the machine
+   comment gives it). If the video would be under 60 seconds, **write the script longer** (more true facts and
+   detail on the same subject, in the owner's tone, nothing invented) until it passes 60 seconds, tell the owner on
+   the issue what was added, and only then go on. This is the one exception to "never change the owner's script".
+   Never render or deliver a video under 60 seconds. Only exception: a trial or sample video — the owner says so,
+   or the issue title or notes say `thử`, `mẫu`, `test` or `demo`.
+
 Read `AGENT.md` (how a video is made, the owner's standing decisions). The owner is Vietnamese and not technical:
 answer in short, simple Vietnamese, no jargon.
 
