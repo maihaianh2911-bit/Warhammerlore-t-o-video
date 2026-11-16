@@ -24,6 +24,7 @@ DETAIL = 1.7                # stills are kept larger than the frame so a deep pu
 KICK = 0.03                 # default extra push a cut lands with; it settles in a third of a second
 KICK_SECONDS = 0.33
 FONTS = Path(__file__).resolve().parent.parent / "fonts"
+MAX_MEGABYTES = 80          # the renders branch takes files up to 95 MB; keep a margin
 
 
 def ffmpeg(scratch, *arguments, **options):
@@ -239,6 +240,12 @@ def write_sheet(video, scenes, scratch, path):
     contact_sheet(tiles, path, columns=6)
 
 
+def bitrate_cap(duration):
+    """x264 rate limit so the whole file stays under MAX_MEGABYTES (grain and a moving camera cost many bits)."""
+    kbps = min(9000, int(MAX_MEGABYTES * 8000 / max(duration, 1) * 0.92) - 160)
+    return ["-maxrate", f"{kbps}k", "-bufsize", f"{2 * kbps}k"]
+
+
 def encode_video(frames_rgb, audio, frames, size, scratch, destination, tempo=1.0, sound=None):
     """Frames from Python, subtitles, voice and a bed, in one pass. sound: (music.wav, hits.wav) made by
     factory.sound; the music is ducked under the voice, the hits are not. Without it, a quiet hum."""
@@ -248,7 +255,7 @@ def encode_video(frames_rgb, audio, frames, size, scratch, destination, tempo=1.
     if sound:
         inputs = ["-i", sound[0].name, "-i", sound[1].name]
         mix = (
-            f"[0:v]vignette=angle=PI/5.5,noise=alls=5:allf=t,ass=subtitles.ass:fontsdir={FONTS},"
+            f"[0:v]vignette=angle=PI/5.5,noise=alls=3:allf=t,ass=subtitles.ass:fontsdir={FONTS},"
             "format=yuv420p[video];"
             f"[1:a]{speed}loudnorm=I=-16:TP=-2:LRA=7,aresample=48000,aformat=channel_layouts=stereo,apad,"
             "asplit=2[voice][key];"
@@ -274,7 +281,7 @@ def encode_video(frames_rgb, audio, frames, size, scratch, destination, tempo=1.
          "-i", audio.name, *inputs,
          "-filter_complex", mix, "-map", "[video]", "-map", "[audio]",
          "-frames:v", str(frames), "-t", f"{duration:.6f}", "-c:v", "libx264",
-         "-preset", "medium", "-crf", "21", "-c:a", "aac", "-b:a", "160k",
+         "-preset", "medium", "-crf", "21", *bitrate_cap(duration), "-c:a", "aac", "-b:a", "160k",
          "-movflags", "+faststart", str(destination)],
         cwd=scratch, stdin=subprocess.PIPE,
     )
