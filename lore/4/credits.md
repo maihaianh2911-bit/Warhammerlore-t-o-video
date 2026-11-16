@@ -1,0 +1,24 @@
+# Nguồn hình
+
+- Lorgar Aurelian 15 — 40K Gallery https://40k.gallery/lorgar-aurelian-15/
+- The Coronation of the Warmaster — kheljay, ArtStation
+- Horus Lupercal — adrian4rt, ArtStation
+- Lorgar Aurelian 9 — 40K Gallery https://40k.gallery/lorgar-aurelian-9/
+- Lorgar, Bearer of the Word — 40K Gallery https://40k.gallery/lorgar-bearer-of-the-word/
+- Emperor of Mankind 12 — 40K Gallery https://40k.gallery/emperor-of-mankind-12/
+- Horus Heresy Fanart – Roboute Guilliman — helgesonart, ArtStation
+- Lorgar, Bearer of the Word 2 — 40K Gallery https://40k.gallery/lorgar-bearer-of-the-word-2/
+- Word Bearer — 40K Gallery https://40k.gallery/word-bearer/
+- The Last Church — kheljay, ArtStation
+- Lorgar Aurelian 16 — 40K Gallery https://40k.gallery/lorgar-aurelian-16/
+- Lorgar Aurelian 11 — 40K Gallery https://40k.gallery/lorgar-aurelian-11/
+- Kor Phaeron, the Keeper of the Faith — 40K Gallery https://40k.gallery/kor-phaeron-the-keeper-of-the-faith/
+- Lorgar 7 — 40K Gallery https://40k.gallery/lorgar-7/
+- Lorgar Aurelian 14 — 40K Gallery https://40k.gallery/lorgar-aurelian-14/
+- Slaves to Darkness, Path to Glory — thomaselliott, ArtStation
+- The Eye of Terror — 40K Gallery https://40k.gallery/the-eye-of-terror/
+- Erebus 2 — 40K Gallery https://40k.gallery/erebus-2/
+- Lorgar Aurelian 17 — 40K Gallery https://40k.gallery/lorgar-aurelian-17/
+- Horus Lupercal — dullahan, ArtStation
+- Kneel Before Me — 40K Gallery https://40k.gallery/kneel-before-me/
+- Lorgar Aurelian 12 — 40K Gallery https://40k.gallery/lorgar-aurelian-12/
