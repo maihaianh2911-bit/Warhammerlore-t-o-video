@@ -118,6 +118,14 @@ Read the issue form (Kịch bản, Hình riêng, Ghi chú) and the owner's comme
     `gallery:Badab`); `gallery:Sanguinius p2` gives the next 16. **Search here and on ArtStation for every
     character, faction and scene.** You can look titles up yourself:
     `gzip -dc 00-video-mau/kho-anh-40k/assets.jsonl.gz | grep -i '<word>'`.
+    The catalogue checked on 17/11/2026: 14,075 artworks, every one with a title, its page and a direct link, no
+    link twice; 103 searches in videos #1–#10 without one error. Its limits: only 385 artworks have tags and 104 an
+    artist, so a search finds what the **title** names (`gallery:Great Rift` 2, `gallery:Cicatrix` 0: try another
+    name of the same thing) and most credits read "40K Gallery" (open the artwork's page for the artist when it
+    matters). The best matches come first since 17/11: the word itself before look-alikes (`gallery:Mars` no
+    longer opens with "Marshal …"); pin-up, chibi, meme and cosplay titles are never offered. A big name has many
+    more than 16 (`Ultramarines` 217, `Nurgle` 131, `Sanguinius` 95, `Horus` 90): **ask `p2`, `p3` as well and, for
+    a character who was in an earlier video, start from a later page**, or every video shows the same sixteen.
   - `artstation:Sanguinius` — ArtStation, most liked first (up to 16, ≥ 900 px): modern, high-resolution
     artwork by named artists. **The main source**: one query for every character, faction and scene, with the
     English lore name (`artstation:Leman Russ`, `artstation:Space Wolves`, `artstation:Horus Heresy`). Two-name

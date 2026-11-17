@@ -88,17 +88,45 @@ def catalog():
     return rows
 
 
+# titles of the catalogue that are no pictures for a lore video (17/11/2026: 15 pin-ups, a few chibi, meme and
+# cosplay entries among the 14,075): never offered
+NOT_LORE = re.compile(r'\b(pin ?up|miss (january|february|march|april|may|june|july|august|september|october|november|december)|'
+                      r'sexy|waifu|lewd|nsfw|bikini|chibi|meme|cosplay)\b', re.I)
+
+
+def word_fit(word, tokens):
+    """How a word of the query is found among the words of an artwork's title and tags: 0 the word itself (or its
+    plural), 1 a form of it (Cadia -> Cadian, Terra -> Terran), 2 only inside another word (Mars in Marshal)."""
+    best = 3
+    for t in tokens:
+        if t == word or t in (word + 's', word + 'es') or (word.endswith('s') and t == word[:-1]):
+            return 0
+        if t.startswith(word) and t[len(word):] in ('n', 'ns', 'an', 'ans', 'ian', 'ians', 'ite', 'ites'):
+            best = min(best, 1)
+        elif word in t:
+            best = min(best, 2)
+    return best
+
+
 def gallery(q, n=16):
-    """Catalogue entries whose title or tags hold every word of the query; 'p2', 'p3'… pick the next batch."""
+    """Catalogue entries whose title or tags hold every word of the query; 'p2', 'p3'… pick the next batch.
+    The best matches come first (17/11/2026): artworks that hold the words themselves, then forms of them, and last
+    those that only hold them inside another word ("Mars" found 10 "Marshal …" among its 25, six of them in the first
+    16); within each group the titles that start with the query, then the catalogue's own order (curated first)."""
     words = q.lower().split()
     page = int(words.pop()[1:]) if words and re.fullmatch(r'p\d+', words[-1]) else 1
     hits = []
-    for r in catalog():
+    for i, r in enumerate(catalog()):
         text = (r.get('title', '') + ' ' + ' '.join(r.get('tags') or [])).lower().replace('-', ' ')
         url = r.get('image_url') or ''
-        if words and all(w in text for w in words) and re.match(r'https://artwork\.40k\.gallery/[\w./%-]+$', url):
-            hits.append({'title': r.get('title', ''), 'page': r.get('source_url'), 'thumb': url, 'width': None, 'height': None,
-                         'source': '40K Gallery', 'artist': r.get('artist', ''), 'license': '© ' + (r.get('artist') or '40K Gallery')})
+        if words and all(w in text for w in words) and re.match(r'https://artwork\.40k\.gallery/[\w./%-]+$', url) \
+                and not NOT_LORE.search(r.get('title', '').replace('-', ' ')):
+            tokens = re.findall(r'[a-z0-9]+', text)
+            title = re.findall(r'[a-z0-9]+', r.get('title', '').lower().replace('-', ' '))
+            rank = (max(word_fit(w, tokens) for w in words), 0 if title[:len(words)] == words else 1, i)
+            hits.append((rank, {'title': r.get('title', ''), 'page': r.get('source_url'), 'thumb': url, 'width': None, 'height': None,
+                                'source': '40K Gallery', 'artist': r.get('artist', ''), 'license': '© ' + (r.get('artist') or '40K Gallery')}))
+    hits = [h for _, h in sorted(hits, key=lambda x: x[0])]
     return hits[(page - 1) * n:page * n]
 
 
