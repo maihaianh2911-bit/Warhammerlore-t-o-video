@@ -1,0 +1,28 @@
+# Nguồn hình
+
+- Magnus the Red 21 — 40K Gallery https://40k.gallery/magnus-the-red-21/
+- Fury of Magnus — 40K Gallery https://40k.gallery/fury-of-magnus/
+- Magnus the Red — oruam, ArtStation
+- Emperor of Mankind 12 — 40K Gallery https://40k.gallery/emperor-of-mankind-12/
+- The Cyclops — stevesykes, ArtStation
+- Magnus the Red - Horus Heresy Fanart — helgesonart, ArtStation
+- Horus Lupercal — oruam, ArtStation
+- Magnus the Red 6 — 40K Gallery https://40k.gallery/magnus-the-red-6/
+- Sons of Prospero 2 — 40K Gallery https://40k.gallery/sons-of-prospero-2/
+- Eternity Gate — supranutz, ArtStation
+- Emperor of Mankind 20 — 40K Gallery https://40k.gallery/emperor-of-mankind-20/
+- Magnus the Red 2 — 40K Gallery https://40k.gallery/magnus-the-red-2/
+- Sisters of Silence 3 — 40K Gallery https://40k.gallery/sisters-of-silence-3/
+- The Golden Throne — ulanti, ArtStation
+- Leman Russ — Richard Bagnall, 40K Gallery https://40k.gallery/leman-russ-16/
+- Horus Lupercal — adrian4rt, ArtStation
+- Scouring of Prospero — Games Workshop, Warhammer 40k Wiki
+- Horus Heresy: The Burning of Prospero — 40K Gallery https://40k.gallery/horus-heresy-the-burning-of-prospero/
+- Magnus the Red, Master of Prospero (Black Library) — 40K Gallery https://40k.gallery/black-library-magnus-the-red-master-of-prospero/
+- Prospero Burning — 40K Gallery https://40k.gallery/prospero-burning/
+- Executioner of Prospero — 40K Gallery https://40k.gallery/executioner-of-prospero/
+- Leman Russ 11 — 40K Gallery https://40k.gallery/leman-russ-11/
+- Sons of Prospero — 40K Gallery https://40k.gallery/sons-of-prospero/
+- Magnus the Red 9 — 40K Gallery https://40k.gallery/magnus-the-red-9/
+- Magnus the Red 23 — 40K Gallery https://40k.gallery/magnus-the-red-23/
+- Emperor of Mankind 17 — 40K Gallery https://40k.gallery/emperor-of-mankind-17/
