@@ -1,0 +1,286 @@
+{
+  "title": "Warum funktionieren Ork-Waffen?",
+  "duration": 67.67,
+  "scenes": [
+    {
+      "start": 0.0,
+      "end": 3.567,
+      "picture": "gunfire",
+      "text": "Warum schießen Ork-Waffen, nur weil die Orks glauben, dass sie schießen?",
+      "credits": [
+        "Cool Orks — 40K Gallery https://40k.gallery/cool-orks/"
+      ],
+      "edit": "qua-vat"
+    },
+    {
+      "start": 3.567,
+      "end": 5.867,
+      "picture": "bigboss",
+      "text": "In Warhammer 40.000 sind Orks grüne, riesige Wesen, die nur für den Kampf leben.",
+      "credits": [
+        "Ghazghkull Thraka 10 — 40K Gallery https://40k.gallery/ghazghkull-thraka-10/"
+      ],
+      "edit": "ngang-len"
+    },
+    {
+      "start": 5.867,
+      "end": 8.1,
+      "picture": "battle",
+      "text": "",
+      "credits": [
+        "Orkboyz — 40K Gallery https://40k.gallery/orkboyz/"
+      ],
+      "edit": "ap-mat"
+    },
+    {
+      "start": 8.1,
+      "end": 11.1,
+      "picture": "techpriest",
+      "text": "Imperiale Techpriester schütteln den Kopf über ihre Waffen und Fahrzeuge: zusammengeschweißter Schrott, der eigentlich nicht funktionieren dürfte.",
+      "credits": [
+        "Ad Mech at Work — 40K Gallery https://40k.gallery/ad-mech-at-work/"
+      ],
+      "edit": "ap-mat"
+    },
+    {
+      "start": 11.1,
+      "end": 14.6,
+      "picture": "junk",
+      "text": "",
+      "credits": [
+        "Mad Mek — 40K Gallery https://40k.gallery/mad-mek/"
+      ],
+      "edit": "toan-canh"
+    },
+    {
+      "start": 14.6,
+      "end": 15.967,
+      "picture": "battlewagon",
+      "text": "Und trotzdem funktioniert er.",
+      "credits": [
+        "Blood Axes Speed Freeks — 40K Gallery https://40k.gallery/blood-axes-speed-freeks/"
+      ],
+      "edit": "va-dap"
+    },
+    {
+      "start": 15.967,
+      "end": 17.933,
+      "picture": "head",
+      "text": "Der Grund steckt in den Köpfen der Orks.",
+      "credits": [
+        "Waaagh 4 — 40K Gallery https://40k.gallery/waaagh-4/"
+      ],
+      "edit": "de-doa"
+    },
+    {
+      "start": 17.933,
+      "end": 20.667,
+      "picture": "psyker",
+      "text": "Jeder Ork strahlt ein wenig psychische Energie aus, ohne es zu wissen.",
+      "credits": [
+        "Power of the Waaagh — 40K Gallery https://40k.gallery/power-of-the-waaagh/"
+      ],
+      "edit": "qua-vat"
+    },
+    {
+      "start": 20.667,
+      "end": 22.9,
+      "picture": "gathering",
+      "text": "Wenn sich Tausende Orks sammeln, wird daraus ein Feld, und dieses Feld macht den Glauben der Orks zur Wirklichkeit.",
+      "credits": [
+        "Waaagh — tom_draws_things, ArtStation"
+      ],
+      "edit": "lui-ra"
+    },
+    {
+      "start": 22.9,
+      "end": 26.067,
+      "picture": "bigmek",
+      "text": "",
+      "credits": [
+        "Big Mek in Mega Armour — 40K Gallery https://40k.gallery/big-mek-in-mega-armour/"
+      ],
+      "edit": "qua-vat"
+    },
+    {
+      "start": 26.067,
+      "end": 28.133,
+      "picture": "redcar",
+      "text": "Orks glauben, dass rote Fahrzeuge schneller sind, also sind rote Fahrzeuge wirklich schneller.",
+      "credits": [
+        "Speed Freeks — 40K Gallery https://40k.gallery/speed-freeks/"
+      ],
+      "edit": "lao-toi"
+    },
+    {
+      "start": 28.133,
+      "end": 30.333,
+      "picture": "redjet",
+      "text": "",
+      "credits": [
+        "Black Templars Aircraft vs Ork Aircraft — 40K Gallery https://40k.gallery/black-templars-aircraft-vs-ork-aircraft/"
+      ],
+      "edit": "va-dap"
+    },
+    {
+      "start": 30.333,
+      "end": 33.6,
+      "picture": "shoota",
+      "text": "Orks glauben: Je größer und lauter eine Waffe, desto stärker.",
+      "credits": [
+        "Cybork 2 — 40K Gallery https://40k.gallery/cybork-2/"
+      ],
+      "edit": "qua-vat"
+    },
+    {
+      "start": 33.6,
+      "end": 35.333,
+      "picture": "gunfire",
+      "text": "Und ihre Waffen sind tatsächlich stark, auch wenn im Inneren oft nichts Sinnvolles steckt.",
+      "credits": [
+        "Cool Orks — 40K Gallery https://40k.gallery/cool-orks/"
+      ],
+      "edit": "va-dap"
+    },
+    {
+      "start": 35.333,
+      "end": 37.533,
+      "picture": "cab",
+      "text": "",
+      "credits": [
+        "Prophecy of Waaagh — 40K Gallery https://40k.gallery/prophecy-of-waaagh/"
+      ],
+      "edit": "ap-mat"
+    },
+    {
+      "start": 37.533,
+      "end": 39.433,
+      "picture": "clash",
+      "text": "Orks wachsen außerdem mit jedem Kampf.",
+      "credits": [
+        "Ultramarine vs Ork 18 — 40K Gallery https://40k.gallery/ultramarine-vs-ork-18/"
+      ],
+      "edit": "luot-ngang"
+    },
+    {
+      "start": 39.433,
+      "end": 42.1,
+      "picture": "ghazattack",
+      "text": "Je mehr sie kämpfen und siegen, desto größer und stärker werden sie.",
+      "credits": [
+        "Ghazghkull Attack — 40K Gallery https://40k.gallery/ghazghkull-attack/"
+      ],
+      "edit": "ngang-len"
+    },
+    {
+      "start": 42.1,
+      "end": 43.967,
+      "picture": "ghaz",
+      "text": "Der Größte wird zum Waaaghboss.",
+      "credits": [
+        "Ghazghkull Mag Uruk Thraka 3 — 40K Gallery https://40k.gallery/ghazghkull-mag-uruk-thraka-3/"
+      ],
+      "edit": "va-dap"
+    },
+    {
+      "start": 43.967,
+      "end": 46.467,
+      "picture": "horde",
+      "text": "Und wenn ein Waaaghboss stark genug ist, die Stämme zu vereinen, rollt eine ganze Welle von Orks über die Sternsysteme: der Waaagh.",
+      "credits": [
+        "Ork Waaagh — 40K Gallery https://40k.gallery/ork-waaagh/"
+      ],
+      "edit": "toan-canh"
+    },
+    {
+      "start": 46.467,
+      "end": 49.5,
+      "picture": "tip",
+      "text": "",
+      "credits": [
+        "Tip of the WAAAAGH — boogwerks, ArtStation"
+      ],
+      "edit": "lao-toi"
+    },
+    {
+      "start": 49.5,
+      "end": 51.333,
+      "picture": "idol",
+      "text": "Niemand muss Orks das Glauben beibringen.",
+      "credits": [
+        "Illustration for Ghazghkull Thraka: Prophet of the Waaagh! — atenebris, ArtStation"
+      ],
+      "edit": "ap-mat"
+    },
+    {
+      "start": 51.333,
+      "end": 53.333,
+      "picture": "godface",
+      "text": "Sie verehren zwei Götterbrüder, Gork und Mork: der eine brutal, aber gerissen, der andere gerissen, aber brutal.",
+      "credits": [
+        "Gork — 40K Gallery https://40k.gallery/gork/"
+      ],
+      "edit": "ngang-len"
+    },
+    {
+      "start": 53.333,
+      "end": 56.7,
+      "picture": "gorkmork",
+      "text": "",
+      "credits": [
+        "Gork Mork — 40K Gallery https://40k.gallery/gork-mork/"
+      ],
+      "edit": "qua-vat"
+    },
+    {
+      "start": 56.7,
+      "end": 59.133,
+      "picture": "boyz",
+      "text": "Und sie glauben, dass Krieg der größte Spaß von allen ist.",
+      "credits": [
+        "ORK BOYZ — loj, ArtStation"
+      ],
+      "edit": "lao-toi"
+    },
+    {
+      "start": 59.133,
+      "end": 60.633,
+      "picture": "scary",
+      "text": "Genau das ist das Furchterregende.",
+      "credits": [
+        "Ork Warboss 10 — 40K Gallery https://40k.gallery/ork-warboss-10/"
+      ],
+      "edit": "de-doa"
+    },
+    {
+      "start": 60.633,
+      "end": 62.9,
+      "picture": "laugh",
+      "text": "Das Imperium kämpft aus Angst, die Orks kämpfen zum Spaß.",
+      "credits": [
+        "Marine vs Ork 3 — 40K Gallery https://40k.gallery/marine-vs-ork-3/"
+      ],
+      "edit": "luot-ngang"
+    },
+    {
+      "start": 62.9,
+      "end": 64.967,
+      "picture": "armageddon",
+      "text": "Und wer zum Spaß kämpft, will nie aufhören.",
+      "credits": [
+        "Armageddon da Orks — Mateusz Ozminski, 40K Gallery https://40k.gallery/armageddon-da-orks/"
+      ],
+      "edit": "toan-canh"
+    },
+    {
+      "start": 64.967,
+      "end": 67.7,
+      "picture": "swanland",
+      "text": "Und ihr? Wenn Glaube zu Stärke wird, wer gewinnt am Ende?",
+      "credits": [
+        "Ork Boyz vs Ultramarines — Raymond Swanland, 40K Gallery https://40k.gallery/ork-boyz-vs-ultramarines/"
+      ],
+      "edit": "lui-ra"
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+# Nguồn hình
+
+- Cool Orks — 40K Gallery https://40k.gallery/cool-orks/
+- Ghazghkull Thraka 10 — 40K Gallery https://40k.gallery/ghazghkull-thraka-10/
+- Orkboyz — 40K Gallery https://40k.gallery/orkboyz/
+- Ad Mech at Work — 40K Gallery https://40k.gallery/ad-mech-at-work/
+- Mad Mek — 40K Gallery https://40k.gallery/mad-mek/
+- Blood Axes Speed Freeks — 40K Gallery https://40k.gallery/blood-axes-speed-freeks/
+- Waaagh 4 — 40K Gallery https://40k.gallery/waaagh-4/
+- Power of the Waaagh — 40K Gallery https://40k.gallery/power-of-the-waaagh/
+- Waaagh — tom_draws_things, ArtStation
+- Big Mek in Mega Armour — 40K Gallery https://40k.gallery/big-mek-in-mega-armour/
+- Speed Freeks — 40K Gallery https://40k.gallery/speed-freeks/
+- Black Templars Aircraft vs Ork Aircraft — 40K Gallery https://40k.gallery/black-templars-aircraft-vs-ork-aircraft/
+- Cybork 2 — 40K Gallery https://40k.gallery/cybork-2/
+- Prophecy of Waaagh — 40K Gallery https://40k.gallery/prophecy-of-waaagh/
+- Ultramarine vs Ork 18 — 40K Gallery https://40k.gallery/ultramarine-vs-ork-18/
+- Ghazghkull Attack — 40K Gallery https://40k.gallery/ghazghkull-attack/
+- Ghazghkull Mag Uruk Thraka 3 — 40K Gallery https://40k.gallery/ghazghkull-mag-uruk-thraka-3/
+- Ork Waaagh — 40K Gallery https://40k.gallery/ork-waaagh/
+- Tip of the WAAAAGH — boogwerks, ArtStation
+- Illustration for Ghazghkull Thraka: Prophet of the Waaagh! — atenebris, ArtStation
+- Gork — 40K Gallery https://40k.gallery/gork/
+- Gork Mork — 40K Gallery https://40k.gallery/gork-mork/
+- ORK BOYZ — loj, ArtStation
+- Ork Warboss 10 — 40K Gallery https://40k.gallery/ork-warboss-10/
+- Marine vs Ork 3 — 40K Gallery https://40k.gallery/marine-vs-ork-3/
+- Armageddon da Orks — Mateusz Ozminski, 40K Gallery https://40k.gallery/armageddon-da-orks/
+- Ork Boyz vs Ultramarines — Raymond Swanland, 40K Gallery https://40k.gallery/ork-boyz-vs-ultramarines/
