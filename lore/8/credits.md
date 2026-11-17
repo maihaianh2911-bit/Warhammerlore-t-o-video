@@ -1,0 +1,26 @@
+# Nguồn hình
+
+- Necron 7 — 40K Gallery https://40k.gallery/necron-7/
+- Necron Warriors and Imotekh — 40K Gallery https://40k.gallery/necron-warriors-and-imotekh/
+- Necrons 21 — 40K Gallery https://40k.gallery/necrons-21/
+- Necrontyr - Warhammer 40000 fanart — alexeykruglov, ArtStation
+- Biotransference — Anthony Devine, 40K Gallery https://40k.gallery/biotransference/
+- Old One — 40K Gallery https://40k.gallery/old-one/
+- The War in Heaven — 40K Gallery https://40k.gallery/the-war-in-heaven/
+- Shards of the Nightbringer — 40K Gallery https://40k.gallery/shards-of-the-nightbringer/
+- Deceiver: The Pact — 40K Gallery https://40k.gallery/deceiver-the-pact/
+- The Silent King 2 — 40K Gallery https://40k.gallery/the-silent-king-2/
+- Tomb World 4 — 40K Gallery https://40k.gallery/tomb-world-4/
+- Biotransference 2 — 40K Gallery https://40k.gallery/biotransference-2/
+- Necron Warriors — 40K Gallery https://40k.gallery/necron-warriors/
+- Necron Overlord — deusphoenix, ArtStation
+- Szarekh. The Silent King — krystianblicharski, ArtStation
+- Warhammer 40.000 Dawn of War IV: Necrons — mvgorlei, ArtStation
+- Silent King vs C'tan Apostles — 40K Gallery https://40k.gallery/silent-king-vs-ctan-apostles/
+- Szarekh the Silent King 3 — 40K Gallery https://40k.gallery/szarekh-the-silent-king-3/
+- Tomb World 3 — 40K Gallery https://40k.gallery/tomb-world-3/
+- Szarekh the Silent King — 40K Gallery https://40k.gallery/szarekh-the-silent-king/
+- Necron awakening — samuelwlazlo, ArtStation
+- Necron — 40K Gallery https://40k.gallery/necron/
+- Szarekh the Silent King 2 — 40K Gallery https://40k.gallery/szarekh-the-silent-king-2/
+- Curse of the Necrontyr — 40K Gallery https://40k.gallery/curse-of-the-necrontyr/
