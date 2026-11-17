@@ -1,0 +1,25 @@
+# Nguồn hình
+
+- Sanguinius — adrian4rt, ArtStation
+- Blood Angels 36 — 40K Gallery https://40k.gallery/blood-angels-36/
+- Sanguinius — oruam, ArtStation
+- Come and See — 40K Gallery https://40k.gallery/come-and-see/
+- Horus Lupercal — adrian4rt, ArtStation
+- Brother Primarchs — 40K Gallery https://40k.gallery/brother-primarchs/
+- Emperor Teleporting — Richard Bagnall, 40K Gallery https://40k.gallery/emperor-teleporting/
+- Vengeful Spirit 2 — 40K Gallery https://40k.gallery/vengeful-spirit-2/
+- Horus Rebellion — 40K Gallery https://40k.gallery/horus-rebellion/
+- Sanguinius — alex314, ArtStation
+- Horus and Sanguinius — 40K Gallery https://40k.gallery/horus-and-sanguinius/
+- Warhammer 40k Horus Heresy – The Angel's Last Flight — kheljay, ArtStation
+- Emperor vs Horus 2 — 40K Gallery https://40k.gallery/emperor-vs-horus-2/
+- Blood Angels — alexichim, ArtStation
+- Warhammer 40K – The Angel's Inferno — kheljay, ArtStation
+- Death Company — ivanklimenko, ArtStation
+- Death Company Blood Angels — 40K Gallery https://40k.gallery/death-company-blood-angels/
+- Death Company 6 — 40K Gallery https://40k.gallery/death-company-6/
+- Devastation of Baal: Dante meets Guilliman — kheljay, ArtStation
+- Death Company Flag Bearer — 40K Gallery https://40k.gallery/death-company-flag-bearer/
+- Devastation of Baal — klaher, ArtStation
+- Icarus — 40K Gallery https://40k.gallery/icarus/
+- Sanguinius — Davide Pizi, 40K Gallery https://40k.gallery/sanguinius-29/
