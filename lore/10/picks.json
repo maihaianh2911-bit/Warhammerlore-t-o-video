@@ -1,0 +1,605 @@
+{
+ "tempo": 1.38,
+ "fx": true,
+ "images": {
+  "portrait": {
+   "src": "1/2-8.jpg",
+   "credit": "Abaddon 8 — 40K Gallery https://40k.gallery/abaddon-8/"
+  },
+  "warpforge": {
+   "src": "1/3-8.jpg",
+   "credit": "Abaddon the Despoiler 9 — 40K Gallery https://40k.gallery/abaddon-the-despoiler-9/",
+   "crop": [
+    0.0,
+    0.135,
+    1.0,
+    0.92
+   ]
+  },
+  "captains": {
+   "src": "1/7-15.jpg",
+   "credit": "Horus — 40K Gallery https://40k.gallery/horus/",
+   "crop": [
+    0.0,
+    0.0,
+    1.0,
+    0.62
+   ]
+  },
+  "horus": {
+   "src": "1/6-4.jpg",
+   "credit": "Horus Lupercal — adrian4rt, ArtStation"
+  },
+  "duel": {
+   "src": "1/7-4.jpg",
+   "credit": "Horus vs the Emperor — Adrian Smith, 40K Gallery https://40k.gallery/horus-vs-the-emperor/",
+   "crop": [
+    0.02,
+    0.03,
+    0.98,
+    0.95
+   ]
+  },
+  "lastson": {
+   "src": "1/6-8.jpg",
+   "credit": "The Last Son of Horus — doodlok, ArtStation",
+   "crop": [
+    0.02,
+    0.09,
+    0.9,
+    0.91
+   ]
+  },
+  "newhorus": {
+   "src": "1/7-12.jpg",
+   "credit": "Evil Horus — 40K Gallery https://40k.gallery/evil-horus/",
+   "crop": [
+    0.0,
+    0.0,
+    1.0,
+    0.72
+   ]
+  },
+  "fire": {
+   "src": "1/1-6.jpg",
+   "credit": "Abaddon the Despoiler — fan_1911574281, ArtStation"
+  },
+  "wrath": {
+   "src": "1/3-1.jpg",
+   "credit": "Abaddon the Despoiler 16 — 40K Gallery https://40k.gallery/abaddon-the-despoiler-16/"
+  },
+  "council": {
+   "src": "1/3-11.jpg",
+   "credit": "Abaddon War Council — 40K Gallery https://40k.gallery/abaddon-war-council/",
+   "crop": [
+    0.0,
+    0.04,
+    1.0,
+    0.86
+   ]
+  },
+  "talon": {
+   "src": "1/17-3.jpg",
+   "credit": "Abaddon, Talon of Horus — Games Workshop, Warhammer 40k Wiki"
+  },
+  "legion": {
+   "src": "1/5-4.jpg",
+   "credit": "Black Legion 10 — 40K Gallery https://40k.gallery/black-legion-10/",
+   "crop": [
+    0.0,
+    0.0,
+    1.0,
+    0.94
+   ]
+  },
+  "mtg": {
+   "src": "1/3-6.jpg",
+   "credit": "Abaddon the Despoiler 5 — Johan Grenier, 40K Gallery https://40k.gallery/abaddon-the-despoiler-5/",
+   "crop": [
+    0.0,
+    0.0,
+    1.0,
+    0.85
+   ]
+  },
+  "eye": {
+   "src": "1/15-2.jpg",
+   "credit": "Eye of Terror 2 — 40K Gallery https://40k.gallery/eye-of-terror-2/",
+   "crop": [
+    0.0,
+    0.0,
+    1.0,
+    0.92
+   ]
+  },
+  "cave": {
+   "src": "1/3-4.jpg",
+   "credit": "Abaddon the Despoiler 3 — 40K Gallery https://40k.gallery/abaddon-the-despoiler-3/",
+   "crop": [
+    0.0,
+    0.0,
+    1.0,
+    0.94
+   ]
+  },
+  "crusade": {
+   "src": "1/10-5.jpg",
+   "credit": "Warhammer /// Black Crusade Traitor's hate — davidalvarezart, ArtStation",
+   "crop": [
+    0.0,
+    0.0,
+    1.0,
+    0.955
+   ]
+  },
+  "gate": {
+   "src": "1/17-1.jpg",
+   "credit": "Black Legion vs. Dark Angels, 13th Black Crusade — Games Workshop, Warhammer 40k Wiki"
+  },
+  "hood": {
+   "src": "1/2-3.jpg",
+   "credit": "Abaddon 3 — 40K Gallery https://40k.gallery/abaddon-3/"
+  },
+  "assault": {
+   "src": "1/2-9.jpg",
+   "credit": "Abaddon Assault on Cadia — 40K Gallery https://40k.gallery/abaddon-assault-on-cadia/",
+   "crop": [
+    0.1,
+    0.09,
+    0.8,
+    1.0
+   ]
+  },
+  "cadians": {
+   "src": "1/11-3.jpg",
+   "credit": "8th Cadia Regiment — 40K Gallery https://40k.gallery/8th-cadia-regiment/"
+  },
+  "victor": {
+   "src": "1/3-7.jpg",
+   "credit": "Abaddon the Despoiler 7 — 40K Gallery https://40k.gallery/abaddon-the-despoiler-7/"
+  },
+  "phil": {
+   "src": "1/1-3.jpg",
+   "credit": "Abaddon The Despoiler — phil-moss, ArtStation",
+   "crop": [
+    0.06,
+    0.04,
+    0.95,
+    0.96
+   ]
+  },
+  "throne": {
+   "src": "2/7-9.jpg",
+   "credit": "Golden Throne of Terra — 40K Gallery https://40k.gallery/golden-throne-of-terra/"
+  },
+  "blackstone": {
+   "src": "2/3-4.jpg",
+   "credit": "Blackstone Strikes Cadia — Games Workshop, Warhammer 40k Wiki",
+   "crop": [
+    0.22,
+    0.0,
+    1.0,
+    1.0
+   ]
+  },
+  "cadiafalls": {
+   "src": "2/3-3.jpg",
+   "credit": "Fall of Cadia — Games Workshop, Warhammer 40k Wiki"
+  },
+  "greatrift": {
+   "src": "2/1-1.jpg",
+   "credit": "Cicatrix Maledictum, the Great Rift — 40K Gallery https://40k.gallery/cicatrix-maledictum-the-great-rift/",
+   "crop": [
+    0.04,
+    0.0,
+    1.0,
+    1.0
+   ]
+  }
+ },
+ "shots": [
+  {
+   "img": "portrait",
+   "focus": [
+    0.52,
+    0.45
+   ],
+   "edit": "ap-mat",
+   "zoom": 1.4,
+   "pace": "surge",
+   "why": "mở bằng chân dung Abaddon: người đàn ông bị cho là thua 13 lần"
+  },
+  {
+   "at": 1.72,
+   "img": "warpforge",
+   "focus": [
+    0.56,
+    0.26
+   ],
+   "edit": "de-doa",
+   "zoom": 1.4,
+   "kick": 0.08,
+   "why": "nỗi sợ lớn nhất của Đế chế: áp sát gương mặt giận dữ"
+  },
+  {
+   "at": 2,
+   "img": "captains",
+   "focus": [
+    0.38,
+    0.4
+   ],
+   "edit": "toan-canh",
+   "from": [
+    1.4,
+    0.2,
+    0.48
+   ],
+   "zoom": 1.05,
+   "kick": 0.05,
+   "why": "Abaddon, Đội trưởng thứ nhất, đứng bên phải Horus: từ Abaddon mở ra cả hai"
+  },
+  {
+   "at": 2.63,
+   "img": "horus",
+   "focus": [
+    0.52,
+    0.36
+   ],
+   "edit": "de-doa",
+   "zoom": 1.4,
+   "kick": 0.06,
+   "why": "kẻ phản bội lớn nhất mọi thời: áp sát Horus"
+  },
+  {
+   "at": 3,
+   "img": "duel",
+   "focus": [
+    0.72,
+    0.35
+   ],
+   "edit": "va-dap",
+   "from": [
+    1.15,
+    0.25,
+    0.3
+   ],
+   "zoom": 1.35,
+   "kick": 0.1,
+   "why": "Horus ngã dưới tay Hoàng đế: từ Horus lướt sang lưỡi kiếm lửa"
+  },
+  {
+   "at": 3.44,
+   "img": "lastson",
+   "focus": [
+    0.6,
+    0.42
+   ],
+   "edit": "toan-canh",
+   "zoom": 1.15,
+   "kick": 0.04,
+   "why": "mang xác chủ nhân đi: người con bên thi thể Horus"
+  },
+  {
+   "at": 4,
+   "img": "newhorus",
+   "focus": [
+    0.52,
+    0.19
+   ],
+   "edit": "ngang-len",
+   "from": [
+    1.5,
+    0.5,
+    0.9
+   ],
+   "zoom": 1.4,
+   "kick": 0.05,
+   "why": "một Horus mới được tạo ra: đi từ đống lửa lên khuôn mặt"
+  },
+  {
+   "at": 4.8,
+   "img": "fire",
+   "focus": [
+    0.44,
+    0.42
+   ],
+   "edit": "va-dap",
+   "kick": 0.1,
+   "why": "Abaddon thiêu cái xác: cú giật trong biển lửa"
+  },
+  {
+   "at": 6,
+   "img": "wrath",
+   "focus": [
+    0.43,
+    0.29
+   ],
+   "edit": "de-doa",
+   "kick": 0.05,
+   "why": "hắn muốn tự mình hoàn thành việc Horus bỏ dở"
+  },
+  {
+   "at": 7,
+   "img": "phil",
+   "focus": [
+    0.49,
+    0.25
+   ],
+   "edit": "qua-vat",
+   "from": [
+    1.6,
+    0.53,
+    0.6
+   ],
+   "zoom": 1.5,
+   "kick": 0.05,
+   "why": "giáp sơn đen, tên mới Black Legion: từ ngôi sao Hỗn mang trên ngực lên mặt"
+  },
+  {
+   "at": 8,
+   "img": "talon",
+   "focus": [
+    0.66,
+    0.43
+   ],
+   "edit": "qua-vat",
+   "from": [
+    1.15,
+    0.3,
+    0.78
+   ],
+   "zoom": 1.35,
+   "kick": 0.06,
+   "why": "kiếm Drach'nyen và Móng vuốt Horus: từ móng vuốt lên mặt"
+  },
+  {
+   "at": 9,
+   "img": "council",
+   "focus": [
+    0.5,
+    0.27
+   ],
+   "edit": "toan-canh",
+   "from": [
+    1.3,
+    0.15,
+    0.62
+   ],
+   "zoom": 1.35,
+   "kick": 0.04,
+   "why": "gom những kẻ phản bội tản mát: hội đồng chiến tranh quanh Abaddon"
+  },
+  {
+   "at": 9.5,
+   "img": "legion",
+   "focus": [
+    0.33,
+    0.31
+   ],
+   "edit": "lao-toi",
+   "zoom": 1.35,
+   "why": "bắt đầu các cuộc Thập tự chinh Đen: từ hàng quân lao lên Abaddon",
+   "from": [
+    1.25,
+    0.55,
+    0.62
+   ]
+  },
+  {
+   "at": 10,
+   "img": "throne",
+   "focus": [
+    0.5,
+    0.26
+   ],
+   "edit": "ngang-len",
+   "from": [
+    1.2,
+    0.5,
+    0.85
+   ],
+   "zoom": 1.3,
+   "kick": 0.05,
+   "why": "12 cuộc, không lần nào chiếm được Terra: từ đám đông lên Ngai Vàng của Terra"
+  },
+  {
+   "at": 11,
+   "img": "mtg",
+   "focus": [
+    0.46,
+    0.4
+   ],
+   "edit": "ap-mat",
+   "zoom": 1.35,
+   "kick": 0.05,
+   "why": "fan chê Abaddon là kẻ thất bại thành công nhất"
+  },
+  {
+   "at": 12,
+   "img": "eye",
+   "focus": [
+    0.65,
+    0.42
+   ],
+   "edit": "lao-toi",
+   "from": [
+    1.2,
+    0.3,
+    0.75
+   ],
+   "zoom": 1.3,
+   "kick": 0.08,
+   "why": "câu xoay chuyển: hạm đội lao ra từ Mắt Kinh Hoàng"
+  },
+  {
+   "at": 13,
+   "img": "cave",
+   "focus": [
+    0.63,
+    0.3
+   ],
+   "edit": "qua-vat",
+   "from": [
+    1.2,
+    0.45,
+    0.5
+   ],
+   "zoom": 1.35,
+   "kick": 0.05,
+   "why": "đi tìm cổ vật: từ ngọn lửa tím sang Abaddon"
+  },
+  {
+   "at": 13.23,
+   "img": "crusade",
+   "focus": [
+    0.67,
+    0.72
+   ],
+   "edit": "toan-canh",
+   "from": [
+    1.25,
+    0.3,
+    0.32
+   ],
+   "zoom": 1.5,
+   "kick": 0.06,
+   "why": "thử phòng tuyến của Đế chế: cả trận đánh"
+  },
+  {
+   "at": 13.54,
+   "img": "gate",
+   "focus": [
+    0.37,
+    0.62
+   ],
+   "edit": "luot-ngang",
+   "move": "from-right",
+   "zoom": 1.3,
+   "kick": 0.04,
+   "why": "bào mòn các thế giới canh cửa Mắt: lướt dọc chiến tuyến"
+  },
+  {
+   "at": 14,
+   "img": "hood",
+   "focus": [
+    0.52,
+    0.45
+   ],
+   "edit": "ap-mat",
+   "zoom": 1.35,
+   "kick": 0.04,
+   "why": "mỗi thất bại dạy hắn một điều: gương mặt trầm tư"
+  },
+  {
+   "at": 15,
+   "img": "assault",
+   "focus": [
+    0.57,
+    0.31
+   ],
+   "edit": "va-dap",
+   "from": [
+    1.15,
+    0.57,
+    0.8
+   ],
+   "zoom": 1.35,
+   "kick": 0.1,
+   "why": "lần thứ 13 hắn đánh Cadia: từ lính Cadia lên Abaddon"
+  },
+  {
+   "at": 15.47,
+   "img": "cadians",
+   "focus": [
+    0.46,
+    0.38
+   ],
+   "edit": "luot-ngang",
+   "move": "from-left",
+   "zoom": 1.25,
+   "kick": 0.05,
+   "why": "quân Cadia canh cửa Mắt mười nghìn năm: lướt dọc hàng lính tới lá cờ"
+  },
+  {
+   "at": 16,
+   "img": "blackstone",
+   "focus": [
+    0.42,
+    0.66
+   ],
+   "edit": "lao-toi",
+   "from": [
+    1.3,
+    0.47,
+    0.2
+   ],
+   "zoom": 1.3,
+   "kick": 0.08,
+   "why": "pháo đài Blackstone lao xuống Cadia: đi theo pháo đài rơi xuống thành phố"
+  },
+  {
+   "at": 16.67,
+   "img": "cadiafalls",
+   "focus": [
+    0.6,
+    0.56
+   ],
+   "edit": "va-dap",
+   "zoom": 1.08,
+   "kick": 0.1,
+   "why": "Cadia vỡ nát: hành tinh nứt toác trong lửa",
+   "from": [
+    1.0,
+    0.5,
+    0.5
+   ]
+  },
+  {
+   "at": 17,
+   "img": "greatrift",
+   "focus": [
+    0.63,
+    0.45
+   ],
+   "edit": "luot-ngang",
+   "move": "from-left",
+   "zoom": 1.0,
+   "kick": 0.06,
+   "why": "Vết rạn Warp xé đôi thiên hà: lướt từ hạm đội vào cơn bão Warp"
+  },
+  {
+   "at": 18,
+   "img": "victor",
+   "focus": [
+    0.41,
+    0.17
+   ],
+   "edit": "qua-vat",
+   "from": [
+    1.25,
+    0.72,
+    0.13
+   ],
+   "zoom": 1.3,
+   "kick": 0.06,
+   "why": "12 thất bại để chuẩn bị một chiến thắng: từ thanh kiếm giơ cao tới khuôn mặt"
+  },
+  {
+   "at": 19,
+   "img": "portrait",
+   "focus": [
+    0.52,
+    0.45
+   ],
+   "edit": "lui-ra",
+   "kick": 0.03,
+   "why": "câu hỏi kết: lùi ra khỏi chân dung Abaddon",
+   "from": [
+    1.6,
+    0.52,
+    0.42
+   ],
+   "zoom": 1.1
+  }
+ ]
+}
