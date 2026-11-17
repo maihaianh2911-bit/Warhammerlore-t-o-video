@@ -77,10 +77,11 @@ gh api "repos/$R/issues?state=open&labels=lore&per_page=50" --jq '[.[] | select(
   in one consistent look across the video; an older or smaller picture only when nothing else shows the subject.
 - **Our own style, not the reference (owner, 16/11, on video 5: "ugly pictures, boring motion, the voice a bit
   slow — can you do better if you don't follow the reference?").** Every new video uses it; it replaces the
-  reference's pacing below. In `picks.json`: `"tempo": 1.15` (the voice played 15 % faster, pitch kept; no new
-  VN11 reading; the video is then the voice length ÷ 1.15, and that is the length the 60-second rule counts) and `"fx": true` (a slightly handheld, breathing camera; each shot rushes forward into the cut;
+  reference's pacing below. In `picks.json`: `"tempo": 1.38` (the voice played 38 % faster, pitch kept; no new
+  VN11 reading; the video is then the voice length ÷ 1.38, and that is the length the 60-second rule counts —
+  owner, 17/11: "20 % faster" than video 5, which used 1.15) and `"fx": true` (a slightly handheld, breathing camera; each shot rushes forward into the cut;
   a warm flash on hard cuts, `kick` ≥ 0.06; light film grain; a dark music bed made by code, ducked under the
-  voice; a whoosh at every cut and a deep impact on the hard ones). Cut faster: 2–5 s a shot, about 14–18 pictures
+  voice; a whoosh at every cut and a deep impact on the hard ones). Cut faster: 2–4 s a shot, about 18–22 pictures
   a minute, split a long line across two or three pictures (`at` 7.45), and give most cuts a `kick` (0.06–0.1
   where the line hits). Pictures: modern ArtStation and 40K Gallery paintings first; search a second round
   (`search-2.json`) before settling for a small wiki scan, a miniature photo or a plain figure on a white ground.
@@ -160,13 +161,13 @@ Commit `[lore #<N>] kịch bản`, push, wait until the label is `lore-voice`, t
 4. What each line needs: a named character, faction or ship → artwork of exactly that subject; a place or event →
    artwork of it, else a fitting mood picture; feelings and ideas → a picture whose mood matches.
    Pacing (our own style, see the owner's decisions): a picture changes when the subject or the speaker changes,
-   and a long line gets two or three pictures — 2–5 s each, about 14–18 pictures a minute. A strong picture may return with
+   and a long line gets two or three pictures — 2–4 s each, about 18–22 pictures a minute. A strong picture may return with
    another `focus` (the reference shows its key scene twice). Open on the most striking portrait or scene and
    close on a picture that carries the last line. Any shape of artwork works: the camera travels over the whole
    picture, so a wide battle scene is swept across and a tall figure is climbed. One clear subject per picture.
 5. Format:
 ```json
-{"tempo": 1.15, "fx": true,
+{"tempo": 1.38, "fx": true,
  "images": {"tyberos": {"src": "1/1-1.jpg", "credit": "Tyberos the Red Wake — Games Workshop, Warhammer 40k Wiki"},
             "fleet": {"src": "art/carcharodons-fleet.jpg", "credit": "…", "crop": [0.1, 0.0, 0.9, 1.0]},
             "nebula": {"src": "1/9-3.jpg", "credit": "Carina Nebula — NASA/ESA, public domain (Wikimedia Commons)"}},

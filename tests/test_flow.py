@@ -41,7 +41,8 @@ class StyleTest(unittest.TestCase):
 
     def test_tempo_and_fx(self):
         self.assertEqual(load_style(write({"tempo": 1.15, "fx": True})), {"tempo": 1.15, "fx": True})
-        for bad in ({"tempo": 0.9}, {"tempo": 1.5}, {"tempo": True}, {"fx": "yes"}):
+        self.assertEqual(load_style(write({"tempo": 1.38}))["tempo"], 1.38)
+        for bad in ({"tempo": 0.9}, {"tempo": 1.6}, {"tempo": True}, {"fx": "yes"}):
             with self.assertRaises(ValueError):
                 load_style(write(bad))
 
