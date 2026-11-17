@@ -124,8 +124,9 @@ Read the issue form (Kịch bản, Hình riêng, Ghi chú) and the owner's comme
     name of the same thing) and most credits read "40K Gallery" (open the artwork's page for the artist when it
     matters). The best matches come first since 17/11: the word itself before look-alikes (`gallery:Mars` no
     longer opens with "Marshal …"); pin-up, chibi, meme and cosplay titles are never offered. A big name has many
-    more than 16 (`Ultramarines` 217, `Nurgle` 131, `Sanguinius` 95, `Horus` 90): **ask `p2`, `p3` as well and, for
-    a character who was in an earlier video, start from a later page**, or every video shows the same sixteen.
+    more than 16 (`Ultramarines` 217, `Nurgle` 131, `Sanguinius` 95, `Horus` 90): ask `p2`, `p3` when the first
+    sixteen do not hold the picture a scene needs. An artwork that was in an earlier video may be used again
+    (owner, 17/11/2026: "có thể dùng tranh lặp mà"): choose the best picture for the scene, new or not.
   - `artstation:Sanguinius` — ArtStation, most liked first (up to 16, ≥ 900 px): modern, high-resolution
     artwork by named artists. **The main source**: one query for every character, faction and scene, with the
     English lore name (`artstation:Leman Russ`, `artstation:Space Wolves`, `artstation:Horus Heresy`). Two-name
