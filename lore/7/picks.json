@@ -1,0 +1,460 @@
+{
+ "tempo": 1.38,
+ "fx": true,
+ "images": {
+  "open": {
+   "src": "1/1-6.jpg",
+   "credit": "Sanguinius — adrian4rt, ArtStation"
+  },
+  "primarch": {
+   "src": "1/2-6.jpg",
+   "credit": "Blood Angels 36 — 40K Gallery https://40k.gallery/blood-angels-36/",
+   "crop": [
+    0.02,
+    0.0,
+    0.98,
+    0.97
+   ]
+  },
+  "wings": {
+   "src": "1/1-5.jpg",
+   "credit": "Sanguinius — oruam, ArtStation"
+  },
+  "dream": {
+   "src": "1/2-12.jpg",
+   "credit": "Come and See — 40K Gallery https://40k.gallery/come-and-see/"
+  },
+  "horus": {
+   "src": "1/9-4.jpg",
+   "credit": "Horus Lupercal — adrian4rt, ArtStation"
+  },
+  "brothers": {
+   "src": "1/2-8.jpg",
+   "credit": "Brother Primarchs — 40K Gallery https://40k.gallery/brother-primarchs/"
+  },
+  "teleport": {
+   "src": "1/2-14.jpg",
+   "credit": "Emperor Teleporting — Richard Bagnall, 40K Gallery https://40k.gallery/emperor-teleporting/",
+   "crop": [
+    0.0,
+    0.05,
+    1.0,
+    0.93
+   ]
+  },
+  "ship": {
+   "src": "1/12-2.jpg",
+   "credit": "Vengeful Spirit 2 — 40K Gallery https://40k.gallery/vengeful-spirit-2/"
+  },
+  "charge": {
+   "src": "1/3-3.jpg",
+   "credit": "Horus Rebellion — 40K Gallery https://40k.gallery/horus-rebellion/"
+  },
+  "offer": {
+   "src": "1/1-12.jpg",
+   "credit": "Sanguinius — alex314, ArtStation"
+  },
+  "duel": {
+   "src": "1/3-2.jpg",
+   "credit": "Horus and Sanguinius — 40K Gallery https://40k.gallery/horus-and-sanguinius/"
+  },
+  "strike": {
+   "src": "1/1-2.jpg",
+   "credit": "Warhammer 40k Horus Heresy – The Angel's Last Flight — kheljay, ArtStation"
+  },
+  "blow": {
+   "src": "1/10-8.jpg",
+   "credit": "Emperor vs Horus 2 — 40K Gallery https://40k.gallery/emperor-vs-horus-2/",
+   "crop": [
+    0.0,
+    0.065,
+    1.0,
+    0.925
+   ]
+  },
+  "thirst": {
+   "src": "1/4-12.jpg",
+   "credit": "Blood Angels — alexichim, ArtStation"
+  },
+  "inferno": {
+   "src": "1/4-3.jpg",
+   "credit": "Warhammer 40K – The Angel's Inferno — kheljay, ArtStation"
+  },
+  "dcface": {
+   "src": "1/6-3.jpg",
+   "credit": "Death Company — ivanklimenko, ArtStation",
+   "crop": [
+    0.0,
+    0.035,
+    1.0,
+    1.0
+   ]
+  },
+  "berserk": {
+   "src": "1/7-7.jpg",
+   "credit": "Death Company Blood Angels — 40K Gallery https://40k.gallery/death-company-blood-angels/"
+  },
+  "fury": {
+   "src": "1/7-4.jpg",
+   "credit": "Death Company 6 — 40K Gallery https://40k.gallery/death-company-6/",
+   "crop": [
+    0.0,
+    0.0,
+    0.74,
+    1.0
+   ]
+  },
+  "hide": {
+   "src": "1/4-7.jpg",
+   "credit": "Devastation of Baal: Dante meets Guilliman — kheljay, ArtStation"
+  },
+  "banner": {
+   "src": "1/7-10.jpg",
+   "credit": "Death Company Flag Bearer — 40K Gallery https://40k.gallery/death-company-flag-bearer/"
+  },
+  "battle": {
+   "src": "1/4-8.jpg",
+   "credit": "Devastation of Baal — klaher, ArtStation"
+  },
+  "icarus": {
+   "src": "1/3-6.jpg",
+   "credit": "Icarus — 40K Gallery https://40k.gallery/icarus/",
+   "crop": [
+    0.0,
+    0.19,
+    1.0,
+    0.69
+   ]
+  },
+  "final": {
+   "src": "1/3-13.jpg",
+   "credit": "Sanguinius — Davide Pizi, 40K Gallery https://40k.gallery/sanguinius-29/"
+  }
+ },
+ "shots": [
+  {
+   "img": "open",
+   "focus": [
+    0.5,
+    0.36
+   ],
+   "edit": "ap-mat",
+   "zoom": 1.3,
+   "why": "mở bằng chân dung Sanguinius, người con được yêu nhất"
+  },
+  {
+   "at": 2,
+   "img": "primarch",
+   "focus": [
+    0.5,
+    0.22
+   ],
+   "edit": "ngang-len",
+   "kick": 0.05,
+   "why": "từ hàng Blood Angels quỳ lên tới vị Primarch của họ"
+  },
+  {
+   "at": 2.52,
+   "img": "wings",
+   "focus": [
+    0.47,
+    0.26
+   ],
+   "edit": "toan-canh",
+   "zoom": 1.4,
+   "kick": 0.05,
+   "why": "thiên thần cánh trắng, hiền hậu, được yêu mến"
+  },
+  {
+   "at": 3,
+   "img": "dream",
+   "focus": [
+    0.5,
+    0.21
+   ],
+   "edit": "de-doa",
+   "kick": 0.04,
+   "why": "giấc mơ thấy cái chết của mình: đẩy vào bóng thiên thần mờ"
+  },
+  {
+   "at": 4,
+   "img": "horus",
+   "focus": [
+    0.46,
+    0.33
+   ],
+   "edit": "va-dap",
+   "kick": 0.1,
+   "why": "cái tên kẻ sẽ giết anh lộ ra: Horus"
+  },
+  {
+   "at": 4.53,
+   "img": "brothers",
+   "focus": [
+    0.27,
+    0.22
+   ],
+   "edit": "toan-canh",
+   "from": [
+    1.3,
+    0.6,
+    0.53
+   ],
+   "zoom": 1.35,
+   "kick": 0.05,
+   "why": "hai anh em kề vai; từ Horus sang Sanguinius vẫn không né tránh"
+  },
+  {
+   "at": 6,
+   "img": "teleport",
+   "focus": [
+    0.52,
+    0.35
+   ],
+   "edit": "lao-toi",
+   "zoom": 1.35,
+   "kick": 0.08,
+   "why": "Hoàng đế dịch chuyển giữa chớp sáng, lướt từ Sanguinius tới Ngài",
+   "from": [
+    1.3,
+    0.33,
+    0.45
+   ]
+  },
+  {
+   "at": 6.64,
+   "img": "ship",
+   "focus": [
+    0.66,
+    0.58
+   ],
+   "edit": "luot-ngang",
+   "move": "from-left",
+   "zoom": 1.3,
+   "kick": 0.04,
+   "why": "lướt dọc soái hạm Vengeful Spirit tới mũi tàu"
+  },
+  {
+   "at": 7,
+   "img": "charge",
+   "focus": [
+    0.61,
+    0.15
+   ],
+   "edit": "lao-toi",
+   "from": [
+    1.25,
+    0.32,
+    0.55
+   ],
+   "zoom": 1.35,
+   "why": "Sanguinius lao xuống tới Horus trước tiên"
+  },
+  {
+   "at": 8,
+   "img": "offer",
+   "focus": [
+    0.48,
+    0.41
+   ],
+   "edit": "ap-mat",
+   "from": [
+    1.2,
+    0.8,
+    0.38
+   ],
+   "zoom": 1.3,
+   "kick": 0.05,
+   "why": "theo bàn tay Horus chìa ra mời, tới gương mặt Sanguinius đang bị cám dỗ"
+  },
+  {
+   "at": 9,
+   "img": "duel",
+   "focus": [
+    0.25,
+    0.27
+   ],
+   "edit": "va-dap",
+   "zoom": 1.4,
+   "kick": 0.1,
+   "why": "từ chối, trận tử chiến: thiên thần gục trong tay Horus"
+  },
+  {
+   "at": 11,
+   "img": "strike",
+   "focus": [
+    0.64,
+    0.33
+   ],
+   "edit": "qua-vat",
+   "from": [
+    1.3,
+    0.33,
+    0.3
+   ],
+   "zoom": 1.35,
+   "kick": 0.06,
+   "why": "từ đòn đánh của Sanguinius sang bộ giáp Horus"
+  },
+  {
+   "at": 11.45,
+   "img": "blow",
+   "focus": [
+    0.51,
+    0.33
+   ],
+   "edit": "va-dap",
+   "from": [
+    1.25,
+    0.25,
+    0.5
+   ],
+   "zoom": 1.35,
+   "kick": 0.1,
+   "why": "đòn quyết định của Hoàng đế: từ thanh kiếm lửa tới Horus"
+  },
+  {
+   "at": 12,
+   "img": "thirst",
+   "focus": [
+    0.46,
+    0.21
+   ],
+   "edit": "ngang-len",
+   "kick": 0.05,
+   "why": "từ vũng máu dưới chân lên mặt chiến binh Blood Angels: Cơn khát Đỏ"
+  },
+  {
+   "at": 13,
+   "img": "inferno",
+   "focus": [
+    0.485,
+    0.38
+   ],
+   "edit": "de-doa",
+   "kick": 0.08,
+   "why": "sau cái chết, điều tệ hơn đến: đẩy chậm vào mặt người ngồi giữa Đội Tử thần"
+  },
+  {
+   "at": 14,
+   "img": "dcface",
+   "focus": [
+    0.53,
+    0.42
+   ],
+   "edit": "ap-mat",
+   "zoom": 1.35,
+   "kick": 0.06,
+   "why": "chiến binh đội vòng nguyệt quế, tưởng mình là Sanguinius"
+  },
+  {
+   "at": 14.49,
+   "img": "duel",
+   "focus": [
+    0.42,
+    0.35
+   ],
+   "edit": "lui-ra",
+   "from": [
+    1.6,
+    0.25,
+    0.27
+   ],
+   "zoom": 1.12,
+   "kick": 0.06,
+   "why": "sống lại những giây cuối: từ mặt Sanguinius lùi ra thấy Horus"
+  },
+  {
+   "at": 15,
+   "img": "berserk",
+   "focus": [
+    0.42,
+    0.27
+   ],
+   "edit": "lao-toi",
+   "zoom": 1.35,
+   "why": "lao vào kẻ thù như mất trí"
+  },
+  {
+   "at": 15.49,
+   "img": "fury",
+   "focus": [
+    0.61,
+    0.3
+   ],
+   "edit": "luot-ngang",
+   "zoom": 1.3,
+   "kick": 0.06,
+   "why": "giữa mưa máu, không sợ, không dừng"
+  },
+  {
+   "at": 16,
+   "img": "hide",
+   "focus": [
+    0.44,
+    0.43
+   ],
+   "edit": "toan-canh",
+   "from": [
+    1.25,
+    0.585,
+    0.3
+   ],
+   "zoom": 1.3,
+   "kick": 0.04,
+   "why": "giấu lời nguyền trước Đế quốc: từ Guilliman sang mặt nạ của Dante"
+  },
+  {
+   "at": 17,
+   "img": "banner",
+   "focus": [
+    0.62,
+    0.38
+   ],
+   "edit": "ngang-len",
+   "kick": 0.05,
+   "why": "Đội Tử thần: từ lửa dưới chân lên đôi mắt đỏ"
+  },
+  {
+   "at": 17.52,
+   "img": "battle",
+   "focus": [
+    0.52,
+    0.23
+   ],
+   "edit": "luot-ngang",
+   "zoom": 1.3,
+   "kick": 0.06,
+   "why": "bị đưa tới nơi trận đánh dữ dội nhất"
+  },
+  {
+   "at": 18,
+   "img": "icarus",
+   "focus": [
+    0.56,
+    0.12
+   ],
+   "edit": "lui-ra",
+   "from": [
+    1.55,
+    0.37,
+    0.34
+   ],
+   "zoom": 1.2,
+   "kick": 0.03,
+   "why": "người con chết như anh hùng, các con anh ôm lấy cái chết ấy"
+  },
+  {
+   "at": 19,
+   "img": "final",
+   "focus": [
+    0.5,
+    0.32
+   ],
+   "edit": "ap-mat",
+   "zoom": 1.3,
+   "kick": 0.06,
+   "why": "câu hỏi cho người xem: Sanguinius nhìn thẳng vào ta"
+  }
+ ]
+}
