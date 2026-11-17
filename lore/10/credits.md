@@ -1,0 +1,28 @@
+# Nguồn hình
+
+- Abaddon 8 — 40K Gallery https://40k.gallery/abaddon-8/
+- Abaddon the Despoiler 9 — 40K Gallery https://40k.gallery/abaddon-the-despoiler-9/
+- Horus — 40K Gallery https://40k.gallery/horus/
+- Horus Lupercal — adrian4rt, ArtStation
+- Horus vs the Emperor — Adrian Smith, 40K Gallery https://40k.gallery/horus-vs-the-emperor/
+- The Last Son of Horus — doodlok, ArtStation
+- Evil Horus — 40K Gallery https://40k.gallery/evil-horus/
+- Abaddon the Despoiler — fan_1911574281, ArtStation
+- Abaddon the Despoiler 16 — 40K Gallery https://40k.gallery/abaddon-the-despoiler-16/
+- Abaddon The Despoiler — phil-moss, ArtStation
+- Abaddon, Talon of Horus — Games Workshop, Warhammer 40k Wiki
+- Abaddon War Council — 40K Gallery https://40k.gallery/abaddon-war-council/
+- Black Legion 10 — 40K Gallery https://40k.gallery/black-legion-10/
+- Golden Throne of Terra — 40K Gallery https://40k.gallery/golden-throne-of-terra/
+- Abaddon the Despoiler 5 — Johan Grenier, 40K Gallery https://40k.gallery/abaddon-the-despoiler-5/
+- Eye of Terror 2 — 40K Gallery https://40k.gallery/eye-of-terror-2/
+- Abaddon the Despoiler 3 — 40K Gallery https://40k.gallery/abaddon-the-despoiler-3/
+- Warhammer /// Black Crusade Traitor's hate — davidalvarezart, ArtStation
+- Black Legion vs. Dark Angels, 13th Black Crusade — Games Workshop, Warhammer 40k Wiki
+- Abaddon 3 — 40K Gallery https://40k.gallery/abaddon-3/
+- Abaddon Assault on Cadia — 40K Gallery https://40k.gallery/abaddon-assault-on-cadia/
+- 8th Cadia Regiment — 40K Gallery https://40k.gallery/8th-cadia-regiment/
+- Blackstone Strikes Cadia — Games Workshop, Warhammer 40k Wiki
+- Fall of Cadia — Games Workshop, Warhammer 40k Wiki
+- Cicatrix Maledictum, the Great Rift — 40K Gallery https://40k.gallery/cicatrix-maledictum-the-great-rift/
+- Abaddon the Despoiler 7 — 40K Gallery https://40k.gallery/abaddon-the-despoiler-7/
